@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.example.glassmenu.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "GameRendererAccessor",
+    "TitleScreenMixin",
+    "GameMenuScreenMixin",
+    "HeldItemRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

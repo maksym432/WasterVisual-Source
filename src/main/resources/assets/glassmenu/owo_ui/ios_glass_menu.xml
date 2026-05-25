@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<owo-ui xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/wisp-forest/owo-lib/1.21/src/main/resources/owo-ui.xsd">
+
+    <components>
+        <!-- Full-screen centring wrapper -->
+        <flow-layout direction="vertical"
+                     id="root"
+                     horizontal-alignment="center"
+                     vertical-alignment="center">
+
+            <sizing horizontal="fill" vertical="fill"/>
+
+            <!-- Glass card — background drawn in Java renderBackground -->
+            <flow-layout direction="vertical"
+                         id="glass-card"
+                         padding="20"
+                         gap="12"
+                         horizontal-alignment="center"
+                         vertical-alignment="center">
+
+                <sizing horizontal="fixed" vertical="content">
+                    <width>300</width>
+                </sizing>
+
+                <!-- Title -->
+                <label id="title-label"
+                       text="Liquid Glass"
+                       color="0xFFFFFFFF"
+                       shadow="true"
+                       horizontal-text-alignment="center">
+                    <sizing horizontal="fill" vertical="content"/>
+                </label>
+
+                <!-- Subtitle -->
+                <label id="subtitle-label"
+                       text="iOS 26 style"
+                       color="0xBBFFFFFF"
+                       shadow="false"
+                       horizontal-text-alignment="center">
+                    <sizing horizontal="fill" vertical="content"/>
+                </label>
+
+                <!-- Widget area — populated from Java -->
+                <flow-layout direction="vertical"
+                             id="widget-area"
+                             gap="14"
+                             horizontal-alignment="center"
+                             vertical-alignment="center">
+                    <sizing horizontal="fill" vertical="content"/>
+                </flow-layout>
+
+            </flow-layout>
+        </flow-layout>
+    </components>
+</owo-ui>

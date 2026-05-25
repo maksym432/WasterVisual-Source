@@ -1,0 +1,168 @@
+/*
+ * RenderUtils - Architecture & Primary Responsibility:
+ * Core Rendering Utilities.
+ * Provides helper methods for drawing SDF-based rounded rectangles, 
+ * lines, and managing shader uniforms for high-fidelity UI elements.
+ */
+package com.example.glassmenu.render;
+
+import com.example.glassmenu.shader.ModShaders;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gl.ShaderProgram;
+import net.minecraft.client.render.*;
+import net.minecraft.client.util.math.MatrixStack;
+import org.joml.Matrix4f;
+
+public class RenderUtils {
+
+    public static void drawSdfRoundedRect(MatrixStack matrices, float x, float y, float w, float h, float radius, int color, float swell) {
+        float centerX = x + w / 2f;
+        float centerY = y + h / 2f;
+        
+        matrices.push();
+        matrices.translate(centerX, centerY, 0);
+        matrices.scale(1.0f + swell * 0.08f, 1.0f + swell * 0.08f, 1.0f);
+        matrices.translate(-centerX, -centerY, 0);
+
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        
+        float a = (float) (color >> 24 & 255) / 255.0F;
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+
+        ShaderProgram shader = !com.example.glassmenu.GlassMenuClient.CONFIG.enableShaders() ? null : ModShaders.getSdfRoundedRect();
+        if (shader == null) {
+            RenderSystem.enableBlend();
+            RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+            Tessellator tessellator = Tessellator.getInstance();
+            BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+            buffer.vertex(matrix, x, y + h, 0).color(r, g, b, a);
+            buffer.vertex(matrix, x + w, y + h, 0).color(r, g, b, a);
+            buffer.vertex(matrix, x + w, y, 0).color(r, g, b, a);
+            buffer.vertex(matrix, x, y, 0).color(r, g, b, a);
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
+            matrices.pop();
+            return;
+        }
+
+        RenderSystem.setShader(() -> shader);
+        if (shader.getUniform("Color") != null) shader.getUniform("Color").set(r, g, b, a);
+        if (shader.getUniform("Size") != null) shader.getUniform("Size").set(w, h);
+        if (shader.getUniform("Radius") != null) shader.getUniform("Radius").set(radius);
+        if (shader.getUniform("EdgeSoftness") != null) shader.getUniform("EdgeSoftness").set(1.0f);
+        if (shader.getUniform("TexBounds") != null) shader.getUniform("TexBounds").set(0f, 0f, 1f, 1f);
+
+        // Bind a guaranteed valid vanilla texture to prevent black sampling/GL errors
+        RenderSystem.setShaderTexture(0, net.minecraft.util.Identifier.ofVanilla("textures/block/white_concrete.png"));
+
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+
+        buffer.vertex(matrix, x, y + h, 0).texture(0, 1);
+        buffer.vertex(matrix, x + w, y + h, 0).texture(1, 1);
+        buffer.vertex(matrix, x + w, y, 0).texture(1, 0);
+        buffer.vertex(matrix, x, y, 0).texture(0, 0);
+
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        matrices.pop();
+    }
+
+    public static void drawSdfRoundedOutline(MatrixStack matrices, float x, float y, float w, float h, float radius, float thickness, int color) {
+        // Draw outline by drawing two rounded rects (one slightly smaller to create the hole)
+        // or by using a specialized shader (preferred).
+        // Since we have one SDF shader, we'll draw the outer fill, then clear inner if needed.
+        // For simple UI, drawing the border with a very small scale-down fill works.
+        drawSdfRoundedRect(matrices, x - thickness, y - thickness, w + thickness * 2, h + thickness * 2, radius + thickness, color, 0);
+    }
+
+    public static void drawLine(MatrixStack matrices, float x, float y, float x2, float y2, float thickness, int color) {
+        float a = (float) (color >> 24 & 255) / 255.0F;
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        RenderSystem.enableBlend();
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
+
+        float half = thickness / 2f;
+        
+        buffer.vertex(matrix, x, y + half, 0).color(r, g, b, a);
+        buffer.vertex(matrix, x2, y + half, 0).color(r, g, b, a);
+        buffer.vertex(matrix, x2, y - half, 0).color(r, g, b, a);
+        
+        buffer.vertex(matrix, x, y + half, 0).color(r, g, b, a);
+        buffer.vertex(matrix, x2, y - half, 0).color(r, g, b, a);
+        buffer.vertex(matrix, x, y - half, 0).color(r, g, b, a);
+
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+    }
+
+    public static class TintedVertexConsumer implements VertexConsumer {
+        private final VertexConsumer delegate;
+        private final float tr, tg, tb, ta;
+
+        public TintedVertexConsumer(VertexConsumer delegate, float r, float g, float b, float a) {
+            this.delegate = delegate;
+            this.tr = r; this.tg = g; this.tb = b; this.ta = a;
+        }
+
+        @Override public VertexConsumer vertex(float x, float y, float z) { return delegate.vertex(x, y, z); }
+        
+        @Override public VertexConsumer color(int r, int g, int b, int a) {
+            return delegate.color((int)(r * tr), (int)(g * tg), (int)(b * tb), (int)(a * ta));
+        }
+        
+        @Override public VertexConsumer texture(float u, float v) { return delegate.texture(u, v); }
+        @Override public VertexConsumer overlay(int u, int v) { return delegate.overlay(u, v); }
+        @Override public VertexConsumer light(int u, int v) { return delegate.light(u, v); }
+        @Override public VertexConsumer normal(float x, float y, float z) { return delegate.normal(x, y, z); }
+        
+        @Override public void vertex(float x, float y, float z, int color, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
+            int nr = (int)(((color >> 16) & 0xFF) * tr);
+            int ng = (int)(((color >> 8) & 0xFF) * tg);
+            int nb = (int)((color & 0xFF) * tb);
+            int na = (int)(((color >> 24) & 0xFF) * ta);
+            int nColor = (na << 24) | (nr << 16) | (ng << 8) | nb;
+            delegate.vertex(x, y, z, nColor, u, v, overlay, light, normalX, normalY, normalZ);
+        }
+
+        @Override
+        public VertexConsumer vertex(org.joml.Matrix4f matrix, float x, float y, float z) {
+            return delegate.vertex(matrix, x, y, z);
+        }
+
+        @Override
+        public VertexConsumer color(float r, float g, float b, float a) {
+            return delegate.color(r * tr, g * tg, b * tb, a * ta);
+        }
+
+        @Override
+        public VertexConsumer light(int light) {
+            return delegate.light(light);
+        }
+        
+        @Override
+        public VertexConsumer overlay(int overlay) {
+            return delegate.overlay(overlay);
+        }
+    }
+
+    public static class TintedVertexConsumerProvider implements VertexConsumerProvider {
+        private final VertexConsumerProvider delegate;
+        private final float r, g, b, a;
+
+        public TintedVertexConsumerProvider(VertexConsumerProvider delegate, float r, float g, float b, float a) {
+            this.delegate = delegate;
+            this.r = r; this.g = g; this.b = b; this.a = a;
+        }
+
+        @Override
+        public VertexConsumer getBuffer(RenderLayer layer) {
+            return new TintedVertexConsumer(delegate.getBuffer(layer), r, g, b, a);
+        }
+    }
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "glassmenu",
+  "version": "${version}",
+  "name": "WasterVisual",
+  "description": "iOS Glassmorphism UI demo using OwO-lib",
+  "authors": ["waster"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/glassmenu/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.example.glassmenu.GlassMenuClient"
+    ]
+  },
+  "mixins": [
+    "glassmenu.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.5",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  }
+}
