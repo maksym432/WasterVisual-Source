@@ -9,7 +9,8 @@
     "ScreenMixin",
     "HeldItemRendererMixin",
     "MouseMixin",
-    "InGameHudMixin"
+    "InGameHudMixin",
+    "AbstractInventoryScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
