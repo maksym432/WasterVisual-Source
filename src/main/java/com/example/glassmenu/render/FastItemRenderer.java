@@ -3,16 +3,21 @@
  * Renders a premium circular Hotbar replacement/overlay.
  * Arranges the 9 hotbar items along the circumference of a circle,
  * animating rotation so the selected item is always at the top.
+ *
+ * SAFETY: All OpenGL state (shader, textures, blend, depth test, diffuse
+ * lighting) is fully saved before rendering and fully restored afterwards
+ * to prevent texture/skin corruption in subsequent frames.
  */
 package com.example.glassmenu.render;
 
 import com.example.glassmenu.GlassMenuClient;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.DiffuseLighting;
+import net.minecraft.client.render.GameRenderer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.MathHelper;
 import org.lwjgl.opengl.GL11;
 
 public class FastItemRenderer {
@@ -52,7 +57,13 @@ public class FastItemRenderer {
         float radius = baseW / 2f;
         float distributionRadius = radius - 20f;
 
-        // ── Phase 1: Background & Slots ──────────────────────────────────────
+        // ── Save ALL state we might touch ──────────────────────────────────────
+        boolean wasBlend = GL11.glIsEnabled(GL11.GL_BLEND);
+        boolean wasDepth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+        ShaderProgram savedShader = RenderSystem.getShader();
+        int savedTexture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+
+        // ── Phase 1: Background & Slots (SDF, no texture corruption) ──────────
         context.getMatrices().push();
         context.getMatrices().translate(x, y, 0);
         context.getMatrices().scale(scaleX, scaleY, 1.0f);
@@ -95,11 +106,12 @@ public class FastItemRenderer {
         context.getMatrices().pop(); // Close scale matrix
 
         // ── Phase 2: Items ────────────────────────────────────────────────────
+        // Flush any pending batches before touching item rendering state
+        context.draw();
+
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableBlend();
-        RenderSystem.enableDepthTest();
-        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
         DiffuseLighting.enableGuiDepthLighting();
 
         for (int i = 0; i < 9; i++) {
@@ -113,7 +125,6 @@ public class FastItemRenderer {
             float absCenterX = x + slotCenterX * scaleX;
             float absCenterY = y + slotCenterY * scaleY;
 
-            context.draw(); // Flush states
             context.getMatrices().push();
             context.getMatrices().translate(absCenterX, absCenterY, 150.0f);
 
@@ -127,9 +138,24 @@ public class FastItemRenderer {
             context.getMatrices().pop();
         }
 
+        // Flush all item batches while DiffuseLighting is still in GUI mode
         context.draw();
+
+        // ── Restore ALL state unconditionally ─────────────────────────────────
         DiffuseLighting.disableGuiDepthLighting();
-        RenderSystem.disableDepthTest();
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+
+        if (!wasDepth) RenderSystem.disableDepthTest();
+        if (!wasBlend) RenderSystem.disableBlend();
+
+        // Restore shader
+        if (savedShader != null) {
+            RenderSystem.setShader(() -> savedShader);
+        } else {
+            RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        }
+
+        // Restore texture binding to slot 0
+        RenderSystem.setShaderTexture(0, savedTexture);
     }
 }
