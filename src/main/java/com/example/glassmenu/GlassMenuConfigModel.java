@@ -128,4 +128,14 @@ public class GlassMenuConfigModel {
     public int armorHudHeight = 32;
     public int armorHudX = -1;
     public int armorHudY = -1;
+
+    // --- FAST ITEM CIRCULAR HOTBAR ---
+    public boolean enableFastItem = false;
+    public int fastItemColor = 0xEE1C1C24;
+    public boolean transparentFastItem = false;
+    public boolean fastItemSlots = true;
+    public int fastItemWidth = 160;
+    public int fastItemHeight = 160;
+    public int fastItemX = -1;
+    public int fastItemY = -1;
 }
