@@ -978,14 +978,17 @@ public class LiquidGlassScreen extends Screen {
     private void renderVisualsInvHudTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
+        boolean isTransparent = GlassMenuClient.CONFIG.transparentBackground();
         context.drawTextWithShadow(textRenderer, "Inventory HUD Settings", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsInvHudWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == invSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
-            else if (w == invSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
-            else if (w == invSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            if (w == invSliderR || w == invSliderG || w == invSliderB) {
+                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
+                else if (w == invSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
+                else if (w == invSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
+                else if (w == invSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Transparent")) {
                 w.setX(x + 40); w.setY((int)y + 50 - (int)slideOffset);
@@ -994,23 +997,28 @@ public class LiquidGlassScreen extends Screen {
             }
         }
 
-        context.drawTextWithShadow(textRenderer, "Red", x + 230, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Blue", x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        if (!isTransparent) {
+            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        }
     }
 
     private void renderVisualsPlayerCardTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
+        boolean isTransparent = GlassMenuClient.CONFIG.transparentPlayerCard();
         context.drawTextWithShadow(textRenderer, "Player Card Settings", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
         context.drawTextWithShadow(textRenderer, "Enable Card", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (ClickableWidget w : visualsPlayerCardWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == cardSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
-            else if (w == cardSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
-            else if (w == cardSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            if (w == cardSliderR || w == cardSliderG || w == cardSliderB) {
+                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
+                else if (w == cardSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
+                else if (w == cardSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
+                else if (w == cardSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Transparent")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -1019,23 +1027,28 @@ public class LiquidGlassScreen extends Screen {
             }
         }
 
-        context.drawTextWithShadow(textRenderer, "Red", x + 230, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Blue", x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        if (!isTransparent) {
+            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        }
     }
 
     private void renderVisualsIndicatorTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
+        boolean isTransparent = GlassMenuClient.CONFIG.transparentUserIndicator();
         context.drawTextWithShadow(textRenderer, "User Indicator Settings", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
         context.drawTextWithShadow(textRenderer, "Enable Indicator", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (ClickableWidget w : visualsIndicatorWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == indSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
-            else if (w == indSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
-            else if (w == indSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            if (w == indSliderR || w == indSliderG || w == indSliderB) {
+                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
+                else if (w == indSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
+                else if (w == indSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
+                else if (w == indSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Transparent")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -1044,23 +1057,28 @@ public class LiquidGlassScreen extends Screen {
             }
         }
 
-        context.drawTextWithShadow(textRenderer, "Red", x + 230, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Blue", x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        if (!isTransparent) {
+            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        }
     }
 
     private void renderVisualsArmorHudTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
+        boolean isTransparent = GlassMenuClient.CONFIG.transparentArmorHud();
         context.drawTextWithShadow(textRenderer, "Armor HUD Settings", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
         context.drawTextWithShadow(textRenderer, "Enable Armor HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (ClickableWidget w : visualsArmorHudWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == armSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
-            else if (w == armSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
-            else if (w == armSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            if (w == armSliderR || w == armSliderG || w == armSliderB) {
+                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
+                else if (w == armSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
+                else if (w == armSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
+                else if (w == armSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Transparent")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -1071,36 +1089,50 @@ public class LiquidGlassScreen extends Screen {
             }
         }
 
-        context.drawTextWithShadow(textRenderer, "Red", x + 230, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Blue", x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        if (!isTransparent) {
+            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        }
     }
 
     private void renderVisualsFastItemTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
-        context.drawTextWithShadow(textRenderer, "Fast Item Wheel", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        boolean isTransparent = GlassMenuClient.CONFIG.transparentFastItem();
+
+        // Left column labels
         context.drawTextWithShadow(textRenderer, "Enable Fast Item", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Transparent",       x + 40, y + 82 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Item Slots",        x + 40, y + 112 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+
+        // Right column title
+        context.drawTextWithShadow(textRenderer, "Fast Item Wheel", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsFastItemWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == fastItemSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
-            else if (w == fastItemSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
-            else if (w == fastItemSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
-                w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
+            if (w == fastItemSliderR || w == fastItemSliderG || w == fastItemSliderB) {
+                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
+                else if (w == fastItemSliderR) { w.setX(x + 230); w.setY((int)y + 80 - (int)slideOffset); }
+                else if (w == fastItemSliderG) { w.setX(x + 230); w.setY((int)y + 110 - (int)slideOffset); }
+                else if (w == fastItemSliderB) { w.setX(x + 230); w.setY((int)y + 140 - (int)slideOffset); }
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+                w.setX(x + 40); w.setY((int)y + 200 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Transparent")) {
-                w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
+                w.setX(x + 130); w.setY((int)y + 77 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Item Slots")) {
-                w.setX(x + 40); w.setY((int)y + 115 - (int)slideOffset);
+                w.setX(x + 130); w.setY((int)y + 107 - (int)slideOffset);
             } else {
+                // Enable toggle switch
                 w.setX(x + 330); w.setY((int)y + 45 - (int)slideOffset);
             }
         }
 
-        context.drawTextWithShadow(textRenderer, "Red", x + 230, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Blue", x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        if (!isTransparent) {
+            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 70  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 100 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 130 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        }
     }
 
     private void drawFastItemPreview(DrawContext context, int x, int y, int w, int h) {
