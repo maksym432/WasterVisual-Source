@@ -63,11 +63,12 @@ public class LiquidGlassSlider extends ClickableWidget {
         if (vertical) {
             float r = width / 2.0f;
             // 1. Track Background
-            RenderUtils.drawSdfRoundedRect(matrices, getX() + r - 2, getY(), 4, height, 2, 0x88111111, 0);
+            RenderUtils.drawSdfRoundedRect(matrices, getX() + r - 2, getY(), 4, height, 2, 0x33FFFFFF, 0);
+            RenderUtils.drawSdfRoundedOutline(matrices, getX() + r - 2, getY(), 4, height, 2, 0.5f, 0x1AFFFFFF);
             // 2. Progress
             float progressH = (float)(height * actualValue);
             if (progressH > 0) {
-                RenderUtils.drawSdfRoundedRect(matrices, getX() + r - 2, getY() + height - progressH, 4, progressH, 2, 0xFFFFFFFF, 0);
+                RenderUtils.drawSdfRoundedRect(matrices, getX() + r - 2, getY() + height - progressH, 4, progressH, 2, 0xFF34C759, 0);
             }
             // 3. Knob
             float knobW = width * 0.8f;
@@ -79,11 +80,12 @@ public class LiquidGlassSlider extends ClickableWidget {
         } else {
             float r = height / 2.0f;
             // 1. Track Background
-            RenderUtils.drawSdfRoundedRect(matrices, getX(), getY() + r - 2, width, 4, 2, 0x88111111, 0);
+            RenderUtils.drawSdfRoundedRect(matrices, getX(), getY() + r - 2, width, 4, 2, 0x33FFFFFF, 0);
+            RenderUtils.drawSdfRoundedOutline(matrices, getX(), getY() + r - 2, width, 4, 2, 0.5f, 0x1AFFFFFF);
             // 2. Progress
             float progressW = (float)(width * actualValue);
             if (progressW > 0) {
-                RenderUtils.drawSdfRoundedRect(matrices, getX(), getY() + r - 2, progressW, 4, 2, 0xFFFFFFFF, 0);
+                RenderUtils.drawSdfRoundedRect(matrices, getX(), getY() + r - 2, progressW, 4, 2, 0xFF34C759, 0);
             }
             // 3. Knob
             float knobH = height * 0.8f;

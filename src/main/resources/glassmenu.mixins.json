@@ -6,8 +6,9 @@
   "mixins": [
     "GameRendererAccessor",
     "TitleScreenMixin",
-    "GameMenuScreenMixin",
-    "HeldItemRendererMixin"
+    "ScreenMixin",
+    "HeldItemRendererMixin",
+    "MouseMixin"
   ],
   "injectors": {
     "defaultRequire": 1

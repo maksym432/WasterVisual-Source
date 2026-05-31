@@ -82,19 +82,31 @@ public class BridgeBoxRenderer {
                 lastMaxY = targetMaxY;
                 lastMaxZ = targetMaxZ;
             } else {
+                double dx = targetMinX - lastMinX;
+                double dy = targetMinY - lastMinY;
+                double dz = targetMinZ - lastMinZ;
+                double distSq = dx * dx + dy * dy + dz * dz;
+                
+                if (distSq > 36.0) { // Teleport or dimension shift (dist > 6 blocks)
+                    lastMinX = targetMinX;
+                    lastMinY = targetMinY;
+                    lastMinZ = targetMinZ;
+                    lastMaxX = targetMaxX;
+                    lastMaxY = targetMaxY;
+                    lastMaxZ = targetMaxZ;
+                    dx = 0; dy = 0; dz = 0;
+                }
+
                 // Symmetric chewing gum stretching: leading edge moves fast, trailing edge lags (glued) and snaps
                 double leadRate = 0.68f;
                 double trailRate = 0.24f;
 
-                double dx = targetMinX - lastMinX;
                 double blendMinX = (dx > 0) ? trailRate : leadRate;
                 double blendMaxX = (dx > 0) ? leadRate : trailRate;
 
-                double dy = targetMinY - lastMinY;
                 double blendMinY = (dy > 0) ? trailRate : leadRate;
                 double blendMaxY = (dy > 0) ? leadRate : trailRate;
 
-                double dz = targetMinZ - lastMinZ;
                 double blendMinZ = (dz > 0) ? trailRate : leadRate;
                 double blendMaxZ = (dz > 0) ? leadRate : trailRate;
 
@@ -126,13 +138,15 @@ public class BridgeBoxRenderer {
         // Render in camera-relative space using absolute world space boundaries
         matrices.translate(-camPos.x, -camPos.y, -camPos.z);
 
+        net.minecraft.client.gl.ShaderProgram previousShader = RenderSystem.getShader();
+        boolean previousBlend = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
+
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableCull();
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(false);
         
-        RenderSystem.setShaderTexture(0, net.minecraft.util.Identifier.ofVanilla("textures/misc/white.png"));
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
 
         Tessellator tessellator = Tessellator.getInstance();
@@ -174,7 +188,15 @@ public class BridgeBoxRenderer {
 
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
-        RenderSystem.disableBlend();
+        if (!previousBlend) {
+            RenderSystem.disableBlend();
+        } else {
+            RenderSystem.enableBlend();
+        }
+        
+        if (previousShader != null) {
+            RenderSystem.setShader(() -> previousShader);
+        }
         matrices.pop();
     }
 

@@ -76,7 +76,56 @@ public class GlassMenuConfigModel {
         CIRCLE, BLOCK_OUTLINE
     }
 
+    // --- INVENTORY HUD ---
+    public boolean enableInventoryHud = true;
+    public int inventoryHudColor = 0xEE1C1C24; // Premium dark glassmorphic panel color
+    public boolean transparentBackground = false;
+    public int inventoryHudWidth = 260;
+    public int inventoryHudHeight = 92;
+
+    // --- POSITIONS ---
+    public int islandX = -1;
+    public int islandY = 4;
+    public int inventoryHudX = 10;
+    public int inventoryHudY = -1;
+    public int playerCardX = -1;
+    public int playerCardY = -1;
+
     // --- BRIDGE ---
     public boolean enableBridgeVortex = true;
     public int bridgeVortexColor = 0x00BFFF; // Default Cyan
+
+    // --- PLAYER CARD ---
+    public boolean enablePlayerCard = true;
+    public int playerCardColor = 0xEE1C1C24;
+    public boolean transparentPlayerCard = false;
+
+    // --- BEDWARS ---
+    public boolean enableBedWarsEsp = false;
+    public boolean enableBedWarsNames = false;
+    public boolean enableBedWarsHearts = true;
+    public BedWarsEspMode bedWarsEspMode = BedWarsEspMode.ALERT;
+
+    public enum BedWarsEspMode {
+        HITBOX, ALERT
+    }
+
+    // --- USER INDICATOR ---
+    public boolean enableUserIndicator = false;
+    public int userIndicatorColor = 0xEE1C1C24;
+    public boolean transparentUserIndicator = false;
+    public int userIndicatorWidth = 203;
+    public int userIndicatorHeight = 26;
+    public int userIndicatorX = -1;
+    public int userIndicatorY = -1;
+
+    // --- ARMOR HUD ---
+    public boolean enableArmorHud = false;
+    public int armorHudColor = 0xEE1C1C24;
+    public boolean transparentArmorHud = false;
+    public boolean armorHudVertical = false;
+    public int armorHudWidth = 120;
+    public int armorHudHeight = 32;
+    public int armorHudX = -1;
+    public int armorHudY = -1;
 }

@@ -87,6 +87,9 @@ public class JumpRingsManager {
         float g = ((color >> 8) & 0xFF) / 255f;
         float b = (color & 0xFF) / 255f;
 
+        net.minecraft.client.gl.ShaderProgram originalShader = RenderSystem.getShader();
+        boolean originalBlend = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
+
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableCull();
@@ -119,6 +122,15 @@ public class JumpRingsManager {
         }
 
         RenderSystem.depthMask(true);
+        RenderSystem.enableCull();
+        if (!originalBlend) {
+            RenderSystem.disableBlend();
+        } else {
+            RenderSystem.enableBlend();
+        }
+        if (originalShader != null) {
+            RenderSystem.setShader(() -> originalShader);
+        }
     }
 
     private static void renderBlockOutlines(MatrixStack matrices, MinecraftClient client, Vec3d cameraPos, Pulse p, float radius, float r, float g, float b, float a, float tickDelta) {

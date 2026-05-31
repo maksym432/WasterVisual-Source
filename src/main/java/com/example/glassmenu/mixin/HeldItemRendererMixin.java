@@ -82,7 +82,7 @@ public abstract class HeldItemRendererMixin {
             !isRightHand, matrices, finalProvider, light);
 
         // --- FLUSH AND RENDER PARTICLES ---
-        if (finalProvider instanceof net.minecraft.client.render.VertexConsumerProvider.Immediate immediate) {
+        if (vertexConsumers instanceof net.minecraft.client.render.VertexConsumerProvider.Immediate immediate) {
             immediate.draw();
         }
 

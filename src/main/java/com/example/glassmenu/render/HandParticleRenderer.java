@@ -470,6 +470,8 @@ public class HandParticleRenderer {
         // 5. Setup Rendering State: Keep matrix stack in local hand space (no inversion or camera translations needed!)
         matrices.push();
         
+        net.minecraft.client.gl.ShaderProgram previousShader = RenderSystem.getShader();
+
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableCull();
@@ -477,7 +479,6 @@ public class HandParticleRenderer {
         RenderSystem.depthFunc(org.lwjgl.opengl.GL11.GL_LEQUAL);
         RenderSystem.depthMask(false);
         
-        RenderSystem.setShaderTexture(0, net.minecraft.util.Identifier.ofVanilla("textures/misc/white.png"));
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -550,6 +551,10 @@ public class HandParticleRenderer {
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
         RenderSystem.disableBlend();
+
+        if (previousShader != null) {
+            RenderSystem.setShader(() -> previousShader);
+        }
         matrices.pop();
     }
 

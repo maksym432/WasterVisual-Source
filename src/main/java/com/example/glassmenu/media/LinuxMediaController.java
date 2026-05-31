@@ -41,11 +41,19 @@ public class LinuxMediaController {
         public Identifier artTexture = null;
         public int artWidth = 0;
         public int artHeight = 0;
+        public int avgColor = 0xFF34C759;
+        public double position = 0;
+        public double length = 0;
+        public boolean shuffle = false;
+        public String loopStatus = "None";
+        public int[] visualizerGradients = null;
     }
 
     private static final AtomicReference<MediaState> CURRENT_STATE = new AtomicReference<>(new MediaState());
     private static String lastArtUrl = "";
     private static final Identifier ART_TEXTURE_ID = Identifier.of("glassmenu", "current_album_art");
+    private static long isPlayingLockUntil = 0;
+    private static boolean lockedIsPlaying = false;
 
     public static void init() {
         RenderSystem.recordRenderCall(() -> {
@@ -58,43 +66,72 @@ public class LinuxMediaController {
 
     private static void poll() {
         try {
-            String title = exec("playerctl metadata title");
-            String artist = exec("playerctl metadata artist");
-            String status = exec("playerctl status");
-            boolean isPlaying = "Playing".equalsIgnoreCase(status);
-            
-            float volume = 1.0f;
-            String volStr = exec("playerctl volume");
-            try {
-                volume = Float.parseFloat(volStr);
-            } catch (Exception ignored) {}
-
-            String artUrl = exec("playerctl metadata mpris:artUrl");
+            String output = exec("playerctl metadata --format {{title}};;;{{artist}};;;{{status}};;;{{volume}};;;{{mpris:artUrl}};;;{{position}};;;{{mpris:length}}");
             
             MediaState oldState = CURRENT_STATE.get();
             MediaState newState = new MediaState();
             
-            // Persist metadata if new is empty
-            newState.title = title.isEmpty() ? oldState.title : title;
-            newState.artist = artist.isEmpty() ? oldState.artist : artist;
-            newState.isPlaying = isPlaying;
-            newState.volume = volume;
-            newState.artUrl = artUrl;
-            
-            // Inherit texture info
-            newState.artTexture = oldState.artTexture;
-            newState.artWidth = oldState.artWidth;
-            newState.artHeight = oldState.artHeight;
+            if (!output.isEmpty() && output.contains(";;;")) {
+                String[] parts = output.split(";;;", -1);
+                if (parts.length >= 5) {
+                    String title = parts[0].trim();
+                    String artist = parts[1].trim();
+                    String status = parts[2].trim();
+                    
+                    float volume = 1.0f;
+                    try {
+                        volume = Float.parseFloat(parts[3].trim());
+                    } catch (Exception ignored) {}
+                    boolean isPlaying = "Playing".equalsIgnoreCase(status);
+                    if (System.currentTimeMillis() < isPlayingLockUntil) {
+                        isPlaying = lockedIsPlaying;
+                    }
+                    
+                    String artUrl = parts[4].trim();
+                    
+                    newState.title = title.isEmpty() ? oldState.title : title;
+                    newState.artist = artist.isEmpty() ? oldState.artist : artist;
+                    newState.isPlaying = isPlaying;
+                    newState.volume = volume;
+                    newState.artUrl = artUrl;
+                    
+                    // Inherit texture info, average color and gradients
+                    newState.artTexture = oldState.artTexture;
+                    newState.artWidth = oldState.artWidth;
+                    newState.artHeight = oldState.artHeight;
+                    newState.avgColor = oldState.avgColor;
+                    newState.visualizerGradients = oldState.visualizerGradients;
+                    
+                    // Parse position and length (microseconds to seconds)
+                    if (parts.length >= 7) {
+                        try {
+                            newState.position = Double.parseDouble(parts[5].trim()) / 1_000_000.0;
+                        } catch (Exception ignored) {}
+                        try {
+                            newState.length = Double.parseDouble(parts[6].trim()) / 1_000_000.0;
+                        } catch (Exception ignored) {}
+                    }
+                    
+                    // Query shuffle and loop status
+                    String shuffleOut = exec("playerctl shuffle");
+                    newState.shuffle = "On".equalsIgnoreCase(shuffleOut.trim());
 
-            // Only clear if absolutely nothing is playing and we have no info
-            if (title.isEmpty() && artist.isEmpty() && !isPlaying) {
-                // We keep the old info for the "exit" animation but we could mark it as inactive
-            }
+                    String loopOut = exec("playerctl loop");
+                    newState.loopStatus = loopOut.trim().isEmpty() ? "None" : loopOut.trim();
 
-            // Handle image loading if URL changed
-            if (!artUrl.isEmpty() && !artUrl.equals(lastArtUrl)) {
-                lastArtUrl = artUrl;
-                loadArt(artUrl);
+                    // Handle image loading if URL changed
+                    if (!artUrl.isEmpty() && !artUrl.equals(lastArtUrl)) {
+                        lastArtUrl = artUrl;
+                        loadArt(artUrl);
+                    }
+                }
+            } else {
+                // No media players active or playerctl returned empty
+                newState.title = "";
+                newState.artist = "";
+                newState.isPlaying = false;
+                newState.volume = 1.0f;
+                newState.artUrl = "";
             }
 
             CURRENT_STATE.set(newState);
@@ -116,14 +153,51 @@ public class LinuxMediaController {
                     int width = image.getWidth();
                     int height = image.getHeight();
 
+                    // Calculate average color
+                    long sumR = 0, sumG = 0, sumB = 0;
+                    int count = 0;
+                    int stepX = Math.max(1, width / 20);
+                    int stepY = Math.max(1, height / 20);
+                    for (int px = 0; px < width; px += stepX) {
+                        for (int py = 0; py < height; py += stepY) {
+                            int abgr = image.getColor(px, py);
+                            int r = abgr & 0xFF;
+                            int g = (abgr >> 8) & 0xFF;
+                            int b = (abgr >> 16) & 0xFF;
+                            int a = (abgr >> 24) & 0xFF;
+                            if (a > 50) {
+                                sumR += r;
+                                sumG += g;
+                                sumB += b;
+                                count++;
+                            }
+                        }
+                    }
+                    int avgColor = 0xFF34C759; // Default green
+                    if (count > 0) {
+                        int r = (int)(sumR / count);
+                        int g = (int)(sumG / count);
+                        int b = (int)(sumB / count);
+                        avgColor = 0xFF000000 | (r << 16) | (g << 8) | b;
+                    }
+                    final int finalAvgColor = avgColor;
+
+                    // Extract 6x3 visualizer gradient colors (6 bars, 3 vertical colors each)
+                    int[] gradients = new int[18];
+                    for (int col = 0; col < 6; col++) {
+                        for (int row = 0; row < 3; row++) {
+                            int px = (int) net.minecraft.util.math.MathHelper.clamp((col + 0.5f) * width / 6f, 0, width - 1);
+                            int py = (int) net.minecraft.util.math.MathHelper.clamp((row + 0.5f) * height / 3f, 0, height - 1);
+                            int abgr = image.getColor(px, py);
+                            int r = abgr & 0xFF;
+                            int g = (abgr >> 8) & 0xFF;
+                            int b = (abgr >> 16) & 0xFF;
+                            gradients[col * 3 + row] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                        }
+                    }
+
                     RenderSystem.recordRenderCall(() -> {
                         var textureManager = MinecraftClient.getInstance().getTextureManager();
-                        // Close previous texture if it exists to prevent leaks
-                        var oldTexture = textureManager.getTexture(ART_TEXTURE_ID);
-                        if (oldTexture != null) {
-                            oldTexture.close();
-                        }
-                        
                         textureManager.registerTexture(ART_TEXTURE_ID, new NativeImageBackedTexture(image));
                         
                         // ONLY update the state with the texture after it's registered
@@ -137,6 +211,12 @@ public class LinuxMediaController {
                         newStateWithArt.artTexture = ART_TEXTURE_ID;
                         newStateWithArt.artWidth = width;
                         newStateWithArt.artHeight = height;
+                        newStateWithArt.avgColor = finalAvgColor;
+                        newStateWithArt.position = s.position;
+                        newStateWithArt.length = s.length;
+                        newStateWithArt.shuffle = s.shuffle;
+                        newStateWithArt.loopStatus = s.loopStatus;
+                        newStateWithArt.visualizerGradients = gradients;
                         CURRENT_STATE.set(newStateWithArt);
                     });
                 }
@@ -151,18 +231,86 @@ public class LinuxMediaController {
     }
 
     public static void playPause() { 
+        MediaState state = CURRENT_STATE.get();
+        if (state != null) {
+            MediaState newState = new MediaState();
+            newState.title = state.title;
+            newState.artist = state.artist;
+            newState.isPlaying = !state.isPlaying;
+            newState.volume = state.volume;
+            newState.artUrl = state.artUrl;
+            newState.artTexture = state.artTexture;
+            newState.artWidth = state.artWidth;
+            newState.artHeight = state.artHeight;
+            newState.avgColor = state.avgColor;
+            newState.position = state.position;
+            newState.length = state.length;
+            newState.shuffle = state.shuffle;
+            newState.loopStatus = state.loopStatus;
+            newState.visualizerGradients = state.visualizerGradients;
+            
+            isPlayingLockUntil = System.currentTimeMillis() + 800;
+            lockedIsPlaying = newState.isPlaying;
+            CURRENT_STATE.set(newState);
+        }
         EXECUTOR.execute(() -> {
             exec("playerctl play-pause");
-            poll(); // Force immediate poll after action
+            for (int i = 0; i < 4; i++) {
+                try { Thread.sleep(150); } catch (InterruptedException ignored) {}
+                poll();
+            }
         }); 
     }
-    public static void next() { EXECUTOR.execute(() -> exec("playerctl next")); }
-    public static void previous() { EXECUTOR.execute(() -> exec("playerctl previous")); }
+    public static void next() { 
+        EXECUTOR.execute(() -> {
+            exec("playerctl next");
+            for (int i = 0; i < 4; i++) {
+                try { Thread.sleep(150); } catch (InterruptedException ignored) {}
+                poll();
+            }
+        }); 
+    }
+    public static void previous() { 
+        EXECUTOR.execute(() -> {
+            exec("playerctl previous");
+            for (int i = 0; i < 4; i++) {
+                try { Thread.sleep(150); } catch (InterruptedException ignored) {}
+                poll();
+            }
+        }); 
+    }
     public static void setVolume(float vol) { 
         EXECUTOR.execute(() -> {
             exec("playerctl volume " + String.format("%.2f", vol));
             com.example.glassmenu.GlassMenuClient.saveConfig(vol);
         }); 
+    }
+    public static void seek(double seconds) { 
+        EXECUTOR.execute(() -> {
+            exec("playerctl position " + String.format(java.util.Locale.US, "%.2f", seconds));
+            poll();
+        }); 
+    }
+
+    public static void toggleShuffle() {
+        EXECUTOR.execute(() -> {
+            exec("playerctl shuffle Toggle");
+            poll();
+        });
+    }
+
+    public static void toggleLoop() {
+        EXECUTOR.execute(() -> {
+            String current = exec("playerctl loop").trim();
+            String next = "None";
+            if ("None".equalsIgnoreCase(current)) {
+                next = "Track";
+            } else if ("Track".equalsIgnoreCase(current)) {
+                next = "Playlist";
+            }
+            exec("playerctl loop " + next);
+            poll();
+        });
     }
 
     private static String exec(String cmd) {

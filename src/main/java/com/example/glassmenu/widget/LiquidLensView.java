@@ -29,11 +29,19 @@ public class LiquidLensView {
     public void render(DrawContext context) {
         MatrixStack matrices = context.getMatrices();
         
-        // 1. Main Glass Panel (SDF) - Darker and more opaque for better contrast
-        RenderUtils.drawSdfRoundedRect(matrices, x, y, width, height, radius, 0xAA111111, 0);
+        // Glass border outline (drawn first to act as a proper border highlight under the fill)
+        RenderUtils.drawSdfRoundedOutline(matrices, x, y, width, height, radius, 1.0f, 0x2AFFFFFF);
         
-        // 2. Decorative Separator Lines - Brighter for detail
-        RenderUtils.drawLine(matrices, x + radius, y + 25, x + width - radius, y + 25, 0.8f, 0x66FFFFFF);
-        RenderUtils.drawLine(matrices, x + radius, y + height - 25, x + width - radius, y + height - 25, 0.8f, 0x66FFFFFF);
+        // Draw the refracted panel background matching the rounded menu container
+        com.example.glassmenu.render.GlassRefractionEngine.drawRefractedPanel(
+            context, (int)x, (int)y, (int)width, (int)height, 0.8f, 0x90FFFFFF, radius
+        );
+        
+        // 1. Main Glass Panel (SDF) - iOS dark glassmorphism (drawn on top)
+        RenderUtils.drawSdfRoundedRect(matrices, x, y, width, height, radius, 0x2C1C1C24, 0);
+        
+        // 2. Decorative Separator Lines
+        RenderUtils.drawLine(matrices, x + radius, y + 25, x + width - radius, y + 25, 0.8f, 0x33FFFFFF);
+        RenderUtils.drawLine(matrices, x + radius, y + height - 25, x + width - radius, y + height - 25, 0.8f, 0x33FFFFFF);
     }
 }

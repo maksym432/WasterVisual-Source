@@ -1,24 +1,34 @@
 /*
  * LiquidGlassEffectView - Architecture & Primary Responsibility:
  * UI Background Effect Manager.
- * Responsible for rendering the full-screen dark overlay with 
- * OpenGL state resets to ensure no texture atlas leakage into UI backgrounds.
+ * Responsible for rendering the full-screen glassmorphic background tint 
+ * and managing the full-screen post-processing blur shader.
  */
 package com.example.glassmenu.widget;
 
+import com.example.glassmenu.mixin.GameRendererAccessor;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
+import net.minecraft.util.Identifier;
 import org.joml.Matrix4f;
 
 public class LiquidGlassEffectView {
 
     public void enableBlur() {
-        // Disabled
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.gameRenderer instanceof GameRendererAccessor accessor) {
+            accessor.glassmenu$loadPostProcessor(Identifier.of("minecraft", "shaders/post/glass_blur.json"));
+        }
     }
 
     public void disableBlur() {
-        // Disabled
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.gameRenderer instanceof GameRendererAccessor accessor) {
+            accessor.glassmenu$disablePostProcessor();
+        }
+        com.example.glassmenu.render.GlassRefractionEngine.cleanup();
     }
 
     public void render(DrawContext context, int width, int height) {
@@ -29,11 +39,6 @@ public class LiquidGlassEffectView {
         
         // 2. Use the most basic "Position-Color" shader (No textures allowed)
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
-        
-        // 3. Explicitly UNBIND any textures from all slots to kill the atlas leak
-        for (int i = 0; i < 12; i++) {
-            RenderSystem.setShaderTexture(i, 0);
-        }
 
         Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
         Tessellator tessellator = Tessellator.getInstance();
@@ -41,7 +46,8 @@ public class LiquidGlassEffectView {
         // 4. Use POSITION_COLOR format - this format does NOT support textures
         BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
-        float r = 0.0f, g = 0.0f, b = 0.0f, a = 0.85f; // Deep dark 85%
+        // Premium iOS dark glassmorphism background overlay tint (15% opacity)
+        float r = 0.02f, g = 0.02f, b = 0.04f, a = 0.15f;
 
         // Draw quad covering full screen dimensions
         buffer.vertex(matrix, 0, (float)height, 0).color(r, g, b, a);

@@ -48,8 +48,11 @@ public class LiquidGlassSwitch extends ClickableWidget {
         MatrixStack matrices = context.getMatrices();
         float r = height / 2.0f;
 
-        // Background (SDF) - Clean dark for "off", vibrant for "on"
-        int bgColor = interpolateColor(0xBB222222, 0xFF34C759, animationProgress);
+        // Background (SDF) - Translucent dark glass for "off", vibrant for "on"
+        int bgColor = interpolateColor(0x2C1C1C24, 0xFF34C759, animationProgress);
+        
+        // Glass border outline (drawn first to act as a proper border highlight under the fill)
+        RenderUtils.drawSdfRoundedOutline(matrices, getX(), getY(), width, height, r, 0.5f, 0x2AFFFFFF);
         
         // Background Fill
         RenderUtils.drawSdfRoundedRect(matrices, getX(), getY(), width, height, r, bgColor, hoverProgress);

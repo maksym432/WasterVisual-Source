@@ -15,6 +15,7 @@ public class ModShaders {
     private static ShaderProgram glassRefraction;
     private static ShaderProgram frostedGlass;
     private static ShaderProgram solidColor;
+    private static ShaderProgram invGlass;
 
     public static void init() {
         CoreShaderRegistrationCallback.EVENT.register(context -> {
@@ -30,6 +31,9 @@ public class ModShaders {
                 });
                 context.register(Identifier.of("glassmenu", "solid_color"), VertexFormats.POSITION, shader -> {
                     solidColor = shader;
+                });
+                context.register(Identifier.of("glassmenu", "inv_glass"), VertexFormats.POSITION_TEXTURE, shader -> {
+                    invGlass = shader;
                 });
             } catch (Exception e) {
                 System.err.println("Failed to register glassmenu shaders!");
@@ -51,5 +55,9 @@ public class ModShaders {
 
     public static ShaderProgram getSolidColor() {
         return solidColor;
+    }
+
+    public static ShaderProgram getInvGlass() {
+        return invGlass;
     }
 }

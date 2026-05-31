@@ -6,6 +6,8 @@ uniform float Radius;
 uniform float EdgeSoftness;
 uniform sampler2D Sampler0;
 uniform vec4 TexBounds;
+uniform float OutlineThickness;
+uniform float UseTexture;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -19,7 +21,12 @@ void main() {
     // texCoord is strictly [0, 1] representing the local geometry quad
     vec2 p = (texCoord - 0.5) * Size;
     
-    float d = sdRoundedRect(p, Size * 0.5, Radius);
+    float d;
+    if (OutlineThickness > 0.0) {
+        d = abs(sdRoundedRect(p, Size * 0.5 - OutlineThickness * 0.5, Radius - OutlineThickness * 0.5)) - OutlineThickness * 0.5;
+    } else {
+        d = sdRoundedRect(p, Size * 0.5, Radius);
+    }
     
     float softness = max(fwidth(d), EdgeSoftness);
     float alpha = 1.0 - smoothstep(-softness, 0.0, d);
@@ -30,5 +37,9 @@ void main() {
     vec2 mappedTexCoord = mix(TexBounds.xy, TexBounds.zw, texCoord);
     
     vec4 texColor = texture(Sampler0, mappedTexCoord);
-    fragColor = vec4(Color.rgb * texColor.rgb, Color.a * texColor.a * alpha);
+    if (UseTexture > 0.5) {
+        fragColor = texColor * vec4(Color.rgb, Color.a * alpha);
+    } else {
+        fragColor = vec4(Color.rgb, Color.a * alpha);
+    }
 }

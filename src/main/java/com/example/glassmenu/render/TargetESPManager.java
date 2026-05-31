@@ -138,6 +138,9 @@ public class TargetESPManager {
 
         VertexConsumerProvider.Immediate provider = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
         
+        net.minecraft.client.gl.ShaderProgram previousShader = RenderSystem.getShader();
+        boolean previousBlend = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
+
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableCull();
@@ -201,10 +204,19 @@ public class TargetESPManager {
             matrices.pop();
         }
 
-        provider.draw();
-
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
+        if (!previousBlend) {
+            RenderSystem.disableBlend();
+        } else {
+            RenderSystem.enableBlend();
+        }
+
+        if (previousShader != null) {
+            RenderSystem.setShader(() -> previousShader);
+        }
+
+        provider.draw();
     }
 
     private static void drawVolumetricDroplet(MatrixStack matrices, float size, float r, float g, float b, float alpha, boolean isWorld) {

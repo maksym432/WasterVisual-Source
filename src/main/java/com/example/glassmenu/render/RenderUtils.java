@@ -8,6 +8,7 @@ package com.example.glassmenu.render;
 
 import com.example.glassmenu.shader.ModShaders;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -31,9 +32,13 @@ public class RenderUtils {
         float g = (float) (color >> 8 & 255) / 255.0F;
         float b = (float) (color & 255) / 255.0F;
 
+        boolean wasBlendEnabled = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
+        ShaderProgram originalShader = RenderSystem.getShader();
+
         ShaderProgram shader = !com.example.glassmenu.GlassMenuClient.CONFIG.enableShaders() ? null : ModShaders.getSdfRoundedRect();
         if (shader == null) {
             RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
             RenderSystem.setShader(GameRenderer::getPositionColorProgram);
             Tessellator tessellator = Tessellator.getInstance();
             BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
@@ -42,19 +47,30 @@ public class RenderUtils {
             buffer.vertex(matrix, x + w, y, 0).color(r, g, b, a);
             buffer.vertex(matrix, x, y, 0).color(r, g, b, a);
             BufferRenderer.drawWithGlobalProgram(buffer.end());
+            if (originalShader != null) {
+                RenderSystem.setShader(() -> originalShader);
+            }
+            if (!wasBlendEnabled) {
+                RenderSystem.disableBlend();
+            }
             matrices.pop();
             return;
         }
 
+        int previousTexture = getTextureBinding2D(0);
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(() -> shader);
         if (shader.getUniform("Color") != null) shader.getUniform("Color").set(r, g, b, a);
         if (shader.getUniform("Size") != null) shader.getUniform("Size").set(w, h);
         if (shader.getUniform("Radius") != null) shader.getUniform("Radius").set(radius);
         if (shader.getUniform("EdgeSoftness") != null) shader.getUniform("EdgeSoftness").set(1.0f);
         if (shader.getUniform("TexBounds") != null) shader.getUniform("TexBounds").set(0f, 0f, 1f, 1f);
+        if (shader.getUniform("OutlineThickness") != null) shader.getUniform("OutlineThickness").set(0.0f);
+        if (shader.getUniform("UseTexture") != null) shader.getUniform("UseTexture").set(0.0f);
 
-        // Bind a guaranteed valid vanilla texture to prevent black sampling/GL errors
-        RenderSystem.setShaderTexture(0, net.minecraft.util.Identifier.ofVanilla("textures/block/white_concrete.png"));
+        RenderSystem.setShaderTexture(0, getWhiteTexture());
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
@@ -65,15 +81,87 @@ public class RenderUtils {
         buffer.vertex(matrix, x, y, 0).texture(0, 0);
 
         BufferRenderer.drawWithGlobalProgram(buffer.end());
+        if (originalShader != null) {
+            RenderSystem.setShader(() -> originalShader);
+        }
+        RenderSystem.setShaderTexture(0, previousTexture);
+        if (!wasBlendEnabled) {
+            RenderSystem.disableBlend();
+        }
         matrices.pop();
     }
 
     public static void drawSdfRoundedOutline(MatrixStack matrices, float x, float y, float w, float h, float radius, float thickness, int color) {
-        // Draw outline by drawing two rounded rects (one slightly smaller to create the hole)
-        // or by using a specialized shader (preferred).
-        // Since we have one SDF shader, we'll draw the outer fill, then clear inner if needed.
-        // For simple UI, drawing the border with a very small scale-down fill works.
-        drawSdfRoundedRect(matrices, x - thickness, y - thickness, w + thickness * 2, h + thickness * 2, radius + thickness, color, 0);
+        float centerX = x + w / 2f;
+        float centerY = y + h / 2f;
+        
+        matrices.push();
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        
+        float a = (float) (color >> 24 & 255) / 255.0F;
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+
+        boolean wasBlendEnabled = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
+        ShaderProgram originalShader = RenderSystem.getShader();
+
+        ShaderProgram shader = !com.example.glassmenu.GlassMenuClient.CONFIG.enableShaders() ? null : ModShaders.getSdfRoundedRect();
+        if (shader == null) {
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+            Tessellator tessellator = Tessellator.getInstance();
+            BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
+            buffer.vertex(matrix, x, y, 0).color(r, g, b, a);
+            buffer.vertex(matrix, x + w, y, 0).color(r, g, b, a);
+            buffer.vertex(matrix, x + w, y + h, 0).color(r, g, b, a);
+            buffer.vertex(matrix, x, y + h, 0).color(r, g, b, a);
+            buffer.vertex(matrix, x, y, 0).color(r, g, b, a);
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
+            if (originalShader != null) {
+                RenderSystem.setShader(() -> originalShader);
+            }
+            if (!wasBlendEnabled) {
+                RenderSystem.disableBlend();
+            }
+            matrices.pop();
+            return;
+        }
+
+        int previousTexture = getTextureBinding2D(0);
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(() -> shader);
+        if (shader.getUniform("Color") != null) shader.getUniform("Color").set(r, g, b, a);
+        if (shader.getUniform("Size") != null) shader.getUniform("Size").set(w, h);
+        if (shader.getUniform("Radius") != null) shader.getUniform("Radius").set(radius);
+        if (shader.getUniform("EdgeSoftness") != null) shader.getUniform("EdgeSoftness").set(1.0f);
+        if (shader.getUniform("TexBounds") != null) shader.getUniform("TexBounds").set(0f, 0f, 1f, 1f);
+        if (shader.getUniform("OutlineThickness") != null) shader.getUniform("OutlineThickness").set(thickness);
+        if (shader.getUniform("UseTexture") != null) shader.getUniform("UseTexture").set(0.0f);
+
+        RenderSystem.setShaderTexture(0, getWhiteTexture());
+
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+
+        buffer.vertex(matrix, x, y + h, 0).texture(0, 1);
+        buffer.vertex(matrix, x + w, y + h, 0).texture(1, 1);
+        buffer.vertex(matrix, x + w, y, 0).texture(1, 0);
+        buffer.vertex(matrix, x, y, 0).texture(0, 0);
+
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        if (shader.getUniform("OutlineThickness") != null) shader.getUniform("OutlineThickness").set(0.0f);
+        if (originalShader != null) {
+            RenderSystem.setShader(() -> originalShader);
+        }
+        RenderSystem.setShaderTexture(0, previousTexture);
+        if (!wasBlendEnabled) {
+            RenderSystem.disableBlend();
+        }
+        matrices.pop();
     }
 
     public static void drawLine(MatrixStack matrices, float x, float y, float x2, float y2, float thickness, int color) {
@@ -81,6 +169,9 @@ public class RenderUtils {
         float r = (float) (color >> 16 & 255) / 255.0F;
         float g = (float) (color >> 8 & 255) / 255.0F;
         float b = (float) (color & 255) / 255.0F;
+
+        net.minecraft.client.gl.ShaderProgram originalShader = RenderSystem.getShader();
+        boolean originalBlend = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
 
         Matrix4f matrix = matrices.peek().getPositionMatrix();
         RenderSystem.enableBlend();
@@ -99,6 +190,47 @@ public class RenderUtils {
         buffer.vertex(matrix, x, y - half, 0).color(r, g, b, a);
 
         BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        if (originalShader != null) {
+            RenderSystem.setShader(() -> originalShader);
+        }
+        if (!originalBlend) {
+            RenderSystem.disableBlend();
+        } else {
+            RenderSystem.enableBlend();
+        }
+    }
+
+    private static boolean registeredWhite = false;
+    private static final net.minecraft.util.Identifier WHITE_TEX = net.minecraft.util.Identifier.of("glassmenu", "white_texture");
+
+    public static net.minecraft.util.Identifier getWhiteTexture() {
+        if (!registeredWhite) {
+            net.minecraft.client.MinecraftClient client = net.minecraft.client.MinecraftClient.getInstance();
+            if (client != null) {
+                net.minecraft.client.texture.TextureManager manager = client.getTextureManager();
+                if (manager != null) {
+                    try {
+                        net.minecraft.client.texture.NativeImage image = new net.minecraft.client.texture.NativeImage(1, 1, false);
+                        image.setColor(0, 0, 0xFFFFFFFF);
+                        net.minecraft.client.texture.NativeImageBackedTexture texture = new net.minecraft.client.texture.NativeImageBackedTexture(image);
+                        manager.registerTexture(WHITE_TEX, texture);
+                        registeredWhite = true;
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    }
+                }
+            }
+        }
+        return registeredWhite ? WHITE_TEX : net.minecraft.util.Identifier.of("minecraft", "missingno");
+    }
+
+    public static int getTextureBinding2D(int textureUnit) {
+        int originalActive = com.mojang.blaze3d.platform.GlStateManager._getActiveTexture();
+        com.mojang.blaze3d.platform.GlStateManager._activeTexture(org.lwjgl.opengl.GL13.GL_TEXTURE0 + textureUnit);
+        int textureId = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_TEXTURE_BINDING_2D);
+        com.mojang.blaze3d.platform.GlStateManager._activeTexture(originalActive);
+        return textureId;
     }
 
     public static class TintedVertexConsumer implements VertexConsumer {

@@ -29,10 +29,13 @@ import java.nio.file.Files;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents;
 
 public class GlassMenuClient implements ClientModInitializer {
 
     private static KeyBinding openMenuKey;
+    private static KeyBinding cssTestKey;
     public static final com.example.glassmenu.GlassMenuConfig CONFIG = com.example.glassmenu.GlassMenuConfig.createAndLoad();
     private static final File CONFIG_FILE = new File("config/glassmenu_settings.json");
 
@@ -41,10 +44,11 @@ public class GlassMenuClient implements ClientModInitializer {
         ModShaders.init();
         LinuxMediaController.init();
 
-        // Register Target ESP and Jump Rings tick
+        // Register Target ESP, Jump Rings, and Player Card tick
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             com.example.glassmenu.render.TargetESPManager.tick();
             com.example.glassmenu.render.JumpRingsManager.tick();
+            com.example.glassmenu.render.PlayerCardRenderer.tick();
         });
 
         // SAFE World Rendering via Fabric API (Compatible with Sodium/Iris)
@@ -53,6 +57,9 @@ public class GlassMenuClient implements ClientModInitializer {
             
             // Bridge Box Effect (Rendering)
             com.example.glassmenu.render.BridgeBoxRenderer.render(context);
+
+            // BedWars ESP (Rendering)
+            com.example.glassmenu.render.BedWarsESPManager.render(context);
         });
 
         // Cancel vanilla outline if Vortex is enabled
@@ -61,12 +68,67 @@ public class GlassMenuClient implements ClientModInitializer {
         });
         
         com.example.glassmenu.render.JumpRingsManager.init();
+        com.example.glassmenu.widget.IslandManager.init();
+
+        // Render Dynamic Island, Inventory HUD and Player Card on in-game HUD (when no screen is open)
+        HudRenderCallback.EVENT.register((context, tickCounter) -> {
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client.currentScreen == null) {
+                com.example.glassmenu.widget.IslandManager.render(
+                    context,
+                    client.getWindow().getScaledWidth(),
+                    client.getWindow().getScaledHeight(),
+                    -1, -1, 0.0f
+                );
+                com.example.glassmenu.render.InventoryHudRenderer.render(
+                    context,
+                    client.getWindow().getScaledWidth(),
+                    client.getWindow().getScaledHeight()
+                );
+                com.example.glassmenu.render.PlayerCardRenderer.render(
+                    context,
+                    client.getWindow().getScaledWidth(),
+                    client.getWindow().getScaledHeight()
+                );
+                com.example.glassmenu.render.UserIndicatorRenderer.render(
+                    context,
+                    client.getWindow().getScaledWidth(),
+                    client.getWindow().getScaledHeight()
+                );
+                com.example.glassmenu.render.ArmorHudRenderer.render(
+                    context,
+                    client.getWindow().getScaledWidth(),
+                    client.getWindow().getScaledHeight()
+                );
+            }
+        });
+
+        // Intercept Dynamic Island clicks on all screens natively using Fabric API
+        ScreenEvents.BEFORE_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+            ScreenMouseEvents.allowMouseClick(screen).register((screenInstance, mouseX, mouseY, button) -> {
+                // TitleScreen clicks are handled in TitleScreenMixin to coordinate with lock screen drag
+                if (screenInstance instanceof net.minecraft.client.gui.screen.TitleScreen) {
+                    return true;
+                }
+                if (com.example.glassmenu.widget.IslandManager.mouseClicked(mouseX, mouseY, button)) {
+                    return false; // Consume click event
+                }
+                return true;
+            });
+        });
 
         openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.glassmenu.open",          // translation key (see en_us.json)
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_K,               // default: K
                 "category.glassmenu"           // category in Controls screen
+        ));
+
+        cssTestKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.glassmenu.css_test",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_H,               // default: H
+                "category.glassmenu"
         ));
 
         // ── Poll keybind every client tick ───────────────────────────────────
@@ -76,6 +138,11 @@ public class GlassMenuClient implements ClientModInitializer {
                 if (client.currentScreen == null) {
                     // Open the menu only when no other screen is open
                     client.setScreen(new LiquidGlassScreen());
+                }
+            }
+            while (cssTestKey.wasPressed()) {
+                if (client.currentScreen == null) {
+                    client.setScreen(new com.example.glassmenu.screen.CssGlassTestScreen());
                 }
             }
         });

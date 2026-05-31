@@ -91,6 +91,8 @@ public class LiquidGlassExperimentalScreen extends Screen {
         long now = System.currentTimeMillis();
         float dt = (now - lastTime) / 1000f;
         lastTime = now;
+        if (dt < 0f) dt = 0f;
+        dt = Math.min(dt, 0.1f);
 
         // Smooth scrolling lerp
         scrollOffset = MathHelper.lerp(dt * 10.0f, scrollOffset, targetScrollOffset);

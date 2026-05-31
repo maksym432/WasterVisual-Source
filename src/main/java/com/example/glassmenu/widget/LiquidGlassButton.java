@@ -42,9 +42,11 @@ public class LiquidGlassButton extends ClickableWidget {
         context.getMatrices().scale(swell, swell, 1.0f);
         context.getMatrices().translate(-(getX() + width / 2f), -(getY() + height / 2f), 0);
 
-        // Draw design: black fill, white border
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), getX() - 0.5f, getY() - 0.5f, width + 1f, height + 1f, 6.5f, 0xFFFFFFFF, 0);
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), getX(), getY(), width, height, 6f, 0xFF000000, 0);
+        // Draw design: iOS glassmorphic button (translucent border and fill)
+        int fillColor = interpolateColor(0x1F222226, 0x3833333D, hoverProgress);
+        int borderColor = interpolateColor(0x22FFFFFF, 0x3DFFFFFF, hoverProgress);
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), getX() - 0.5f, getY() - 0.5f, width + 1f, height + 1f, 6.5f, borderColor, 0);
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), getX(), getY(), width, height, 6f, fillColor, 0);
 
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         context.drawCenteredTextWithShadow(tr, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, 0xFFFFFFFF);
@@ -55,6 +57,14 @@ public class LiquidGlassButton extends ClickableWidget {
     @Override
     public void onClick(double mouseX, double mouseY) {
         onPress.accept(this);
+    }
+
+    private int interpolateColor(int c1, int c2, float p) {
+        int a = (int) MathHelper.lerp(p, (c1 >> 24) & 0xFF, (c2 >> 24) & 0xFF);
+        int r = (int) MathHelper.lerp(p, (c1 >> 16) & 0xFF, (c2 >> 16) & 0xFF);
+        int g = (int) MathHelper.lerp(p, (c1 >> 8) & 0xFF, (c2 >> 8) & 0xFF);
+        int b = (int) MathHelper.lerp(p, c1 & 0xFF, c2 & 0xFF);
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     @Override
