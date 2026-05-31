@@ -1264,10 +1264,10 @@ public class LiquidGlassScreen extends Screen {
         int fdW = textRenderer.getWidth(fdText);
         context.drawText(textRenderer, fdText, 90 - fdW / 2, textY, 0xFFFFCC00, false);
 
-        // Slot 3: XP (Green)
+        // Slot 3: XP (Red)
         String xpText = "12";
         int xpW = textRenderer.getWidth(xpText);
-        context.drawText(textRenderer, xpText, 149 - xpW / 2, textY, 0xFF55FF55, false);
+        context.drawText(textRenderer, xpText, 149 - xpW / 2, textY, 0xFFFF4444, false);
 
         context.getMatrices().pop();
         context.draw(); // Flush!

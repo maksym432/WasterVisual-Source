@@ -26,7 +26,7 @@ public class UserHudRenderer {
     // Colors
     private static final int COL_HP = 0xFF44FF44;
     private static final int COL_FD = 0xFFFFCC00;
-    private static final int COL_XP = 0xFF55FF55;
+    private static final int COL_XP = 0xFFFF4444;
 
     public static void render(DrawContext context, int screenW, int screenH) {
         if (!GlassMenuClient.CONFIG.enableUserHud()) return;
