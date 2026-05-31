@@ -2119,8 +2119,8 @@ public class LiquidGlassScreen extends Screen {
                     GlassMenuClient.CONFIG.fastItemX(newX);
                     GlassMenuClient.CONFIG.fastItemY(newY);
                 } else if (selectedObject == PositionObject.USER_HUD) {
-                    newW = MathHelper.clamp(newW, 150, 350);
-                    newH = MathHelper.clamp(newH, 56, 120);
+                    newW = MathHelper.clamp(newW, 100, 350);
+                    newH = MathHelper.clamp(newH, 15, 60);
                     if (resizeLeft) newX = initialX + (initialWidth - newW);
                     if (resizeTop) newY = initialY + (initialHeight - newH);
 
