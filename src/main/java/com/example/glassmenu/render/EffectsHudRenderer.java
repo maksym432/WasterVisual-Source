@@ -1,7 +1,7 @@
 /*
  * EffectsHudRenderer - Architecture & Primary Responsibility:
  * Renders potion/status effects horizontally or vertically in a custom HUD panel.
- * Displays the remaining duration at the bottom of each square slot.
+ * Displays the remaining duration in a separate visual box underneath each slot.
  *
  * Design:
  *  - Premium glassmorphic background panel or solid dark panel.
@@ -73,12 +73,19 @@ public class EffectsHudRenderer {
         int padding = 3;
         int gap = 4;
         int boxSize = sizeParam - padding * 2;
+        int timeBoxH = 11;
+        int itemHeight = boxSize + 2 + timeBoxH;
 
-        float smoothLength = padding * 2 + smoothActiveCount * (boxSize + gap) - gap;
+        float smoothLength;
+        if (vertical) {
+            smoothLength = padding * 2 + smoothActiveCount * (itemHeight + gap) - gap;
+        } else {
+            smoothLength = padding * 2 + smoothActiveCount * (boxSize + gap) - gap;
+        }
         if (smoothLength < padding * 2) smoothLength = padding * 2;
 
         int W = vertical ? sizeParam : Math.round(smoothLength);
-        int H = vertical ? Math.round(smoothLength) : sizeParam;
+        int H = vertical ? Math.round(smoothLength) : (itemHeight + padding * 2);
 
         // Position coordinates
         int cfgX = GlassMenuClient.CONFIG.effectsHudX();
@@ -119,7 +126,7 @@ public class EffectsHudRenderer {
             float bx, by;
             if (vertical) {
                 bx = px + padding + slide;
-                by = py + padding + i * (boxSize + gap);
+                by = py + padding + i * (itemHeight + gap);
             } else {
                 bx = px + padding + i * (boxSize + gap);
                 by = py + padding + slide;
@@ -130,7 +137,45 @@ public class EffectsHudRenderer {
             int itemOutline = (alphaInt * (slotOutlineColor & 0xFF) / 255) | (slotOutlineColor & 0xFFFFFF00);
             int itemFill = (alphaInt * ((slotFillColor >> 24) & 0xFF) / 255) << 24 | (slotFillColor & 0xFFFFFF);
 
-            // Draw Rounded box frame around the effect
+            // --- Draw separate time box background under the slot FIRST ---
+            String timeStr;
+            if (!isPreview && i < effects.size()) {
+                timeStr = formatDuration(effects.get(i));
+            } else {
+                timeStr = (i == 0) ? "1:30" : ((i == 1) ? "0:45" : "**:**");
+            }
+
+            // Let the time box slide/emerge smoothly from under/behind the icon box
+            float slideOut = v_i * (timeBoxH + 2);
+            float timeBoxY = by + boxSize - timeBoxH + slideOut;
+            float timeBoxW = boxSize;
+
+            if (transparent) {
+                GlassRefractionEngine.drawRefractedPanel(context, (int)bx, (int)timeBoxY, (int)timeBoxW, timeBoxH,
+                        0.8f, (alphaInt * 0x22 / 255) << 24 | 0xFFFFFF, 3f);
+                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), bx, timeBoxY, (float)timeBoxW, (float)timeBoxH, 3f, 0.6f, itemOutline);
+            } else {
+                RenderUtils.drawSdfRoundedRect(context.getMatrices(), bx, timeBoxY, timeBoxW, (float)timeBoxH, 3f, itemFill, 0f);
+                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), bx, timeBoxY, timeBoxW, (float)timeBoxH, 3f, 0.6f, itemOutline);
+            }
+            context.draw(); // Flush time box background
+
+            // Draw duration time text inside the time box
+            float textScale = 0.7f;
+            int textW = client.textRenderer.getWidth(timeStr);
+            float tx = bx + (timeBoxW - textW * textScale) / 2f;
+            float ty = timeBoxY + (timeBoxH - 9 * textScale) / 2f + 0.5f;
+
+            context.getMatrices().push();
+            context.getMatrices().translate(tx, ty, 100);
+            context.getMatrices().scale(textScale, textScale, 1.0f);
+            
+            int textColor = (alphaInt << 24) | 0xFFFFFF;
+            context.drawTextWithShadow(client.textRenderer, timeStr, 0, 0, textColor);
+            context.getMatrices().pop();
+            context.draw(); // Flush text
+
+            // --- Draw Rounded box frame around the effect icon SECOND (on top) ---
             RenderUtils.drawSdfRoundedOutline(context.getMatrices(), bx, by, (float)boxSize, (float)boxSize, 4f, 0.6f, itemOutline);
             RenderUtils.drawSdfRoundedRect(context.getMatrices(), bx, by, (float)boxSize, (float)boxSize, 4f, itemFill, 0f);
             context.draw(); // Flush block
@@ -155,28 +200,6 @@ public class EffectsHudRenderer {
                 RenderUtils.drawSdfRoundedRect(context.getMatrices(), bx + 3, by + 3, (float)boxSize - 6, (float)boxSize - 6, 2f, fadedColor, 0f);
                 context.draw();
             }
-
-            // Draw duration time text inside the slot at the bottom
-            String timeStr;
-            if (!isPreview && i < effects.size()) {
-                timeStr = formatDuration(effects.get(i));
-            } else {
-                timeStr = (i == 0) ? "1:30" : ((i == 1) ? "0:45" : "**:**");
-            }
-
-            float textScale = 0.7f;
-            int textW = client.textRenderer.getWidth(timeStr);
-            float tx = bx + (boxSize - textW * textScale) / 2f;
-            float ty = by + boxSize - 7.5f;
-
-            context.getMatrices().push();
-            context.getMatrices().translate(tx, ty, 100);
-            context.getMatrices().scale(textScale, textScale, 1.0f);
-            
-            int textAlpha = Math.round(v_i * 255);
-            int textColor = (textAlpha << 24) | 0xFFFFFF;
-            context.drawTextWithShadow(client.textRenderer, timeStr, 0, 0, textColor);
-            context.getMatrices().pop();
         }
 
         // Restore original states

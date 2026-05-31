@@ -10,7 +10,9 @@
     "HeldItemRendererMixin",
     "MouseMixin",
     "InGameHudMixin",
-    "AbstractInventoryScreenMixin"
+    "AbstractInventoryScreenMixin",
+    "PotionLayerMixin",
+    "InvConfigMixin"
   ],
   "injectors": {
     "defaultRequire": 1
