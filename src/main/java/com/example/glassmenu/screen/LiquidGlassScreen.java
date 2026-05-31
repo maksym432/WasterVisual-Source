@@ -1248,24 +1248,43 @@ public class LiquidGlassScreen extends Screen {
             context.draw(); // Flush SDF states!
         }
 
-        // Draw preview bars: HP, FD, XP
-        // Row 1: HP
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), 22, 10 + 5, 140, 8, 4f, 0x55330000, 0);
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), 22, 10 + 5, 112, 8, 4f, 0xFFCC3333, 0);
-        context.drawText(textRenderer, "HP", 10, 10 + 5, 0xFFFF5555, false);
-        context.drawText(textRenderer, "20/20", 168, 10 + 5, 0xFFDDDDDD, false);
+        // Draw preview: Combined HP/FD Row 1, XP Row 2
+        int rowH = (74 - 20) / 2;
+        int y1 = 10;
+        int y2 = y1 + rowH;
 
-        // Row 2: FD
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), 22, 32 + 5, 140, 8, 4f, 0x55332000, 0);
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), 22, 32 + 5, 98, 8, 4f, 0xFFCC7722, 0);
-        context.drawText(textRenderer, "FD", 10, 32 + 5, 0xFFFFAA33, false);
-        context.drawText(textRenderer, "14/20", 168, 32 + 5, 0xFFDDDDDD, false);
+        // HP left text (Green)
+        context.drawText(textRenderer, "HP: 20/20", 10, y1, 0xFF44FF44, false);
+        // FD right text (Yellow)
+        String fdText = "FD: 16/20";
+        int fdTextW = textRenderer.getWidth(fdText);
+        context.drawText(textRenderer, fdText, 210 - 10 - fdTextW, y1, 0xFFFFCC00, false);
 
-        // Row 3: XP
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), 22, 54 + 5, 140, 8, 4f, 0x55003300, 0);
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), 22, 54 + 5, 70, 8, 4f, 0xFF44CC44, 0);
-        context.drawText(textRenderer, "XP", 10, 54 + 5, 0xFF55FF55, false);
-        context.drawText(textRenderer, "Lv.12", 168, 54 + 5, 0xFFDDDDDD, false);
+        // Splitted HP & FD segments
+        int barW = 210 - 20;
+        int gap = 6;
+        int halfBarW = (barW - gap) / 2;
+        
+        int barX1 = 10;
+        int barX2 = barX1 + halfBarW + gap;
+        int barY1 = y1 + 11;
+        
+        // HP bar segment (Green)
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX1, (float)barY1, (float)halfBarW, 6f, 3f, 0x55003300, 0f);
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX1, (float)barY1, (float)Math.round(halfBarW * 0.9f), 6f, 3f, 0xFF33CC33, 0f);
+        
+        // FD bar segment (Yellow)
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX2, (float)barY1, (float)halfBarW, 6f, 3f, 0x55333300, 0f);
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX2, (float)barY1, (float)Math.round(halfBarW * 0.8f), 6f, 3f, 0xFFFFBB00, 0f);
+
+        // XP Row (below)
+        context.drawText(textRenderer, "XP", 10, y2, 0xFF55FF55, false);
+        context.drawText(textRenderer, "Lv.12", 210 - 10 - textRenderer.getWidth("Lv.12"), y2, 0xFFDDDDDD, false);
+        
+        int barY2 = y2 + 11;
+        // XP bar (Green)
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX1, (float)barY2, (float)barW, 6f, 3f, 0x55003300, 0f);
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX1, (float)barY2, (float)Math.round(barW * 0.6f), 6f, 3f, 0xFF44CC44, 0f);
 
         context.getMatrices().pop();
         context.draw(); // Flush!
