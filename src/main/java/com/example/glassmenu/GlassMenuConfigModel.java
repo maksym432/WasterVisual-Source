@@ -145,6 +145,6 @@ public class GlassMenuConfigModel {
     public int userHudColor = 0xEE1C1C24;
     public int userHudX = -1;
     public int userHudY = -1;
-    public int userHudWidth = 210;
-    public int userHudHeight = 74;
+    public int userHudWidth = 180;
+    public int userHudHeight = 26;
 }

@@ -1224,67 +1224,50 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void drawUserHudPreview(DrawContext context, int x, int y, int w, int h) {
-        float scaleX = (float) w / 210f;
-        float scaleY = (float) h / 74f;
+        float scaleX = (float) w / 180f;
+        float scaleY = (float) h / 26f;
 
         context.getMatrices().push();
         context.getMatrices().translate(x, y, 0);
         context.getMatrices().scale(scaleX, scaleY, 1.0f);
 
-        int panelColor = GlassMenuClient.CONFIG.userHudColor();
-        int alpha = (panelColor >> 24) & 0xFF;
+        boolean transparent = GlassMenuClient.CONFIG.transparentUserHud();
         
-        if (!GlassMenuClient.CONFIG.transparentUserHud()) {
-            if (alpha == 0) {
-                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0, 0, 210, 74, 6f, 0.8f, 0x55FFFFFF);
-            } else {
-                int borderColor = 0x2AFFFFFF;
-                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0, 0, 210, 74, 6f, 0.8f, borderColor);
-                RenderUtils.drawSdfRoundedRect(context.getMatrices(), 0, 0, 210, 74, 6f, panelColor, 0);
-            }
-            context.draw(); // Flush SDF states!
+        if (!transparent) {
+            RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0f, 0f, 180f, 26f, 6f, 0.8f, 0x33FFFFFF);
+            RenderUtils.drawSdfRoundedRect(context.getMatrices(), 0f, 0f, 180f, 26f, 6f, 0xFF000000, 0f);
         } else {
-            RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0, 0, 210, 74, 6f, 0.8f, 0x33FFFFFF);
-            context.draw(); // Flush SDF states!
+            RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0f, 0f, 180f, 26f, 6f, 0.8f, 0x33FFFFFF);
         }
+        context.draw(); // Flush background
 
-        // Draw preview: Combined HP/FD Row 1, XP Row 2
-        int rowH = (74 - 20) / 2;
-        int y1 = 10;
-        int y2 = y1 + rowH;
+        int slotOutlineColor = transparent ? 0x22FFFFFF : 0x1AFFFFFF;
+        int slotFillColor = transparent ? 0x0F000000 : 0x12FFFFFF;
 
-        // HP left text (Green)
-        context.drawText(textRenderer, "HP: 20/20", 10, y1, 0xFF44FF44, false);
-        // FD right text (Yellow)
-        String fdText = "FD: 16/20";
-        int fdTextW = textRenderer.getWidth(fdText);
-        context.drawText(textRenderer, fdText, 210 - 10 - fdTextW, y1, 0xFFFFCC00, false);
+        for (int i = 0; i < 3; i++) {
+            float bx = 3 + i * 59;
+            float by = 3;
+            RenderUtils.drawSdfRoundedOutline(context.getMatrices(), bx, by, 56f, 20f, 4f, 0.6f, slotOutlineColor);
+            RenderUtils.drawSdfRoundedRect(context.getMatrices(), bx, by, 56f, 20f, 4f, slotFillColor, 0f);
+        }
+        context.draw(); // Flush slots
 
-        // Splitted HP & FD segments
-        int barW = 210 - 20;
-        int gap = 6;
-        int halfBarW = (barW - gap) / 2;
-        
-        int barX1 = 10;
-        int barX2 = barX1 + halfBarW + gap;
-        int barY1 = y1 + 11;
-        
-        // HP bar segment (Green)
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX1, (float)barY1, (float)halfBarW, 6f, 3f, 0x55003300, 0f);
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX1, (float)barY1, (float)Math.round(halfBarW * 0.9f), 6f, 3f, 0xFF33CC33, 0f);
-        
-        // FD bar segment (Yellow)
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX2, (float)barY1, (float)halfBarW, 6f, 3f, 0x55333300, 0f);
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX2, (float)barY1, (float)Math.round(halfBarW * 0.8f), 6f, 3f, 0xFFFFBB00, 0f);
+        int textY = 9;
 
-        // XP Row (below)
-        context.drawText(textRenderer, "XP", 10, y2, 0xFF55FF55, false);
-        context.drawText(textRenderer, "Lv.12", 210 - 10 - textRenderer.getWidth("Lv.12"), y2, 0xFFDDDDDD, false);
-        
-        int barY2 = y2 + 11;
-        // XP bar (Green)
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX1, (float)barY2, (float)barW, 6f, 3f, 0x55003300, 0f);
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), (float)barX1, (float)barY2, (float)Math.round(barW * 0.6f), 6f, 3f, 0xFF44CC44, 0f);
+        // Slot 1: HP (Green)
+        String hpText = "20";
+        int hpW = textRenderer.getWidth(hpText);
+        context.drawText(textRenderer, hpText, 31 - hpW / 2, textY, 0xFF44FF44, false);
+
+        // Slot 2: FD (Yellow)
+        String fdText = "16";
+        int fdW = textRenderer.getWidth(fdText);
+        context.drawText(textRenderer, fdText, 90 - fdW / 2, textY, 0xFFFFCC00, false);
+
+        // Slot 3: XP (Green)
+        String xpText = "12";
+        int xpW = textRenderer.getWidth(xpText);
+        context.drawText(textRenderer, xpText, 149 - xpW / 2, textY, 0xFF55FF55, false);
 
         context.getMatrices().pop();
         context.draw(); // Flush!
