@@ -138,4 +138,13 @@ public class GlassMenuConfigModel {
     public int fastItemHeight = 160;
     public int fastItemX = -1;
     public int fastItemY = -1;
+
+    // --- USER HUD (custom HP / Food / XP bars) ---
+    public boolean enableUserHud = false;
+    public boolean transparentUserHud = false;
+    public int userHudColor = 0xEE1C1C24;
+    public int userHudX = -1;
+    public int userHudY = -1;
+    public int userHudWidth = 210;
+    public int userHudHeight = 74;
 }

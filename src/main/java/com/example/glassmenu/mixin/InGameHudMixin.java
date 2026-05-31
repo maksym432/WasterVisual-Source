@@ -1,8 +1,10 @@
 /*
  * InGameHudMixin - Architecture & Primary Responsibility:
  * Mixin for InGameHud.
- * Intercepts hotbar rendering to hide the vanilla hotbar when the
- * custom Fast Item circular hotbar is active.
+ * (1) Intercepts hotbar rendering to hide the vanilla hotbar when the
+ *     custom Fast Item circular hotbar is active.
+ * (2) Intercepts health/food status bars rendering when User HUD is active.
+ * (3) Intercepts XP bar/level-text rendering when User HUD is active.
  */
 package com.example.glassmenu.mixin;
 
@@ -18,9 +20,43 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(InGameHud.class)
 public abstract class InGameHudMixin {
 
+    /** Cancel vanilla hotbar when Fast Item circular hotbar is active. */
     @Inject(method = "renderHotbar", at = @At("HEAD"), cancellable = true)
     private void glassmenu$onRenderHotbar(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (GlassMenuClient.CONFIG.enableFastItem()) {
+            ci.cancel();
+        }
+    }
+
+    /**
+     * Cancel vanilla health + food status bars when custom User HUD is active.
+     * Method: renderStatusBars(DrawContext) — renders both HP and food rows.
+     */
+    @Inject(method = "renderStatusBars", at = @At("HEAD"), cancellable = true)
+    private void glassmenu$onRenderStatusBars(DrawContext context, CallbackInfo ci) {
+        if (GlassMenuClient.CONFIG.enableUserHud()) {
+            ci.cancel();
+        }
+    }
+
+    /**
+     * Cancel vanilla XP bar when custom User HUD is active.
+     * Method: renderExperienceBar(DrawContext, int) — renders the green XP bar.
+     */
+    @Inject(method = "renderExperienceBar", at = @At("HEAD"), cancellable = true)
+    private void glassmenu$onRenderExperienceBar(DrawContext context, int x, CallbackInfo ci) {
+        if (GlassMenuClient.CONFIG.enableUserHud()) {
+            ci.cancel();
+        }
+    }
+
+    /**
+     * Cancel vanilla XP level number text when custom User HUD is active.
+     * Method: renderExperienceLevel(DrawContext, RenderTickCounter) — the green level number above XP bar.
+     */
+    @Inject(method = "renderExperienceLevel", at = @At("HEAD"), cancellable = true)
+    private void glassmenu$onRenderExperienceLevel(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        if (GlassMenuClient.CONFIG.enableUserHud()) {
             ci.cancel();
         }
     }
