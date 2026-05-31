@@ -253,15 +253,18 @@ public class LiquidGlassScreen extends Screen {
         LiquidGlassButton positionBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Position Editor"), b -> {
             currentTab = Tab.POSITION; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        visualsWidgets.add(jumpEffectsBtn);
-        visualsWidgets.add(invHudBtn);
-        visualsWidgets.add(playerCardBtn);
-        visualsWidgets.add(bedwarsBtn);
-        visualsWidgets.add(indicatorBtn);
-        visualsWidgets.add(armorHudBtn);
-        visualsWidgets.add(fastItemBtn);
-        visualsWidgets.add(userHudBtn);
+        // Left Column: HUD & Overlays
         visualsWidgets.add(effectsBtn);
+        visualsWidgets.add(armorHudBtn);
+        visualsWidgets.add(userHudBtn);
+        visualsWidgets.add(indicatorBtn);
+        visualsWidgets.add(invHudBtn);
+
+        // Right Column: World & Interaction
+        visualsWidgets.add(jumpEffectsBtn);
+        visualsWidgets.add(fastItemBtn);
+        visualsWidgets.add(bedwarsBtn);
+        visualsWidgets.add(playerCardBtn);
         visualsWidgets.add(positionBtn);
     }
 
@@ -898,7 +901,7 @@ public class LiquidGlassScreen extends Screen {
             maxScroll = 380;
             for (ClickableWidget w : movementWidgets) this.addSelectableChild(w);
         } else if (currentTab == Tab.VISUALS) {
-            maxScroll = Math.max(0, (visualsWidgets.size() * 36) + 10 - (PANEL_H_EXPANDED - 65));
+            maxScroll = 0;
             for (ClickableWidget w : visualsWidgets) this.addSelectableChild(w);
         } else {
             maxScroll = 0;
@@ -996,21 +999,37 @@ public class LiquidGlassScreen extends Screen {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
 
-        context.drawTextWithShadow(textRenderer, "Visuals Settings", x + 30, y + 40 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, "Visuals Settings", x + 30, y + 25 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         double sc = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        int scissorY = (int)((this.height - y - currentH + 25) * sc);
-        int scissorH = (int)((currentH - 65) * sc);
+        int scissorY = (int)((this.height - y - currentH + 15) * sc);
+        int scissorH = (int)((currentH - 45) * sc);
         RenderSystem.enableScissor((int)(x * sc), Math.max(0, scissorY), (int)(currentW * sc), Math.max(0, scissorH));
 
-        int startY = y + 60 - (int)scrollY - (int)slideOffset;
+        int colW = 160;
+        int colGap = 30;
+        int totalW = colW * 2 + colGap;
+        int startX = x + (currentW - totalW) / 2;
+        int startY = y + 70 - (int)slideOffset;
+
+        // Draw Column Headers
+        context.drawTextWithShadow(textRenderer, "HUD & OVERLAYS", startX + 5, y + 54 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "WORLD & RENDER", startX + colW + colGap + 5, y + 54 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+
         for (int i = 0; i < visualsWidgets.size(); i++) {
             ClickableWidget w = visualsWidgets.get(i);
             w.setAlpha(contentAlpha);
-            w.setX(x + (currentW - 160) / 2);
-            w.setY(startY + i * 36);
 
-            boolean visible = w.getY() + w.getHeight() > y + 40 && w.getY() < y + currentH - 25;
+            int col = i / 5; // 0 for left, 1 for right
+            int row = i % 5; // 0 to 4
+
+            int bx = startX + col * (colW + colGap);
+            int by = startY + row * 34;
+
+            w.setX(bx);
+            w.setY(by);
+
+            boolean visible = w.getY() + w.getHeight() > y + 40 && w.getY() < y + currentH - 15;
             w.visible = visible;
             w.active = visible;
 
