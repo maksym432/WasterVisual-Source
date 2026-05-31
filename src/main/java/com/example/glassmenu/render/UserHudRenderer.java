@@ -52,7 +52,7 @@ public class UserHudRenderer {
         int py = cfgY == -1 ? screenH - H - 8  : cfgY;
 
         // Save original states
-        int prevTex    = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        int prevTex = RenderUtils.getTextureBinding2D(0);
         var prevShader = RenderSystem.getShader();
         boolean wasBlend = GL11.glIsEnabled(GL11.GL_BLEND);
 

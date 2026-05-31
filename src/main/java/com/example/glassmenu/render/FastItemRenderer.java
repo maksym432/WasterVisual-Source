@@ -61,7 +61,7 @@ public class FastItemRenderer {
         boolean wasBlend = GL11.glIsEnabled(GL11.GL_BLEND);
         boolean wasDepth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
         ShaderProgram savedShader = RenderSystem.getShader();
-        int savedTexture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        int savedTexture = RenderUtils.getTextureBinding2D(0);
 
         // ── Phase 1: Background & Slots (SDF, no texture corruption) ──────────
         context.getMatrices().push();

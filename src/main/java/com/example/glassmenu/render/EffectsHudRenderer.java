@@ -82,7 +82,7 @@ public class EffectsHudRenderer {
         int py = cfgY == -1 ? 10 : cfgY;
 
         // Save original OpenGL states
-        int prevTex    = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        int prevTex = RenderUtils.getTextureBinding2D(0);
         var prevShader = RenderSystem.getShader();
         boolean wasBlend = GL11.glIsEnabled(GL11.GL_BLEND);
 
