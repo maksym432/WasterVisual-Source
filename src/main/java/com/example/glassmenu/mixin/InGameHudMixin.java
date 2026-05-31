@@ -60,4 +60,15 @@ public abstract class InGameHudMixin {
             ci.cancel();
         }
     }
+
+    /**
+     * Cancel vanilla status effect overlays when custom Effects HUD is active.
+     * Method: renderStatusEffectOverlay(DrawContext, RenderTickCounter)
+     */
+    @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
+    private void glassmenu$onRenderStatusEffectOverlay(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        if (GlassMenuClient.CONFIG.enableEffectsHud()) {
+            ci.cancel();
+        }
+    }
 }

@@ -147,4 +147,13 @@ public class GlassMenuConfigModel {
     public int userHudY = -1;
     public int userHudWidth = 180;
     public int userHudHeight = 26;
+
+    // --- EFFECTS HUD (custom status / potion effects HUD) ---
+    public boolean enableEffectsHud = false;
+    public boolean transparentEffectsHud = false;
+    public int effectsHudColor = 0xEE1C1C24;
+    public int effectsHudX = -1;
+    public int effectsHudY = -1;
+    public int effectsHudWidth = 100;
+    public int effectsHudHeight = 32;
 }
