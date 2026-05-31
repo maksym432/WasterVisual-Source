@@ -1,12 +1,13 @@
 /*
  * EffectsHudRenderer - Architecture & Primary Responsibility:
- * Renders potion/status effects horizontally in a custom HUD panel.
+ * Renders potion/status effects horizontally or vertically in a custom HUD panel.
+ * Displays the remaining duration at the bottom of each square slot.
  *
  * Design:
  *  - Premium glassmorphic background panel or solid dark panel.
- *  - Width of the panel dynamically scales with the number of active effects.
+ *  - Dimensions dynamically scale with the number of active effects (horizontal or vertical).
  *  - Hidden completely when there are no active potion effects.
- *  - Individual effect boxes fade-in and slide-up ("всплывают") when added.
+ *  - Individual effect boxes fade-in and slide-in when added.
  *  - Uses Minecraft's StatusEffectSpriteManager for rendering icons.
  */
 package com.example.glassmenu.render;
@@ -50,7 +51,7 @@ public class EffectsHudRenderer {
 
         int actualCount = isPreview ? 3 : effects.size();
 
-        // --- Smooth width transition logic ---
+        // --- Smooth transition logic ---
         float lerpFactor = 0.12f;
         if (isPreview) {
             smoothActiveCount = 3.0f;
@@ -63,17 +64,21 @@ public class EffectsHudRenderer {
             return;
         }
 
+        boolean vertical = GlassMenuClient.CONFIG.effectsHudVertical();
+
         // --- Dimension calculations ---
-        int H = GlassMenuClient.CONFIG.effectsHudHeight();
-        H = MathHelper.clamp(H, 18, 50);
+        int sizeParam = GlassMenuClient.CONFIG.effectsHudHeight();
+        sizeParam = MathHelper.clamp(sizeParam, 18, 50);
 
         int padding = 3;
         int gap = 4;
-        int boxSize = H - padding * 2;
+        int boxSize = sizeParam - padding * 2;
 
-        float smoothW = padding * 2 + smoothActiveCount * (boxSize + gap) - gap;
-        if (smoothW < padding * 2) smoothW = padding * 2;
-        int W = Math.round(smoothW);
+        float smoothLength = padding * 2 + smoothActiveCount * (boxSize + gap) - gap;
+        if (smoothLength < padding * 2) smoothLength = padding * 2;
+
+        int W = vertical ? sizeParam : Math.round(smoothLength);
+        int H = vertical ? Math.round(smoothLength) : sizeParam;
 
         // Position coordinates
         int cfgX = GlassMenuClient.CONFIG.effectsHudX();
@@ -100,7 +105,7 @@ public class EffectsHudRenderer {
         }
         context.draw(); // Flush background
 
-        // --- Draw Squares/Boxes and Icons ---
+        // --- Draw Squares/Boxes, Icons, and Durations ---
         int slotOutlineColor = transparent ? 0x22FFFFFF : 0x1AFFFFFF;
         int slotFillColor = transparent ? 0x0F000000 : 0x12FFFFFF;
 
@@ -110,9 +115,15 @@ public class EffectsHudRenderer {
             float v_i = isPreview ? 1.0f : MathHelper.clamp(smoothActiveCount - i, 0f, 1f);
             if (v_i <= 0f) continue;
 
-            float slideY = (1.0f - v_i) * 8.0f;
-            float bx = px + padding + i * (boxSize + gap);
-            float by = py + padding + slideY;
+            float slide = (1.0f - v_i) * 8.0f;
+            float bx, by;
+            if (vertical) {
+                bx = px + padding + slide;
+                by = py + padding + i * (boxSize + gap);
+            } else {
+                bx = px + padding + i * (boxSize + gap);
+                by = py + padding + slide;
+            }
 
             // Apply item alpha dynamically
             int alphaInt = Math.round(v_i * 255);
@@ -144,6 +155,28 @@ public class EffectsHudRenderer {
                 RenderUtils.drawSdfRoundedRect(context.getMatrices(), bx + 3, by + 3, (float)boxSize - 6, (float)boxSize - 6, 2f, fadedColor, 0f);
                 context.draw();
             }
+
+            // Draw duration time text inside the slot at the bottom
+            String timeStr;
+            if (!isPreview && i < effects.size()) {
+                timeStr = formatDuration(effects.get(i));
+            } else {
+                timeStr = (i == 0) ? "1:30" : ((i == 1) ? "0:45" : "**:**");
+            }
+
+            float textScale = 0.7f;
+            int textW = client.textRenderer.getWidth(timeStr);
+            float tx = bx + (boxSize - textW * textScale) / 2f;
+            float ty = by + boxSize - 7.5f;
+
+            context.getMatrices().push();
+            context.getMatrices().translate(tx, ty, 100);
+            context.getMatrices().scale(textScale, textScale, 1.0f);
+            
+            int textAlpha = Math.round(v_i * 255);
+            int textColor = (textAlpha << 24) | 0xFFFFFF;
+            context.drawTextWithShadow(client.textRenderer, timeStr, 0, 0, textColor);
+            context.getMatrices().pop();
         }
 
         // Restore original states
@@ -156,5 +189,19 @@ public class EffectsHudRenderer {
         } else {
             RenderSystem.enableBlend();
         }
+    }
+
+    private static String formatDuration(StatusEffectInstance effectInstance) {
+        if (effectInstance.isInfinite()) {
+            return "**:**";
+        }
+        int duration = effectInstance.getDuration();
+        int totalSeconds = duration / 20;
+        int mins = totalSeconds / 60;
+        int secs = totalSeconds % 60;
+        if (mins > 99) {
+            return "**:**";
+        }
+        return String.format("%d:%02d", mins, secs);
     }
 }

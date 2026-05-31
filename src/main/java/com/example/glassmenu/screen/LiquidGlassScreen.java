@@ -717,6 +717,15 @@ public class LiquidGlassScreen extends Screen {
             b.setMessage(Text.literal(GlassMenuClient.CONFIG.transparentEffectsHud() ? "Transparent: ON" : "Transparent: OFF"));
         });
         visualsEffectsWidgets.add(transparentBtn);
+
+        String orientText = GlassMenuClient.CONFIG.effectsHudVertical() ? "Vertical" : "Horizontal";
+        LiquidGlassButton orientBtn = new LiquidGlassButton((int)x + 130, (int)y + 113, 80, 22, Text.literal(orientText), b -> {
+            boolean current = GlassMenuClient.CONFIG.effectsHudVertical();
+            GlassMenuClient.CONFIG.effectsHudVertical(!current);
+            GlassMenuClient.CONFIG.save();
+            b.setMessage(Text.literal(GlassMenuClient.CONFIG.effectsHudVertical() ? "Vertical" : "Horizontal"));
+        });
+        visualsEffectsWidgets.add(orientBtn);
     }
 
     private void initPositionTab() {
@@ -1286,6 +1295,7 @@ public class LiquidGlassScreen extends Screen {
         // Left column: labels + buttons
         context.drawTextWithShadow(textRenderer, "Enable Effects HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         context.drawTextWithShadow(textRenderer, "Transparent", x + 40, y + 84 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Orientation", x + 40, y + 118 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         // Right column title
         context.drawTextWithShadow(textRenderer, "Effects HUD Color", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
@@ -1301,6 +1311,8 @@ public class LiquidGlassScreen extends Screen {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Transparent")) {
                 w.setX(x + 130); w.setY((int)y + 79 - (int)slideOffset);
+            } else if (w instanceof LiquidGlassButton lgb && (lgb.getMessage().getString().equals("Vertical") || lgb.getMessage().getString().equals("Horizontal"))) {
+                w.setX(x + 130); w.setY((int)y + 113 - (int)slideOffset);
             } else {
                 // Enable toggle switch at x+370
                 w.setX(x + 370); w.setY((int)y + 45 - (int)slideOffset);
@@ -1626,12 +1638,16 @@ public class LiquidGlassScreen extends Screen {
         }
 
         // 8. Potion Effects HUD
-        int effH = GlassMenuClient.CONFIG.effectsHudHeight();
-        effH = MathHelper.clamp(effH, 18, 50);
+        int effSize = GlassMenuClient.CONFIG.effectsHudHeight();
+        effSize = MathHelper.clamp(effSize, 18, 50);
         int effPadding = 3;
         int effGap = 4;
-        int effBoxSize = effH - effPadding * 2;
-        int effW = effPadding * 2 + 3 * (effBoxSize + effGap) - effGap; // 3 items for preview
+        int effBoxSize = effSize - effPadding * 2;
+        int effLength = effPadding * 2 + 3 * (effBoxSize + effGap) - effGap; // 3 items for preview
+
+        boolean vertical = GlassMenuClient.CONFIG.effectsHudVertical();
+        int effW = vertical ? effSize : effLength;
+        int effH = vertical ? effLength : effSize;
         
         int effX = GlassMenuClient.CONFIG.effectsHudX() == -1 ? this.width - effW - 10 : GlassMenuClient.CONFIG.effectsHudX();
         int effY = GlassMenuClient.CONFIG.effectsHudY() == -1 ? 10 : GlassMenuClient.CONFIG.effectsHudY();
@@ -2126,12 +2142,17 @@ public class LiquidGlassScreen extends Screen {
             int userHudY = GlassMenuClient.CONFIG.userHudY() == -1 ? this.height - userHudHeightVal - 10 : GlassMenuClient.CONFIG.userHudY();
             if (checkClickOrResize(PositionObject.USER_HUD, userHudX, userHudY, userHudWidthVal, userHudHeightVal, mouseX, mouseY)) return true;
 
-            int effH_click = GlassMenuClient.CONFIG.effectsHudHeight();
-            effH_click = MathHelper.clamp(effH_click, 18, 50);
+            int effSize_click = GlassMenuClient.CONFIG.effectsHudHeight();
+            effSize_click = MathHelper.clamp(effSize_click, 18, 50);
             int effPadding_click = 3;
             int effGap_click = 4;
-            int effBoxSize_click = effH_click - effPadding_click * 2;
-            int effW_click = effPadding_click * 2 + 3 * (effBoxSize_click + effGap_click) - effGap_click;
+            int effBoxSize_click = effSize_click - effPadding_click * 2;
+            int effLength_click = effPadding_click * 2 + 3 * (effBoxSize_click + effGap_click) - effGap_click;
+
+            boolean vertical_click = GlassMenuClient.CONFIG.effectsHudVertical();
+            int effW_click = vertical_click ? effSize_click : effLength_click;
+            int effH_click = vertical_click ? effLength_click : effSize_click;
+
             int effX_click = GlassMenuClient.CONFIG.effectsHudX() == -1 ? this.width - effW_click - 10 : GlassMenuClient.CONFIG.effectsHudX();
             int effY_click = GlassMenuClient.CONFIG.effectsHudY() == -1 ? 10 : GlassMenuClient.CONFIG.effectsHudY();
             if (checkClickOrResize(PositionObject.EFFECTS, effX_click, effY_click, effW_click, effH_click, mouseX, mouseY)) return true;
@@ -2252,16 +2273,23 @@ public class LiquidGlassScreen extends Screen {
                     GlassMenuClient.CONFIG.userHudX(newX);
                     GlassMenuClient.CONFIG.userHudY(newY);
                 } else if (selectedObject == PositionObject.EFFECTS) {
-                    newH = MathHelper.clamp(newH, 18, 50);
+                    boolean isVert = GlassMenuClient.CONFIG.effectsHudVertical();
+                    int newSize = isVert ? newW : newH;
+                    newSize = MathHelper.clamp(newSize, 18, 50);
+
                     int padding_drag = 3;
                     int gap_drag = 4;
-                    int boxSize_drag = newH - padding_drag * 2;
-                    newW = padding_drag * 2 + 3 * (boxSize_drag + gap_drag) - gap_drag;
-                    if (resizeLeft) newX = initialX + (initialWidth - newW);
-                    if (resizeTop) newY = initialY + (initialHeight - newH);
+                    int boxSize_drag = newSize - padding_drag * 2;
+                    int length_drag = padding_drag * 2 + 3 * (boxSize_drag + gap_drag) - gap_drag;
 
-                    GlassMenuClient.CONFIG.effectsHudHeight(newH);
-                    GlassMenuClient.CONFIG.effectsHudWidth(newW);
+                    int finalW = isVert ? newSize : length_drag;
+                    int finalH = isVert ? length_drag : newSize;
+
+                    if (resizeLeft) newX = initialX + (initialWidth - finalW);
+                    if (resizeTop) newY = initialY + (initialHeight - finalH);
+
+                    GlassMenuClient.CONFIG.effectsHudHeight(newSize);
+                    GlassMenuClient.CONFIG.effectsHudWidth(length_drag);
                     GlassMenuClient.CONFIG.effectsHudX(newX);
                     GlassMenuClient.CONFIG.effectsHudY(newY);
                 }
@@ -2321,12 +2349,17 @@ public class LiquidGlassScreen extends Screen {
                     GlassMenuClient.CONFIG.userHudX(newX);
                     GlassMenuClient.CONFIG.userHudY(newY);
                 } else if (selectedObject == PositionObject.EFFECTS) {
-                    int effH_drag = GlassMenuClient.CONFIG.effectsHudHeight();
-                    effH_drag = MathHelper.clamp(effH_drag, 18, 50);
+                    boolean isVert = GlassMenuClient.CONFIG.effectsHudVertical();
+                    int effSize_drag = GlassMenuClient.CONFIG.effectsHudHeight();
+                    effSize_drag = MathHelper.clamp(effSize_drag, 18, 50);
                     int padding_d = 3;
                     int gap_d = 4;
-                    int boxSize_d = effH_drag - padding_d * 2;
-                    int effW_drag = padding_d * 2 + 3 * (boxSize_d + gap_d) - gap_d;
+                    int boxSize_d = effSize_drag - padding_d * 2;
+                    int length_d = padding_d * 2 + 3 * (boxSize_d + gap_d) - gap_d;
+
+                    int effW_drag = isVert ? effSize_drag : length_d;
+                    int effH_drag = isVert ? length_d : effSize_drag;
+
                     newX = MathHelper.clamp(newX, 0, this.width - effW_drag);
                     newY = MathHelper.clamp(newY, 0, this.height - effH_drag);
                     GlassMenuClient.CONFIG.effectsHudX(newX);
