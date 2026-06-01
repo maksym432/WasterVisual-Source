@@ -907,7 +907,10 @@ public class LiquidGlassScreen extends Screen {
             maxScroll = 380;
             for (ClickableWidget w : movementWidgets) this.addSelectableChild(w);
         } else if (currentTab == Tab.VISUALS) {
-            maxScroll = Math.max(0, (visualsWidgets.size() * 34) - 170);
+            int leftCount = 6;
+            int rightCount = visualsWidgets.size() - leftCount;
+            int maxRows = Math.max(leftCount, Math.max(0, rightCount));
+            maxScroll = Math.max(0, (maxRows * 34) - 170);
             for (ClickableWidget w : visualsWidgets) this.addSelectableChild(w);
         } else {
             maxScroll = 0;
@@ -1032,8 +1035,8 @@ public class LiquidGlassScreen extends Screen {
             ClickableWidget w = visualsWidgets.get(i);
             w.setAlpha(contentAlpha);
 
-            int col = 0;
-            int row = i;
+            int col = (i < 6) ? 0 : 1;
+            int row = (i < 6) ? i : (i - 6);
 
             int bx = startX + col * (colW + colGap);
             int by = startY + row * 34;
