@@ -32,8 +32,14 @@ public class GlassRefractionEngine {
         ShaderProgram shader = ModShaders.getGlassRefraction();
         if (shader == null) return;
 
+        if (client.getWindow() == null) return;
         int fbWidth = client.getWindow().getFramebufferWidth();
         int fbHeight = client.getWindow().getFramebufferHeight();
+        if (fbWidth <= 0 || fbHeight <= 0) return;
+
+        float scaledW = client.getWindow().getScaledWidth();
+        float scaledH = client.getWindow().getScaledHeight();
+        if (scaledW <= 0 || scaledH <= 0) return;
 
         // 1. Lazy initialization / updating of texture matching the current window framebuffer size
         if (temporaryTextureId == -1 || lastWidth != fbWidth || lastHeight != fbHeight) {
@@ -58,8 +64,6 @@ public class GlassRefractionEngine {
         }
 
         // Calculate region boundaries from GUI coordinates to physical window space
-        float scaledW = client.getWindow().getScaledWidth();
-        float scaledH = client.getWindow().getScaledHeight();
 
         int copyX = Math.max(0, (int) ((x / scaledW) * fbWidth));
         int copyY = Math.max(0, (int) (((scaledH - (y + height)) / scaledH) * fbHeight));
