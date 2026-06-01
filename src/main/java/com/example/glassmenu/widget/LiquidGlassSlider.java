@@ -49,14 +49,19 @@ public class LiquidGlassSlider extends ClickableWidget {
         long now = System.currentTimeMillis();
         float dt = (now - lastTime) / 1000f;
         lastTime = now;
+        if (dt < 0f) dt = 0f;
+        dt = Math.min(dt, 1.0f);
 
-        actualValue = MathHelper.lerp(dt * 6.0f, actualValue, targetValue);
+        actualValue = MathHelper.lerp(MathHelper.clamp(dt * 6.0f, 0f, 1f), actualValue, targetValue);
+        actualValue = MathHelper.clamp(actualValue, 0.0, 1.0);
 
         float hoverTarget = isHovered() ? 1.0f : 0.0f;
-        hoverProgress = MathHelper.lerp(dt * 8.0f, hoverProgress, hoverTarget);
+        hoverProgress = MathHelper.lerp(MathHelper.clamp(dt * 8.0f, 0f, 1f), hoverProgress, hoverTarget);
+        hoverProgress = MathHelper.clamp(hoverProgress, 0f, 1f);
         
         float dragTarget = dragging ? 1.0f : 0.0f;
-        dragScale = MathHelper.lerp(dt * 10.0f, dragScale, dragTarget);
+        dragScale = MathHelper.lerp(MathHelper.clamp(dt * 10.0f, 0f, 1f), dragScale, dragTarget);
+        dragScale = MathHelper.clamp(dragScale, 0f, 1f);
 
         MatrixStack matrices = context.getMatrices();
         

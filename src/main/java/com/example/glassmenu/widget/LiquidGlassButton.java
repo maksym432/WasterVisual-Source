@@ -33,8 +33,11 @@ public class LiquidGlassButton extends ClickableWidget {
         long now = System.currentTimeMillis();
         float dt = (now - lastTime) / 1000f;
         lastTime = now;
+        if (dt < 0f) dt = 0f;
+        dt = Math.min(dt, 1.0f);
 
-        hoverProgress = MathHelper.lerp(dt * 10f, hoverProgress, isHovered() ? 1.0f : 0.0f);
+        hoverProgress = MathHelper.lerp(MathHelper.clamp(dt * 10f, 0f, 1f), hoverProgress, isHovered() ? 1.0f : 0.0f);
+        hoverProgress = MathHelper.clamp(hoverProgress, 0f, 1f);
         float swell = 1.0f + hoverProgress * 0.05f;
 
         context.getMatrices().push();

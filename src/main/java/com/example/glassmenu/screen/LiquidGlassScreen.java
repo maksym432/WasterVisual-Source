@@ -942,10 +942,13 @@ public class LiquidGlassScreen extends Screen {
         float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
         float targetXOff = (currentTab == Tab.COMBAT) ? 40f : 0f;
 
-        panelWidthProgress = MathHelper.lerp(dt * 10.0f, panelWidthProgress, targetW);
-        panelHeightProgress = MathHelper.lerp(dt * 10.0f, panelHeightProgress, targetH);
-        panelXOffsetProgress = MathHelper.lerp(dt * 10.0f, panelXOffsetProgress, targetXOff);
-        contentAlpha = MathHelper.lerp(dt * 12.0f, contentAlpha, 1.0f);
+        panelWidthProgress = MathHelper.lerp(MathHelper.clamp(dt * 10.0f, 0f, 1f), panelWidthProgress, targetW);
+        panelWidthProgress = MathHelper.clamp(panelWidthProgress, 0f, 1f);
+        panelHeightProgress = MathHelper.lerp(MathHelper.clamp(dt * 10.0f, 0f, 1f), panelHeightProgress, targetH);
+        panelHeightProgress = MathHelper.clamp(panelHeightProgress, 0f, 1f);
+        panelXOffsetProgress = MathHelper.lerp(MathHelper.clamp(dt * 10.0f, 0f, 1f), panelXOffsetProgress, targetXOff);
+        contentAlpha = MathHelper.lerp(MathHelper.clamp(dt * 12.0f, 0f, 1f), contentAlpha, 1.0f);
+        contentAlpha = MathHelper.clamp(contentAlpha, 0f, 1f);
 
         int currentW = Math.round(MathHelper.lerp(panelWidthProgress, PANEL_W_NORMAL, PANEL_W_EXPANDED));
         int currentH = Math.round(MathHelper.lerp(panelHeightProgress, PANEL_H_NORMAL, PANEL_H_EXPANDED));
@@ -962,7 +965,8 @@ public class LiquidGlassScreen extends Screen {
             float tabW = (float)currentW / topTabs.length;
             for (int i = 0; i < topTabs.length; i++) {
                 boolean isHovered = mouseX >= x + tabW * i && mouseX <= x + tabW * (i + 1) && mouseY >= y && mouseY <= y + 30;
-                tabHoverProgress[i] = MathHelper.lerp(dt * 8.0f, tabHoverProgress[i], isHovered ? 1.0f : 0.0f);
+                tabHoverProgress[i] = MathHelper.lerp(MathHelper.clamp(dt * 8.0f, 0f, 1f), tabHoverProgress[i], isHovered ? 1.0f : 0.0f);
+                tabHoverProgress[i] = MathHelper.clamp(tabHoverProgress[i], 0f, 1f);
                 float swell = 1.0f + tabHoverProgress[i] * 0.12f;
                 
                 // Highlight GENERAL if we are in BRIDGE, or VISUALS if we are in VISUALS_JUMP/VISUALS_INV_HUD/VISUALS_PLAYER_CARD/POSITION

@@ -38,12 +38,16 @@ public class LiquidGlassSwitch extends ClickableWidget {
         long now = System.currentTimeMillis();
         float dt = (now - lastTime) / 1000f;
         lastTime = now;
+        if (dt < 0f) dt = 0f;
+        dt = Math.min(dt, 1.0f);
 
         float target = enabled ? 1.0f : 0.0f;
-        animationProgress = MathHelper.lerp(dt * 12.0f, animationProgress, target);
+        animationProgress = MathHelper.lerp(MathHelper.clamp(dt * 12.0f, 0f, 1f), animationProgress, target);
+        animationProgress = MathHelper.clamp(animationProgress, 0f, 1f);
 
         float hoverTarget = isHovered() ? 1.0f : 0.0f;
-        hoverProgress = MathHelper.lerp(dt * 8.0f, hoverProgress, hoverTarget);
+        hoverProgress = MathHelper.lerp(MathHelper.clamp(dt * 8.0f, 0f, 1f), hoverProgress, hoverTarget);
+        hoverProgress = MathHelper.clamp(hoverProgress, 0f, 1f);
 
         MatrixStack matrices = context.getMatrices();
         float r = height / 2.0f;
