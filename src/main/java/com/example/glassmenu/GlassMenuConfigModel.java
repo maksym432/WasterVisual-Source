@@ -157,4 +157,13 @@ public class GlassMenuConfigModel {
     public int effectsHudY = -1;
     public int effectsHudWidth = 100;
     public int effectsHudHeight = 32;
+
+    // --- LEFT HAND ITEM HUD ---
+    public boolean enableLeftHandItem = false;
+    public boolean transparentLeftHandItem = false;
+    public int leftHandItemColor = 0xEE1C1C24;
+    public int leftHandItemX = -1;
+    public int leftHandItemY = -1;
+    public int leftHandItemWidth = 32;
+    public int leftHandItemHeight = 32;
 }

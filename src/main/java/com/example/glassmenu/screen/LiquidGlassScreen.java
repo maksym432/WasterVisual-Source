@@ -46,7 +46,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassEffectView effectView;
     private LiquidLensView lensView;
     
-    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_USER_HUD, VISUALS_EFFECTS, POSITION, BRIDGE }
+    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, POSITION, BRIDGE }
     private Tab currentTab = Tab.GENERAL;
     
     private final List<ClickableWidget> generalWidgets = new ArrayList<>();
@@ -62,6 +62,7 @@ public class LiquidGlassScreen extends Screen {
     private final List<ClickableWidget> visualsFastItemWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsUserHudWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsEffectsWidgets = new ArrayList<>();
+    private final List<ClickableWidget> visualsLeftHandItemWidgets = new ArrayList<>();
     private final List<ClickableWidget> positionWidgets = new ArrayList<>();
     private final List<ClickableWidget> bridgeWidgets = new ArrayList<>();
 
@@ -71,18 +72,18 @@ public class LiquidGlassScreen extends Screen {
     private static final float PANEL_H_NORMAL = 220f;
     private static final float PANEL_H_EXPANDED = 280f;
 
-    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
-    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
+    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
+    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
 
     // State
     private TextFieldWidget hexInput, rgbInput, visHexInput, visRgbInput, invHexInput, invRgbInput, bridgeHexInput, bridgeRgbInput;
-    private LiquidGlassSlider sliderR, sliderG, sliderB, visSliderR, visSliderG, visSliderB, invSliderR, invSliderG, invSliderB, bridgeSliderR, bridgeSliderG, bridgeSliderB, cardSliderR, cardSliderG, cardSliderB, indSliderR, indSliderG, indSliderB, armSliderR, armSliderG, armSliderB, fastItemSliderR, fastItemSliderG, fastItemSliderB, userHudSliderR, userHudSliderG, userHudSliderB, effectsSliderR, effectsSliderG, effectsSliderB;
+    private LiquidGlassSlider sliderR, sliderG, sliderB, visSliderR, visSliderG, visSliderB, invSliderR, invSliderG, invSliderB, bridgeSliderR, bridgeSliderG, bridgeSliderB, cardSliderR, cardSliderG, cardSliderB, indSliderR, indSliderG, indSliderB, armSliderR, armSliderG, armSliderB, fastItemSliderR, fastItemSliderG, fastItemSliderB, userHudSliderR, userHudSliderG, userHudSliderB, effectsSliderR, effectsSliderG, effectsSliderB, leftHandSliderR, leftHandSliderG, leftHandSliderB;
     private double scrollY = 0;
     private double maxScroll = 0;
     private boolean isUpdating = false;
 
     // Position Editor State
-    private enum PositionObject { NONE, ISLAND, INVENTORY, PLAYER, INDICATOR, ARMOR, FAST_ITEM, USER_HUD, EFFECTS }
+    private enum PositionObject { NONE, ISLAND, INVENTORY, PLAYER, INDICATOR, ARMOR, FAST_ITEM, USER_HUD, EFFECTS, LEFT_HAND_ITEM }
     private PositionObject selectedObject = PositionObject.NONE;
     private boolean isDraggingObject = false;
     private double dragOffsetX = 0;
@@ -106,8 +107,8 @@ public class LiquidGlassScreen extends Screen {
     @Override
     protected void init() {
         this.effectView.enableBlur();
-        panelWidthProgress = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
-        panelHeightProgress = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        panelWidthProgress = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        panelHeightProgress = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
         contentAlpha = 1.0f;
 
         float x = (this.width - getPanelW()) / 2f;
@@ -115,7 +116,7 @@ public class LiquidGlassScreen extends Screen {
         this.lensView = new LiquidLensView(x, y, getPanelW(), getPanelH());
 
         // 1. Initialize Lists once per screen init (resize/open)
-        generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
+        generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); visualsLeftHandItemWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
         
         initGeneralTab(x, y);
         initCombatTab(x, y);
@@ -130,6 +131,7 @@ public class LiquidGlassScreen extends Screen {
         initVisualsFastItemTab(x, y);
         initVisualsUserHudTab(x, y);
         initVisualsEffectsTab(x, y);
+        initVisualsLeftHandItemTab(x, y);
         initPositionTab();
         initBridgeTab(x, y);
 
@@ -250,6 +252,9 @@ public class LiquidGlassScreen extends Screen {
         LiquidGlassButton effectsBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Potion Effects"), b -> {
             currentTab = Tab.VISUALS_EFFECTS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
+        LiquidGlassButton leftHandItemBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Left Hand Item"), b -> {
+            currentTab = Tab.VISUALS_LEFT_HAND_ITEM; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
         LiquidGlassButton positionBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Position Editor"), b -> {
             currentTab = Tab.POSITION; contentAlpha = 0.0f; updateVisibleWidgets();
         });
@@ -258,6 +263,7 @@ public class LiquidGlassScreen extends Screen {
         visualsWidgets.add(armorHudBtn);
         visualsWidgets.add(userHudBtn);
         visualsWidgets.add(indicatorBtn);
+        visualsWidgets.add(leftHandItemBtn);
         visualsWidgets.add(invHudBtn);
 
         // Right Column: World & Interaction
@@ -901,7 +907,7 @@ public class LiquidGlassScreen extends Screen {
             maxScroll = 380;
             for (ClickableWidget w : movementWidgets) this.addSelectableChild(w);
         } else if (currentTab == Tab.VISUALS) {
-            maxScroll = 0;
+            maxScroll = 20;
             for (ClickableWidget w : visualsWidgets) this.addSelectableChild(w);
         } else {
             maxScroll = 0;
@@ -913,6 +919,7 @@ public class LiquidGlassScreen extends Screen {
                 case VISUALS_ARMOR_HUD -> visualsArmorHudWidgets; case VISUALS_FAST_ITEM -> visualsFastItemWidgets;
                 case VISUALS_USER_HUD -> visualsUserHudWidgets;
                 case VISUALS_EFFECTS -> visualsEffectsWidgets;
+                case VISUALS_LEFT_HAND_ITEM -> visualsLeftHandItemWidgets;
                 case POSITION -> positionWidgets;
                 case MOVEMENT -> movementWidgets; case BRIDGE -> bridgeWidgets;
             };
@@ -938,8 +945,8 @@ public class LiquidGlassScreen extends Screen {
         if (dt < 0f) dt = 0f;
         dt = Math.min(dt, 0.1f);
         
-        float targetW = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
-        float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        float targetW = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
         float targetXOff = (currentTab == Tab.COMBAT) ? 40f : 0f;
 
         panelWidthProgress = MathHelper.lerp(MathHelper.clamp(dt * 10.0f, 0f, 1f), panelWidthProgress, targetW);
@@ -972,7 +979,7 @@ public class LiquidGlassScreen extends Screen {
                 // Highlight GENERAL if we are in BRIDGE, or VISUALS if we are in VISUALS_JUMP/VISUALS_INV_HUD/VISUALS_PLAYER_CARD/POSITION
                 boolean isActive = (topTabs[i] == currentTab) 
                     || (topTabs[i] == Tab.GENERAL && currentTab == Tab.BRIDGE)
-                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.POSITION));
+                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.POSITION));
                 int color = ((int)(255 * contentAlpha) << 24) | ((isActive ? 0xFFFFFFFF : 0x88FFFFFF) & 0xFFFFFF);
                 
                 context.getMatrices().push(); context.getMatrices().translate(x + tabW * i + tabW / 2f, y + 15, 0);
@@ -994,6 +1001,7 @@ public class LiquidGlassScreen extends Screen {
         else if (currentTab == Tab.VISUALS_FAST_ITEM) renderVisualsFastItemTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_USER_HUD) renderVisualsUserHudTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_EFFECTS) renderVisualsEffectsTab(context, x, y, mouseX, mouseY, delta);
+        else if (currentTab == Tab.VISUALS_LEFT_HAND_ITEM) renderVisualsLeftHandItemTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.POSITION) renderPositionTab(context, mouseX, mouseY, delta);
 
         super.render(context, mouseX, mouseY, delta);
@@ -1014,18 +1022,18 @@ public class LiquidGlassScreen extends Screen {
         int colGap = 30;
         int totalW = colW * 2 + colGap;
         int startX = x + (currentW - totalW) / 2;
-        int startY = y + 70 - (int)slideOffset;
+        int startY = y + 70 - (int)scrollY - (int)slideOffset;
 
         // Draw Column Headers
-        context.drawTextWithShadow(textRenderer, "HUD & OVERLAYS", startX + 5, y + 54 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "WORLD & RENDER", startX + colW + colGap + 5, y + 54 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "HUD & OVERLAYS", startX + 5, y + 54 - (int)scrollY - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "WORLD & RENDER", startX + colW + colGap + 5, y + 54 - (int)scrollY - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (int i = 0; i < visualsWidgets.size(); i++) {
             ClickableWidget w = visualsWidgets.get(i);
             w.setAlpha(contentAlpha);
 
-            int col = i / 5; // 0 for left, 1 for right
-            int row = i % 5; // 0 to 4
+            int col = (i < 6) ? 0 : 1;
+            int row = (i < 6) ? i : (i - 6);
 
             int bx = startX + col * (colW + colGap);
             int by = startY + row * 34;
@@ -1347,6 +1355,108 @@ public class LiquidGlassScreen extends Screen {
             context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
             context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
+    }
+
+    private void initVisualsLeftHandItemTab(float x, float y) {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+            currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsLeftHandItemWidgets.add(backBtn);
+
+        LiquidGlassSwitch leftHandToggle = new LiquidGlassSwitch((int)x + 370, (int)y + 45, 40, 20, GlassMenuClient.CONFIG.enableLeftHandItem());
+        leftHandToggle.setOnToggle(enabled -> {
+            GlassMenuClient.CONFIG.enableLeftHandItem(enabled); GlassMenuClient.CONFIG.save();
+        });
+        visualsLeftHandItemWidgets.add(leftHandToggle);
+
+        String btnText = GlassMenuClient.CONFIG.transparentLeftHandItem() ? "Transparent: ON" : "Transparent: OFF";
+        LiquidGlassButton transparentBtn = new LiquidGlassButton((int)x + 40, (int)y + 80, 120, 22, Text.literal(btnText), b -> {
+            boolean current = GlassMenuClient.CONFIG.transparentLeftHandItem();
+            GlassMenuClient.CONFIG.transparentLeftHandItem(!current);
+            GlassMenuClient.CONFIG.save();
+            b.setMessage(Text.literal(GlassMenuClient.CONFIG.transparentLeftHandItem() ? "Transparent: ON" : "Transparent: OFF"));
+        });
+        visualsLeftHandItemWidgets.add(transparentBtn);
+
+        int currentColor = GlassMenuClient.CONFIG.leftHandItemColor();
+        leftHandSliderR = new LiquidGlassSlider((int)x + 230, (int)y + 90, 140, 16, ((currentColor >> 16) & 0xFF) / 255f);
+        leftHandSliderG = new LiquidGlassSlider((int)x + 230, (int)y + 125, 140, 16, ((currentColor >> 8) & 0xFF) / 255f);
+        leftHandSliderB = new LiquidGlassSlider((int)x + 230, (int)y + 160, 140, 16, (currentColor & 0xFF) / 255f);
+
+        Runnable updateColor = () -> {
+            if (isUpdating) return; isUpdating = true;
+            int r = (int)(leftHandSliderR.getValue() * 255), g = (int)(leftHandSliderG.getValue() * 255), b = (int)(leftHandSliderB.getValue() * 255);
+            int currentVal = GlassMenuClient.CONFIG.leftHandItemColor();
+            int alpha = (currentVal >> 24) & 0xFF;
+            if (alpha == 0) alpha = 0xEE;
+            int color = (alpha << 24) | (r << 16) | (g << 8) | b;
+            GlassMenuClient.CONFIG.leftHandItemColor(color); GlassMenuClient.CONFIG.save();
+            isUpdating = false;
+        };
+
+        leftHandSliderR.setOnValueChange(v -> updateColor.run());
+        leftHandSliderG.setOnValueChange(v -> updateColor.run());
+        leftHandSliderB.setOnValueChange(v -> updateColor.run());
+        visualsLeftHandItemWidgets.add(leftHandSliderR); visualsLeftHandItemWidgets.add(leftHandSliderG); visualsLeftHandItemWidgets.add(leftHandSliderB);
+    }
+
+    private void renderVisualsLeftHandItemTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
+        int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
+        float slideOffset = (1.0f - contentAlpha) * 12f;
+        boolean isTransparent = GlassMenuClient.CONFIG.transparentLeftHandItem();
+
+        context.drawTextWithShadow(textRenderer, "Left Hand Item", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Transparent", x + 40, y + 84 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Overlay Color", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+
+        for (ClickableWidget w : visualsLeftHandItemWidgets) {
+            w.setAlpha(contentAlpha);
+            if (w == leftHandSliderR || w == leftHandSliderG || w == leftHandSliderB) {
+                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
+                else if (w == leftHandSliderR) { w.setX(x + 230); w.setY((int)y + 85 - (int)slideOffset); }
+                else if (w == leftHandSliderG) { w.setX(x + 230); w.setY((int)y + 118 - (int)slideOffset); }
+                else if (w == leftHandSliderB) { w.setX(x + 230); w.setY((int)y + 151 - (int)slideOffset); }
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+                w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Transparent")) {
+                w.setX(x + 130); w.setY((int)y + 79 - (int)slideOffset);
+            } else {
+                w.setX(x + 370); w.setY((int)y + 45 - (int)slideOffset);
+            }
+        }
+
+        if (!isTransparent) {
+            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        }
+
+        // Draw a live HUD preview on the left side under the button
+        int previewW = 48;
+        int previewH = 48;
+        int previewX = (int)x + 60;
+        int previewY = (int)y + 130 - (int)slideOffset;
+
+        context.getMatrices().push();
+        int origW = GlassMenuClient.CONFIG.leftHandItemWidth();
+        int origH = GlassMenuClient.CONFIG.leftHandItemHeight();
+        int origX = GlassMenuClient.CONFIG.leftHandItemX();
+        int origY = GlassMenuClient.CONFIG.leftHandItemY();
+
+        GlassMenuClient.CONFIG.leftHandItemWidth(previewW);
+        GlassMenuClient.CONFIG.leftHandItemHeight(previewH);
+        GlassMenuClient.CONFIG.leftHandItemX(previewX);
+        GlassMenuClient.CONFIG.leftHandItemY(previewY);
+
+        com.example.glassmenu.render.LeftHandItemRenderer.render(context, this.width, this.height, true);
+
+        GlassMenuClient.CONFIG.leftHandItemWidth(origW);
+        GlassMenuClient.CONFIG.leftHandItemHeight(origH);
+        GlassMenuClient.CONFIG.leftHandItemX(origX);
+        GlassMenuClient.CONFIG.leftHandItemY(origY);
+
+        context.getMatrices().pop();
+        context.draw();
     }
 
     private void drawUserHudPreview(DrawContext context, int x, int y, int w, int h) {
@@ -1680,6 +1790,19 @@ public class LiquidGlassScreen extends Screen {
         boolean effHovered = mouseX >= effX && mouseX <= effX + effW && mouseY >= effY && mouseY <= effY + effH;
         if (effHovered || selectedObject == PositionObject.EFFECTS) {
             drawCornerBrackets(context, effX, effY, effW, effH, 3.0f, 12.0f, 2.0f, 8.0f, 0xEE00FF00);
+        }
+
+        // 9. Left Hand Item HUD
+        int leftW = GlassMenuClient.CONFIG.leftHandItemWidth();
+        int leftH = GlassMenuClient.CONFIG.leftHandItemHeight();
+        int leftX = GlassMenuClient.CONFIG.leftHandItemX() == -1 ? 10 : GlassMenuClient.CONFIG.leftHandItemX();
+        int leftY = GlassMenuClient.CONFIG.leftHandItemY() == -1 ? (this.height - leftH) / 2 : GlassMenuClient.CONFIG.leftHandItemY();
+
+        com.example.glassmenu.render.LeftHandItemRenderer.render(context, this.width, this.height, true);
+
+        boolean leftHovered = mouseX >= leftX && mouseX <= leftX + leftW && mouseY >= leftY && mouseY <= leftY + leftH;
+        if (leftHovered || selectedObject == PositionObject.LEFT_HAND_ITEM) {
+            drawCornerBrackets(context, leftX, leftY, leftW, leftH, 3.0f, 12.0f, 2.0f, 8.0f, 0xEE00FF00);
         }
 
         for (ClickableWidget w : positionWidgets) {
@@ -2180,6 +2303,12 @@ public class LiquidGlassScreen extends Screen {
             int effY_click = GlassMenuClient.CONFIG.effectsHudY() == -1 ? 10 : GlassMenuClient.CONFIG.effectsHudY();
             if (checkClickOrResize(PositionObject.EFFECTS, effX_click, effY_click, effW_click, effH_click, mouseX, mouseY)) return true;
 
+            int leftW = GlassMenuClient.CONFIG.leftHandItemWidth();
+            int leftH = GlassMenuClient.CONFIG.leftHandItemHeight();
+            int leftX = GlassMenuClient.CONFIG.leftHandItemX() == -1 ? 10 : GlassMenuClient.CONFIG.leftHandItemX();
+            int leftY = GlassMenuClient.CONFIG.leftHandItemY() == -1 ? (this.height - leftH) / 2 : GlassMenuClient.CONFIG.leftHandItemY();
+            if (checkClickOrResize(PositionObject.LEFT_HAND_ITEM, leftX, leftY, leftW, leftH, mouseX, mouseY)) return true;
+
             selectedObject = PositionObject.NONE;
             return false;
         }
@@ -2315,6 +2444,16 @@ public class LiquidGlassScreen extends Screen {
                     GlassMenuClient.CONFIG.effectsHudWidth(length_drag);
                     GlassMenuClient.CONFIG.effectsHudX(newX);
                     GlassMenuClient.CONFIG.effectsHudY(newY);
+                } else if (selectedObject == PositionObject.LEFT_HAND_ITEM) {
+                    newW = MathHelper.clamp(newW, 20, 200);
+                    newH = MathHelper.clamp(newH, 20, 200);
+                    if (resizeLeft) newX = initialX + (initialWidth - newW);
+                    if (resizeTop) newY = initialY + (initialHeight - newH);
+
+                    GlassMenuClient.CONFIG.leftHandItemWidth(newW);
+                    GlassMenuClient.CONFIG.leftHandItemHeight(newH);
+                    GlassMenuClient.CONFIG.leftHandItemX(newX);
+                    GlassMenuClient.CONFIG.leftHandItemY(newY);
                 }
                 GlassMenuClient.CONFIG.save();
                 return true;
@@ -2387,6 +2526,13 @@ public class LiquidGlassScreen extends Screen {
                     newY = MathHelper.clamp(newY, 0, this.height - effH_drag);
                     GlassMenuClient.CONFIG.effectsHudX(newX);
                     GlassMenuClient.CONFIG.effectsHudY(newY);
+                } else if (selectedObject == PositionObject.LEFT_HAND_ITEM) {
+                    int leftW = GlassMenuClient.CONFIG.leftHandItemWidth();
+                    int leftH = GlassMenuClient.CONFIG.leftHandItemHeight();
+                    newX = MathHelper.clamp(newX, 0, this.width - leftW);
+                    newY = MathHelper.clamp(newY, 0, this.height - leftH);
+                    GlassMenuClient.CONFIG.leftHandItemX(newX);
+                    GlassMenuClient.CONFIG.leftHandItemY(newY);
                 }
                 GlassMenuClient.CONFIG.save();
                 return true;
