@@ -6,6 +6,7 @@
  */
 package com.example.glassmenu.widget;
 
+import com.example.glassmenu.GlassMenuClient;
 import com.example.glassmenu.render.RenderUtils;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
@@ -53,10 +54,17 @@ public class LiquidGlassSwitch extends ClickableWidget {
         float r = height / 2.0f;
 
         // Background (SDF) - Translucent dark glass for "off", vibrant for "on"
-        int bgColor = interpolateColor(0x2C1C1C24, 0xFF34C759, animationProgress);
+        int bgColor, outlineColor;
+        if (GlassMenuClient.CONFIG.glassEffect()) {
+            bgColor = interpolateColor(0x2C1C1C24, 0xFF34C759, animationProgress);
+            outlineColor = 0x2AFFFFFF;
+        } else {
+            bgColor = interpolateColor(0xFF121216, 0xFF34C759, animationProgress);
+            outlineColor = 0xFF22222B;
+        }
         
         // Glass border outline (drawn first to act as a proper border highlight under the fill)
-        RenderUtils.drawSdfRoundedOutline(matrices, getX(), getY(), width, height, r, 0.5f, 0x2AFFFFFF);
+        RenderUtils.drawSdfRoundedOutline(matrices, getX(), getY(), width, height, r, 0.5f, outlineColor);
         
         // Background Fill
         RenderUtils.drawSdfRoundedRect(matrices, getX(), getY(), width, height, r, bgColor, hoverProgress);

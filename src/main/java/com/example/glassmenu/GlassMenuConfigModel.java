@@ -35,6 +35,8 @@ public class GlassMenuConfigModel {
     @RestartRequired
     public boolean enableShaders = true;
 
+    public boolean glassEffect = true;
+
     // --- HAND ITEM EFFECTS ---
     public boolean enableItemEffects = true;
     public ItemEffect itemEffect = ItemEffect.NONE;

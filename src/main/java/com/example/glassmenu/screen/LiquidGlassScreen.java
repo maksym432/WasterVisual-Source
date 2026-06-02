@@ -107,7 +107,11 @@ public class LiquidGlassScreen extends Screen {
 
     @Override
     protected void init() {
-        this.effectView.enableBlur();
+        if (GlassMenuClient.CONFIG.glassEffect()) {
+            this.effectView.enableBlur();
+        } else {
+            this.effectView.disableBlur();
+        }
         panelWidthProgress = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
         panelHeightProgress = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
         contentAlpha = 1.0f;
@@ -777,6 +781,21 @@ public class LiquidGlassScreen extends Screen {
             b.setMessage(Text.literal(GlassMenuClient.CONFIG.transparentIsland() ? "Glass Effect: ON" : "Glass Effect: OFF"));
         });
         generalWidgets.add(islandGlassBtn);
+
+        // Add Menu Glass Effect button on the right
+        String menuGlassText = GlassMenuClient.CONFIG.glassEffect() ? "Menu Glass: ON" : "Menu Glass: OFF";
+        LiquidGlassButton menuGlassBtn = new LiquidGlassButton((int)x + 280, (int)y + 120, 120, 22, Text.literal(menuGlassText), b -> {
+            boolean current = GlassMenuClient.CONFIG.glassEffect();
+            GlassMenuClient.CONFIG.glassEffect(!current);
+            GlassMenuClient.CONFIG.save();
+            b.setMessage(Text.literal(GlassMenuClient.CONFIG.glassEffect() ? "Menu Glass: ON" : "Menu Glass: OFF"));
+            if (GlassMenuClient.CONFIG.glassEffect()) {
+                this.effectView.enableBlur();
+            } else {
+                this.effectView.disableBlur();
+            }
+        });
+        generalWidgets.add(menuGlassBtn);
     }
 
     private void initCombatTab(float x, float y) {
@@ -2046,6 +2065,8 @@ public class LiquidGlassScreen extends Screen {
                     w.setX(x + 280); w.setY(y + 60 - (int)slideOffset);
                 } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().contains("Glass Effect")) {
                     w.setX(x + 280); w.setY(y + 90 - (int)slideOffset);
+                } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Menu Glass")) {
+                    w.setX(x + 280); w.setY(y + 120 - (int)slideOffset);
                 } else {
                     w.setX(x + 30); w.setY((int)y + 65 + leftBtnIndex * 32 - (int)slideOffset);
                     leftBtnIndex++;

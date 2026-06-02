@@ -6,6 +6,7 @@
  */
 package com.example.glassmenu.widget;
 
+import com.example.glassmenu.GlassMenuClient;
 import com.example.glassmenu.render.RenderUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -45,13 +46,21 @@ public class LiquidGlassButton extends ClickableWidget {
         context.getMatrices().scale(swell, swell, 1.0f);
         context.getMatrices().translate(-(getX() + width / 2f), -(getY() + height / 2f), 0);
 
-        // Draw design: iOS glassmorphic button (translucent border and fill)
-        int fillColor = interpolateColor(0x1F222226, 0x3833333D, hoverProgress);
-        int borderColor = interpolateColor(0x22FFFFFF, 0x3DFFFFFF, hoverProgress);
+        // Draw design: iOS glassmorphic button vs Solid Black mode
+        int fillColor, borderColor;
+        if (GlassMenuClient.CONFIG.glassEffect()) {
+            fillColor = interpolateColor(0x1F222226, 0x3833333D, hoverProgress);
+            borderColor = interpolateColor(0x22FFFFFF, 0x3DFFFFFF, hoverProgress);
+        } else {
+            // Premium solid black/dark mode theme
+            fillColor = interpolateColor(0xFF0C0C0F, 0xFF1E1E26, hoverProgress);
+            borderColor = interpolateColor(0xFF22222B, 0xFF555566, hoverProgress);
+        }
         RenderUtils.drawSdfRoundedRect(context.getMatrices(), getX() - 0.5f, getY() - 0.5f, width + 1f, height + 1f, 6.5f, borderColor, 0);
         RenderUtils.drawSdfRoundedRect(context.getMatrices(), getX(), getY(), width, height, 6f, fillColor, 0);
 
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
+        // Text is white
         context.drawCenteredTextWithShadow(tr, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, 0xFFFFFFFF);
 
         context.getMatrices().pop();

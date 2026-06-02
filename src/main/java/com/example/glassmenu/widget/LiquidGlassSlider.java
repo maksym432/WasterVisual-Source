@@ -6,6 +6,7 @@
  */
 package com.example.glassmenu.widget;
 
+import com.example.glassmenu.GlassMenuClient;
 import com.example.glassmenu.render.RenderUtils;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
@@ -64,12 +65,15 @@ public class LiquidGlassSlider extends ClickableWidget {
         dragScale = MathHelper.clamp(dragScale, 0f, 1f);
 
         MatrixStack matrices = context.getMatrices();
+        boolean glass = GlassMenuClient.CONFIG.glassEffect();
+        int trackColor = glass ? 0x33FFFFFF : 0xFF121216;
+        int trackOutlineColor = glass ? 0x1AFFFFFF : 0xFF22222B;
         
         if (vertical) {
             float r = width / 2.0f;
             // 1. Track Background
-            RenderUtils.drawSdfRoundedRect(matrices, getX() + r - 2, getY(), 4, height, 2, 0x33FFFFFF, 0);
-            RenderUtils.drawSdfRoundedOutline(matrices, getX() + r - 2, getY(), 4, height, 2, 0.5f, 0x1AFFFFFF);
+            RenderUtils.drawSdfRoundedRect(matrices, getX() + r - 2, getY(), 4, height, 2, trackColor, 0);
+            RenderUtils.drawSdfRoundedOutline(matrices, getX() + r - 2, getY(), 4, height, 2, 0.5f, trackOutlineColor);
             // 2. Progress
             float progressH = (float)(height * actualValue);
             if (progressH > 0) {
@@ -85,8 +89,8 @@ public class LiquidGlassSlider extends ClickableWidget {
         } else {
             float r = height / 2.0f;
             // 1. Track Background
-            RenderUtils.drawSdfRoundedRect(matrices, getX(), getY() + r - 2, width, 4, 2, 0x33FFFFFF, 0);
-            RenderUtils.drawSdfRoundedOutline(matrices, getX(), getY() + r - 2, width, 4, 2, 0.5f, 0x1AFFFFFF);
+            RenderUtils.drawSdfRoundedRect(matrices, getX(), getY() + r - 2, width, 4, 2, trackColor, 0);
+            RenderUtils.drawSdfRoundedOutline(matrices, getX(), getY() + r - 2, width, 4, 2, 0.5f, trackOutlineColor);
             // 2. Progress
             float progressW = (float)(width * actualValue);
             if (progressW > 0) {
