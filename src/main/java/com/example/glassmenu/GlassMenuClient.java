@@ -74,12 +74,14 @@ public class GlassMenuClient implements ClientModInitializer {
         HudRenderCallback.EVENT.register((context, tickCounter) -> {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.currentScreen == null) {
-                com.example.glassmenu.widget.IslandManager.render(
-                    context,
-                    client.getWindow().getScaledWidth(),
-                    client.getWindow().getScaledHeight(),
-                    -1, -1, 0.0f
-                );
+                if (CONFIG.enableDynamicIsland()) {
+                    com.example.glassmenu.widget.IslandManager.render(
+                        context,
+                        client.getWindow().getScaledWidth(),
+                        client.getWindow().getScaledHeight(),
+                        -1, -1, 0.0f
+                    );
+                }
                 com.example.glassmenu.render.InventoryHudRenderer.render(
                     context,
                     client.getWindow().getScaledWidth(),
@@ -130,7 +132,7 @@ public class GlassMenuClient implements ClientModInitializer {
                 if (screenInstance instanceof net.minecraft.client.gui.screen.TitleScreen) {
                     return true;
                 }
-                if (com.example.glassmenu.widget.IslandManager.mouseClicked(mouseX, mouseY, button)) {
+                if (CONFIG.enableDynamicIsland() && com.example.glassmenu.widget.IslandManager.mouseClicked(mouseX, mouseY, button)) {
                     return false; // Consume click event
                 }
                 return true;
