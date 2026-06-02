@@ -111,7 +111,7 @@ public class JumpRingsManager {
                 // CIRCLE: Locked to 4 block range, stays more central
                 float radius = 0.5f + (life * 1.5f) + pulse; 
                 matrices.push();
-                matrices.translate(p.x - cameraPos.x, p.y - cameraPos.y, p.z - cameraPos.z);
+                matrices.translate(p.x - cameraPos.x, p.y + 0.02 - cameraPos.y, p.z - cameraPos.z);
                 float rotation = (p.age + tickDelta) * 4.0f;
                 drawRing(matrices.peek().getPositionMatrix(), radius, r, g, b, alpha, rotation);
                 matrices.pop();
