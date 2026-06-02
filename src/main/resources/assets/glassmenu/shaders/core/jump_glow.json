@@ -8,6 +8,7 @@
     "fragment": "glassmenu:jump_glow",
     "attributes": [
         "Position",
+        "UV0",
         "Color"
     ],
     "samplers": [

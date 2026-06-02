@@ -36,7 +36,7 @@ public class ModShaders {
                 context.register(Identifier.of("glassmenu", "inv_glass"), VertexFormats.POSITION_TEXTURE, shader -> {
                     invGlass = shader;
                 });
-                context.register(Identifier.of("glassmenu", "jump_glow"), VertexFormats.POSITION_COLOR, shader -> {
+                context.register(Identifier.of("glassmenu", "jump_glow"), VertexFormats.POSITION_TEXTURE_COLOR, shader -> {
                     jumpGlow = shader;
                 });
             } catch (Exception e) {

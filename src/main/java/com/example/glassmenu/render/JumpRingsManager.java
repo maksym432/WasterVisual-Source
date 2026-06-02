@@ -92,7 +92,7 @@ public class JumpRingsManager {
         boolean originalBlend = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
 
         RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
+        RenderSystem.blendFunc(com.mojang.blaze3d.platform.GlStateManager.SrcFactor.SRC_ALPHA, com.mojang.blaze3d.platform.GlStateManager.DstFactor.ONE);
         RenderSystem.disableCull();
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         RenderSystem.enableDepthTest();
@@ -110,11 +110,8 @@ public class JumpRingsManager {
             if (mode == GlassMenuConfigModel.JumpRingMode.CIRCLE) {
                 // CIRCLE: Locked to 4 block range, stays more central
                 float radius = 0.5f + (life * 1.5f) + pulse; 
-                matrices.push();
-                matrices.translate(p.x - cameraPos.x, p.y + 0.02 - cameraPos.y, p.z - cameraPos.z);
                 float rotation = (p.age + tickDelta) * 4.0f;
-                drawRing(matrices.peek().getPositionMatrix(), radius, r, g, b, alpha, rotation);
-                matrices.pop();
+                drawRing(matrices, client.world, cameraPos, p, radius, r, g, b, alpha, rotation);
             } else {
                 // BLOCK_OUTLINE: Faster and larger 8 block range
                 float radius = 0.3f + (life * 7.5f) + pulse; 
@@ -124,6 +121,7 @@ public class JumpRingsManager {
 
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
+        RenderSystem.defaultBlendFunc();
         if (!originalBlend) {
             RenderSystem.disableBlend();
         } else {
@@ -158,6 +156,16 @@ public class JumpRingsManager {
                 }
 
                 net.minecraft.util.shape.VoxelShape shape = state.getCollisionShape(client.world, pos);
+                if (shape.isEmpty()) {
+                    String translationKey = state.getBlock().getTranslationKey();
+                    boolean isWalkableLayer = translationKey.contains("snow") 
+                                           || translationKey.contains("carpet") 
+                                           || translationKey.contains("lily") 
+                                           || translationKey.contains("pad");
+                    if (isWalkableLayer) {
+                        shape = state.getOutlineShape(client.world, pos);
+                    }
+                }
                 if (shape.isEmpty()) continue;
                 
                 double maxY = shape.getMax(net.minecraft.util.math.Direction.Axis.Y);
@@ -183,7 +191,7 @@ public class JumpRingsManager {
                     }
                     
                     matrices.push();
-                    matrices.translate(pos.getX() - cameraPos.x, surfaceY + 0.002 - cameraPos.y, pos.getZ() - cameraPos.z);
+                    matrices.translate(pos.getX() - cameraPos.x, surfaceY + 0.08 - cameraPos.y, pos.getZ() - cameraPos.z);
                     
                     drawSquareOutline(matrices.peek().getPositionMatrix(), r, g, b, localAlpha * 0.4f);
                     
@@ -227,10 +235,70 @@ public class JumpRingsManager {
         BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
 
-    private static void drawRing(Matrix4f matrix, float radius, float r, float g, float b, float a, float rotation) {
+    private static double getTerrainHeight(net.minecraft.client.world.ClientWorld world, double x, double z, double defaultY) {
+        int floorX = net.minecraft.util.math.MathHelper.floor(x);
+        int floorZ = net.minecraft.util.math.MathHelper.floor(z);
+        
+        // Scan a 6-block vertical range from defaultY + 3.0 down to defaultY - 3.0
+        int startY = net.minecraft.util.math.MathHelper.floor(defaultY) + 3;
+        int endY = net.minecraft.util.math.MathHelper.floor(defaultY) - 3;
+        
+        double bestY = defaultY;
+        boolean found = false;
+        
+        for (int y = startY; y >= endY; y--) {
+            net.minecraft.util.math.BlockPos bp = new net.minecraft.util.math.BlockPos(floorX, y, floorZ);
+            if (!world.isPosLoaded(bp.getX(), bp.getZ())) continue;
+            
+            net.minecraft.block.BlockState state = world.getBlockState(bp);
+            if (state.isAir()) continue;
+            
+            // Check for fluid first (so rings float on water/lava)
+            if (!state.getFluidState().isEmpty()) {
+                float fluidHeight = state.getFluidState().getHeight(world, bp);
+                bestY = bp.getY() + fluidHeight;
+                found = true;
+                break;
+            }
+            
+            // Get shape - fallback to outline shape for walkable non-solid blocks
+            net.minecraft.util.shape.VoxelShape shape = state.getCollisionShape(world, bp);
+            boolean isFoliage = shape.isEmpty();
+            
+            if (isFoliage) {
+                // Check if it's a known walkable/layered block like snow layers, carpets, lily pads
+                String translationKey = state.getBlock().getTranslationKey();
+                boolean isWalkableLayer = translationKey.contains("snow") 
+                                       || translationKey.contains("carpet") 
+                                       || translationKey.contains("lily") 
+                                       || translationKey.contains("pad");
+                if (isWalkableLayer) {
+                    shape = state.getOutlineShape(world, bp);
+                } else {
+                    // Ignore other non-solid blocks (grass, flowers, ferns, etc.)
+                    continue;
+                }
+            }
+            
+            if (!shape.isEmpty()) {
+                double maxY = shape.getMax(net.minecraft.util.math.Direction.Axis.Y);
+                bestY = bp.getY() + maxY;
+                found = true;
+                break;
+            }
+        }
+        return found ? bestY : defaultY;
+    }
+
+    private static void drawRing(MatrixStack matrices, net.minecraft.client.world.ClientWorld world, Vec3d cameraPos, Pulse p, float radius, float r, float g, float b, float a, float rotation) {
         Tessellator tessellator = Tessellator.getInstance();
         int segments = 120; // High precision for sharpness
         float radRot = rotation * (float)Math.PI / 180f;
+
+        // Position matrices translated relative to camera, but absolute world Y is processed per vertex
+        matrices.push();
+        matrices.translate(p.x - cameraPos.x, -cameraPos.y, p.z - cameraPos.z);
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
 
         // --- PHASE 1: Atmospheric filled shapes with jump_glow shader ---
         var glowShader = ModShaders.getJumpGlow();
@@ -243,8 +311,10 @@ public class JumpRingsManager {
         }
 
         // 1. Soft inner star glow fading towards center
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
-        buffer.vertex(matrix, 0, 0, 0).color(r, g, b, 0.0f);
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_TEXTURE_COLOR);
+        double centerY = getTerrainHeight(world, p.x, p.z, p.y) + 0.08;
+        buffer.vertex(matrix, 0, (float) centerY, 0).texture(0, 0).color(r, g, b, 0.0f);
+        
         for (int i = 0; i <= segments; i++) {
             float angle = i * (float) Math.PI * 2 / segments;
             float bumpInner = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.1f;
@@ -253,12 +323,16 @@ public class JumpRingsManager {
             float cos = MathHelper.cos(angle + radRot);
             float sin = MathHelper.sin(angle + radRot);
             
-            buffer.vertex(matrix, cos * radiusInner, 0, sin * radiusInner).color(r, g, b, a * 0.2f);
+            float localX = cos * radiusInner;
+            float localZ = sin * radiusInner;
+            double vertexY = getTerrainHeight(world, p.x + localX, p.z + localZ, p.y) + 0.08;
+            
+            buffer.vertex(matrix, localX, (float) vertexY, localZ).texture(localX, localZ).color(r, g, b, a * 0.2f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // 2. Glowing fill ribbon between inner and outer star
-        buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
+        buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
         for (int i = 0; i <= segments; i++) {
             float angle = i * (float) Math.PI * 2 / segments;
             float bumpOuter = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.12f;
@@ -270,8 +344,92 @@ public class JumpRingsManager {
             float cos = MathHelper.cos(angle + radRot);
             float sin = MathHelper.sin(angle + radRot);
             
-            buffer.vertex(matrix, cos * radiusInner, 0, sin * radiusInner).color(r, g, b, a * 0.6f);
-            buffer.vertex(matrix, cos * radiusOuter, 0, sin * radiusOuter).color(r, g, b, a * 0.3f);
+            float localXInner = cos * radiusInner;
+            float localZInner = sin * radiusInner;
+            double vertexYInner = getTerrainHeight(world, p.x + localXInner, p.z + localZInner, p.y) + 0.08;
+            
+            float localXOuter = cos * radiusOuter;
+            float localZOuter = sin * radiusOuter;
+            double vertexYOuter = getTerrainHeight(world, p.x + localXOuter, p.z + localZOuter, p.y) + 0.08;
+            
+            buffer.vertex(matrix, localXInner, (float) vertexYInner, localZInner).texture(localXInner, localZInner).color(r, g, b, a * 0.6f);
+            buffer.vertex(matrix, localXOuter, (float) vertexYOuter, localZOuter).texture(localXOuter, localZOuter).color(r, g, b, a * 0.3f);
+        }
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        // 3a. Volumetric outer border glow (3D depth wall - bottom half)
+        buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
+        for (int i = 0; i <= segments; i++) {
+            float angle = i * (float) Math.PI * 2 / segments;
+            float bumpOuter = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.12f;
+            float radiusOuter = radius + bumpOuter;
+            
+            float cos = MathHelper.cos(angle + radRot);
+            float sin = MathHelper.sin(angle + radRot);
+            
+            float localXOuter = cos * radiusOuter;
+            float localZOuter = sin * radiusOuter;
+            double vertexYOuter = getTerrainHeight(world, p.x + localXOuter, p.z + localZOuter, p.y) + 0.08;
+            
+            buffer.vertex(matrix, localXOuter, (float) (vertexYOuter - 0.15), localZOuter).texture(localXOuter, localZOuter).color(r, g, b, 0.0f);
+            buffer.vertex(matrix, localXOuter, (float) vertexYOuter, localZOuter).texture(localXOuter, localZOuter).color(r, g, b, a * 0.4f);
+        }
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        // 3b. Volumetric outer border glow (3D depth wall - top half)
+        buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
+        for (int i = 0; i <= segments; i++) {
+            float angle = i * (float) Math.PI * 2 / segments;
+            float bumpOuter = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.12f;
+            float radiusOuter = radius + bumpOuter;
+            
+            float cos = MathHelper.cos(angle + radRot);
+            float sin = MathHelper.sin(angle + radRot);
+            
+            float localXOuter = cos * radiusOuter;
+            float localZOuter = sin * radiusOuter;
+            double vertexYOuter = getTerrainHeight(world, p.x + localXOuter, p.z + localZOuter, p.y) + 0.08;
+            
+            buffer.vertex(matrix, localXOuter, (float) vertexYOuter, localZOuter).texture(localXOuter, localZOuter).color(r, g, b, a * 0.4f);
+            buffer.vertex(matrix, localXOuter, (float) (vertexYOuter + 0.15), localZOuter).texture(localXOuter, localZOuter).color(r, g, b, 0.0f);
+        }
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        // 4a. Volumetric inner border glow (3D depth wall - bottom half)
+        buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
+        for (int i = 0; i <= segments; i++) {
+            float angle = i * (float) Math.PI * 2 / segments;
+            float bumpInner = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.1f;
+            float radiusInner = (radius * 0.85f) + bumpInner;
+            
+            float cos = MathHelper.cos(angle + radRot);
+            float sin = MathHelper.sin(angle + radRot);
+            
+            float localXInner = cos * radiusInner;
+            float localZInner = sin * radiusInner;
+            double vertexYInner = getTerrainHeight(world, p.x + localXInner, p.z + localZInner, p.y) + 0.08;
+            
+            buffer.vertex(matrix, localXInner, (float) (vertexYInner - 0.12), localZInner).texture(localXInner, localZInner).color(r, g, b, 0.0f);
+            buffer.vertex(matrix, localXInner, (float) vertexYInner, localZInner).texture(localXInner, localZInner).color(r, g, b, a * 0.3f);
+        }
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        // 4b. Volumetric inner border glow (3D depth wall - top half)
+        buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
+        for (int i = 0; i <= segments; i++) {
+            float angle = i * (float) Math.PI * 2 / segments;
+            float bumpInner = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.1f;
+            float radiusInner = (radius * 0.85f) + bumpInner;
+            
+            float cos = MathHelper.cos(angle + radRot);
+            float sin = MathHelper.sin(angle + radRot);
+            
+            float localXInner = cos * radiusInner;
+            float localZInner = sin * radiusInner;
+            double vertexYInner = getTerrainHeight(world, p.x + localXInner, p.z + localZInner, p.y) + 0.08;
+            
+            buffer.vertex(matrix, localXInner, (float) vertexYInner, localZInner).texture(localXInner, localZInner).color(r, g, b, a * 0.3f);
+            buffer.vertex(matrix, localXInner, (float) (vertexYInner + 0.12), localZInner).texture(localXInner, localZInner).color(r, g, b, 0.0f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
@@ -291,7 +449,11 @@ public class JumpRingsManager {
             float cos = MathHelper.cos(angle + radRot);
             float sin = MathHelper.sin(angle + radRot);
             
-            buffer.vertex(matrix, cos * currentRadius, 0, sin * currentRadius).color(r, g, b, a);
+            float localX = cos * currentRadius;
+            float localZ = sin * currentRadius;
+            double vertexY = getTerrainHeight(world, p.x + localX, p.z + localZ, p.y) + 0.08;
+            
+            buffer.vertex(matrix, localX, (float) vertexY, localZ).color(r, g, b, a);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
@@ -306,12 +468,18 @@ public class JumpRingsManager {
             float cos = MathHelper.cos(angle + radRot);
             float sin = MathHelper.sin(angle + radRot);
             
-            buffer.vertex(matrix, cos * currentRadius, 0, sin * currentRadius).color(r, g, b, a * 0.7f);
+            float localX = cos * currentRadius;
+            float localZ = sin * currentRadius;
+            double vertexY = getTerrainHeight(world, p.x + localX, p.z + localZ, p.y) + 0.08;
+            
+            buffer.vertex(matrix, localX, (float) vertexY, localZ).color(r, g, b, a * 0.7f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
         
         // Reset line width
         RenderSystem.lineWidth(1.0f);
+        
+        matrices.pop();
     }
 
     private static class Pulse {
