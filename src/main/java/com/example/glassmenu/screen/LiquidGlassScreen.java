@@ -737,12 +737,16 @@ public class LiquidGlassScreen extends Screen {
         });
         visualsEffectsWidgets.add(transparentBtn);
 
-        String orientText = GlassMenuClient.CONFIG.effectsHudVertical() ? "Vertical" : "Horizontal";
-        LiquidGlassButton orientBtn = new LiquidGlassButton((int)x + 130, (int)y + 113, 80, 22, Text.literal(orientText), b -> {
+        String orientText = GlassMenuClient.CONFIG.effectsHudVertical() ? "Orientation: Vertical" : "Orientation: Horizontal";
+        LiquidGlassButton orientBtn = new LiquidGlassButton((int)x + 40, (int)y + 115, 150, 22, Text.literal(orientText), b -> {
             boolean current = GlassMenuClient.CONFIG.effectsHudVertical();
             GlassMenuClient.CONFIG.effectsHudVertical(!current);
+            int w = GlassMenuClient.CONFIG.effectsHudWidth();
+            int h = GlassMenuClient.CONFIG.effectsHudHeight();
+            GlassMenuClient.CONFIG.effectsHudWidth(h);
+            GlassMenuClient.CONFIG.effectsHudHeight(w);
             GlassMenuClient.CONFIG.save();
-            b.setMessage(Text.literal(GlassMenuClient.CONFIG.effectsHudVertical() ? "Vertical" : "Horizontal"));
+            b.setMessage(Text.literal(GlassMenuClient.CONFIG.effectsHudVertical() ? "Orientation: Vertical" : "Orientation: Horizontal"));
         });
         visualsEffectsWidgets.add(orientBtn);
     }
@@ -1054,8 +1058,9 @@ public class LiquidGlassScreen extends Screen {
         context.drawTextWithShadow(textRenderer, "Visuals Settings", x + 30, y + 25 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         double sc = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        int scissorY = (int)((this.height - y - currentH + 15) * sc);
-        int scissorH = (int)((currentH - 45) * sc);
+        // Clip exactly between the top separator line (y + 25) and bottom separator line (y + currentH - 25)
+        int scissorY = (int)((this.height - y - currentH + 25) * sc);
+        int scissorH = (int)((currentH - 50) * sc);
         RenderSystem.enableScissor((int)(x * sc), Math.max(0, scissorY), (int)(currentW * sc), Math.max(0, scissorH));
 
         int colW = 160;
@@ -1081,7 +1086,7 @@ public class LiquidGlassScreen extends Screen {
             w.setX(bx);
             w.setY(by);
 
-            boolean visible = w.getY() + w.getHeight() > y + 40 && w.getY() < y + currentH - 15;
+            boolean visible = w.getY() + w.getHeight() > y + 25 && w.getY() < y + currentH - 25;
             w.visible = visible;
             w.active = visible;
 
@@ -1290,8 +1295,6 @@ public class LiquidGlassScreen extends Screen {
 
         // Left column: labels + buttons
         context.drawTextWithShadow(textRenderer, "Enable Fast Item", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Glass Effect", x + 40, y + 84 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Item Slots",  x + 40, y + 116 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         // Right column title (short enough to not overlap switch at x+370)
         context.drawTextWithShadow(textRenderer, "Fast Item", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
@@ -1306,9 +1309,9 @@ public class LiquidGlassScreen extends Screen {
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
-                w.setX(x + 130); w.setY((int)y + 79 - (int)slideOffset);
+                w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Item Slots")) {
-                w.setX(x + 130); w.setY((int)y + 111 - (int)slideOffset);
+                w.setX(x + 40); w.setY((int)y + 115 - (int)slideOffset);
             } else {
                 // Enable toggle switch — at x+370 to avoid overlap with title
                 w.setX(x + 370); w.setY((int)y + 45 - (int)slideOffset);
@@ -1329,7 +1332,6 @@ public class LiquidGlassScreen extends Screen {
 
         // Left column: labels + buttons
         context.drawTextWithShadow(textRenderer, "Enable User HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Glass Effect", x + 40, y + 84 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         // Right column title
         context.drawTextWithShadow(textRenderer, "User HUD Color", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
@@ -1344,7 +1346,7 @@ public class LiquidGlassScreen extends Screen {
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
-                w.setX(x + 130); w.setY((int)y + 79 - (int)slideOffset);
+                w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
             } else {
                 // Enable toggle switch at x+370
                 w.setX(x + 370); w.setY((int)y + 45 - (int)slideOffset);
@@ -1365,8 +1367,6 @@ public class LiquidGlassScreen extends Screen {
 
         // Left column: labels + buttons
         context.drawTextWithShadow(textRenderer, "Enable Effects HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Glass Effect", x + 40, y + 84 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Orientation", x + 40, y + 118 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         // Right column title
         context.drawTextWithShadow(textRenderer, "Effects HUD Color", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
@@ -1381,9 +1381,9 @@ public class LiquidGlassScreen extends Screen {
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
-                w.setX(x + 130); w.setY((int)y + 79 - (int)slideOffset);
-            } else if (w instanceof LiquidGlassButton lgb && (lgb.getMessage().getString().equals("Vertical") || lgb.getMessage().getString().equals("Horizontal"))) {
-                w.setX(x + 130); w.setY((int)y + 113 - (int)slideOffset);
+                w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Orientation")) {
+                w.setX(x + 40); w.setY((int)y + 115 - (int)slideOffset);
             } else {
                 // Enable toggle switch at x+370
                 w.setX(x + 370); w.setY((int)y + 45 - (int)slideOffset);
@@ -1446,7 +1446,6 @@ public class LiquidGlassScreen extends Screen {
         boolean isTransparent = GlassMenuClient.CONFIG.transparentLeftHandItem();
 
         context.drawTextWithShadow(textRenderer, "Left Hand Item", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Glass Effect", x + 40, y + 84 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         context.drawTextWithShadow(textRenderer, "Overlay Color", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsLeftHandItemWidgets) {
@@ -1459,7 +1458,7 @@ public class LiquidGlassScreen extends Screen {
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
-                w.setX(x + 130); w.setY((int)y + 79 - (int)slideOffset);
+                w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
             } else {
                 w.setX(x + 370); w.setY((int)y + 45 - (int)slideOffset);
             }
@@ -2650,14 +2649,13 @@ public class LiquidGlassScreen extends Screen {
         context.drawTextWithShadow(textRenderer, "Dynamic Island Settings", x + 30, y + 25 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         context.drawTextWithShadow(textRenderer, "Enable Dynamic Island", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Glass Effect", x + 40, y + 84 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (ClickableWidget w : visualsIslandWidgets) {
             w.setAlpha(contentAlpha);
             if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
-                w.setX(x + 130); w.setY((int)y + 79 - (int)slideOffset);
+                w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
             } else {
                 w.setX(x + 370); w.setY((int)y + 45 - (int)slideOffset);
             }
