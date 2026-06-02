@@ -290,12 +290,12 @@ public class JumpRingsManager {
         return found ? bestY : defaultY;
     }
 
-    private static double getTerrainHeightAt(net.minecraft.client.world.ClientWorld world, int floorX, int floorZ, double referenceY) {
+    private static double getTerrainHeightAt(net.minecraft.client.world.ClientWorld world, int floorX, int floorZ, double referenceY, net.minecraft.util.math.BlockPos.Mutable bp) {
         int refY = net.minecraft.util.math.MathHelper.floor(referenceY);
         
-        // Scan around referenceY: refY + 2 down to refY - 2 (5 blocks total)
-        for (int y = refY + 2; y >= refY - 2; y--) {
-            net.minecraft.util.math.BlockPos bp = new net.minecraft.util.math.BlockPos(floorX, y, floorZ);
+        // Scan around referenceY: refY + 4 down to refY - 4 (9 blocks total)
+        for (int y = refY + 4; y >= refY - 4; y--) {
+            bp.set(floorX, y, floorZ);
             if (!world.isPosLoaded(bp.getX(), bp.getZ())) continue;
             
             net.minecraft.block.BlockState state = world.getBlockState(bp);
@@ -327,81 +327,107 @@ public class JumpRingsManager {
         return referenceY;
     }
 
-    private static Vec3d getSurfacePoint(net.minecraft.client.world.ClientWorld world, double centerX, double centerY, double centerZ, double dirX, double dirZ, double targetDistance) {
+    private static class PathPoint {
+        final Vec3d pos;
+        final double distance;
+        PathPoint(Vec3d pos, double distance) {
+            this.pos = pos;
+            this.distance = distance;
+        }
+    }
+
+    private static List<PathPoint> tracePath(net.minecraft.client.world.ClientWorld world, double centerX, double centerY, double centerZ, double dirX, double dirZ, double maxDistance) {
+        List<PathPoint> path = new ArrayList<>();
+        path.add(new PathPoint(new Vec3d(centerX, centerY, centerZ), 0.0));
+        
         double currentX = centerX;
         double currentZ = centerZ;
         double currentY = centerY;
         
         double traveled = 0.0;
-        double step = 0.2; // 20cm steps for excellent balance of smoothness and performance
+        double step = 0.2;
         
         double lastX = currentX;
         double lastZ = currentZ;
         double lastY = currentY;
         
-        double prevX = currentX;
-        double prevZ = currentZ;
-        double prevY = currentY;
-        double prevTraveled = 0.0;
+        net.minecraft.util.math.BlockPos.Mutable bp = new net.minecraft.util.math.BlockPos.Mutable();
         
-        while (traveled < targetDistance) {
-            double remaining = targetDistance - traveled;
+        while (traveled < maxDistance) {
+            double remaining = maxDistance - traveled;
             if (remaining < 0.001) {
                 break;
             }
             
-            prevX = currentX;
-            prevY = currentY;
-            prevZ = currentZ;
-            prevTraveled = traveled;
-            
             double currentStep = Math.min(step, remaining);
-            
             currentX += dirX * currentStep;
             currentZ += dirZ * currentStep;
             
             int floorX = net.minecraft.util.math.MathHelper.floor(currentX);
             int floorZ = net.minecraft.util.math.MathHelper.floor(currentZ);
             
-            // Query new height near the last known Y
-            double newY = getTerrainHeightAt(world, floorX, floorZ, lastY);
+            double newY = getTerrainHeightAt(world, floorX, floorZ, lastY, bp);
             
-            // Calculate 3D distance traveled
-            double dx = currentX - lastX;
-            double dz = currentZ - lastZ;
-            double dy = newY - lastY;
-            double stepDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            
-            if (stepDist < 0.001) {
-                break; // Prevent infinite loop under floating point underflow
+            if (newY != lastY) {
+                // Determine normal offset direction to prevent Z-fighting with vertical block faces
+                double offsetAmount = 0.04;
+                double ox = dirX * offsetAmount;
+                double oz = dirZ * offsetAmount;
+                if (newY > lastY) {
+                    ox = -ox;
+                    oz = -oz;
+                }
+                
+                // Insert the corner point (at the old height)
+                traveled += currentStep;
+                path.add(new PathPoint(new Vec3d(currentX + ox, lastY, currentZ + oz), traveled));
+                
+                // Then the vertical step to the new height
+                double dy = Math.abs(newY - lastY);
+                traveled += dy;
+                path.add(new PathPoint(new Vec3d(currentX + ox, newY, currentZ + oz), traveled));
+            } else {
+                // Normal horizontal step
+                traveled += currentStep;
+                path.add(new PathPoint(new Vec3d(currentX, newY, currentZ), traveled));
             }
-            
-            traveled += stepDist;
             
             lastX = currentX;
             lastZ = currentZ;
             lastY = newY;
-            currentY = newY;
+        }
+        return path;
+    }
+
+    private static Vec3d getPointOnPath(List<PathPoint> path, double targetDistance) {
+        if (path.isEmpty()) return Vec3d.ZERO;
+        if (targetDistance <= 0.0) return path.get(0).pos;
+        if (targetDistance >= path.get(path.size() - 1).distance) {
+            return path.get(path.size() - 1).pos;
         }
         
-        // Interpolate to get exact target distance
-        if (traveled > targetDistance && (traveled - prevTraveled) > 0.001) {
-            double t = (targetDistance - prevTraveled) / (traveled - prevTraveled);
-            double interpX = prevX + (currentX - prevX) * t;
-            double interpY = prevY + (lastY - prevY) * t;
-            double interpZ = prevZ + (currentZ - prevZ) * t;
-            return new Vec3d(interpX, interpY, interpZ);
+        for (int i = 0; i < path.size() - 1; i++) {
+            PathPoint p1 = path.get(i);
+            PathPoint p2 = path.get(i + 1);
+            if (targetDistance >= p1.distance && targetDistance <= p2.distance) {
+                double diff = p2.distance - p1.distance;
+                if (diff < 0.001) return p2.pos;
+                double t = (targetDistance - p1.distance) / diff;
+                return new Vec3d(
+                    p1.pos.x + (p2.pos.x - p1.pos.x) * t,
+                    p1.pos.y + (p2.pos.y - p1.pos.y) * t,
+                    p1.pos.z + (p2.pos.z - p1.pos.z) * t
+                );
+            }
         }
-        
-        return new Vec3d(lastX, lastY, lastZ);
+        return path.get(path.size() - 1).pos;
     }
 
     private static void drawRing(MatrixStack matrices, net.minecraft.client.world.ClientWorld world, Vec3d cameraPos, Pulse p, float radius, float r, float g, float b, float a, float rotation) {
         Tessellator tessellator = Tessellator.getInstance();
-        int segments = 120; // High precision for sharpness
+        int segments = 120;
         float radRot = rotation * (float)Math.PI / 180f;
 
-        // Position matrices translated relative to camera, but absolute world Y is processed per vertex
         matrices.push();
         matrices.translate(p.x - cameraPos.x, -cameraPos.y, p.z - cameraPos.z);
         Matrix4f matrix = matrices.peek().getPositionMatrix();
@@ -416,14 +442,9 @@ public class JumpRingsManager {
             }
         }
 
-        // Precalculate all outer and inner vertices to avoid duplicate raycasts
-        float[] localXInners = new float[segments + 1];
-        float[] localZInners = new float[segments + 1];
-        double[] vertexYInners = new double[segments + 1];
-        
-        float[] localXOuters = new float[segments + 1];
-        float[] localZOuters = new float[segments + 1];
-        double[] vertexYOuters = new double[segments + 1];
+        List<List<PathPoint>> paths = new ArrayList<>(segments + 1);
+        float[] radiusInners = new float[segments + 1];
+        float[] radiusOuters = new float[segments + 1];
 
         for (int i = 0; i <= segments; i++) {
             float angle = i * (float) Math.PI * 2 / segments;
@@ -433,66 +454,110 @@ public class JumpRingsManager {
             float bumpInner = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.1f;
             float radiusInner = (radius * 0.85f) + bumpInner;
             
+            radiusInners[i] = radiusInner;
+            radiusOuters[i] = radiusOuter;
+
             float cos = MathHelper.cos(angle + radRot);
             float sin = MathHelper.sin(angle + radRot);
             
-            Vec3d pointInner = getSurfacePoint(world, p.x, p.y, p.z, cos, sin, radiusInner);
-            localXInners[i] = (float) (pointInner.x - p.x);
-            localZInners[i] = (float) (pointInner.z - p.z);
-            vertexYInners[i] = pointInner.y + 0.08;
+            double maxDistance = radiusOuter + 0.15;
+            paths.add(tracePath(world, p.x, p.y, p.z, cos, sin, maxDistance));
+        }
+
+        // 1. Soft inner star glow fading towards center (concentric rings for perfect block wrapping)
+        int M = 4;
+        BufferBuilder buffer;
+        for (int j = 0; j < M; j++) {
+            float d1 = (float) j / M;
+            float d2 = (float) (j + 1) / M;
             
-            Vec3d pointOuter = getSurfacePoint(world, p.x, p.y, p.z, cos, sin, radiusOuter);
-            localXOuters[i] = (float) (pointOuter.x - p.x);
-            localZOuters[i] = (float) (pointOuter.z - p.z);
-            vertexYOuters[i] = pointOuter.y + 0.08;
+            buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
+            for (int i = 0; i <= segments; i++) {
+                float angle = i * (float) Math.PI * 2 / segments;
+                float rInner = radiusInners[i];
+                float dist1 = rInner * d1;
+                float dist2 = rInner * d2;
+                
+                Vec3d p1 = getPointOnPath(paths.get(i), dist1);
+                Vec3d p2 = getPointOnPath(paths.get(i), dist2);
+                
+                float alpha1 = a * 0.2f * d1;
+                float alpha2 = a * 0.2f * d2;
+                
+                buffer.vertex(matrix, (float)(p1.x - p.x), (float)(p1.y + 0.08), (float)(p1.z - p.z)).texture(dist1, angle).color(r, g, b, alpha1);
+                buffer.vertex(matrix, (float)(p2.x - p.x), (float)(p2.y + 0.08), (float)(p2.z - p.z)).texture(dist2, angle).color(r, g, b, alpha2);
+            }
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
         }
 
-        // 1. Soft inner star glow fading towards center
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_TEXTURE_COLOR);
-        double centerY = getTerrainHeight(world, p.x, p.z, p.y) + 0.08;
-        buffer.vertex(matrix, 0, (float) centerY, 0).texture(0, 0).color(r, g, b, 0.0f);
-        for (int i = 0; i <= segments; i++) {
-            buffer.vertex(matrix, localXInners[i], (float) vertexYInners[i], localZInners[i]).texture(localXInners[i], localZInners[i]).color(r, g, b, a * 0.2f);
+        // 2. Glowing fill ribbon between inner and outer star (concentric rings for perfect block wrapping)
+        int N = 6;
+        for (int j = 0; j < N; j++) {
+            float t1 = (float) j / N;
+            float t2 = (float) (j + 1) / N;
+            
+            buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
+            for (int i = 0; i <= segments; i++) {
+                float angle = i * (float) Math.PI * 2 / segments;
+                float rInner = radiusInners[i];
+                float rOuter = radiusOuters[i];
+                
+                float dist1 = rInner + (rOuter - rInner) * t1;
+                float dist2 = rInner + (rOuter - rInner) * t2;
+                
+                Vec3d p1 = getPointOnPath(paths.get(i), dist1);
+                Vec3d p2 = getPointOnPath(paths.get(i), dist2);
+                
+                float alpha1 = a * (0.6f + (0.3f - 0.6f) * t1);
+                float alpha2 = a * (0.6f + (0.3f - 0.6f) * t2);
+                
+                buffer.vertex(matrix, (float)(p1.x - p.x), (float)(p1.y + 0.08), (float)(p1.z - p.z)).texture(dist1, angle).color(r, g, b, alpha1);
+                buffer.vertex(matrix, (float)(p2.x - p.x), (float)(p2.y + 0.08), (float)(p2.z - p.z)).texture(dist2, angle).color(r, g, b, alpha2);
+            }
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
         }
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
-
-        // 2. Glowing fill ribbon between inner and outer star
-        buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
-        for (int i = 0; i <= segments; i++) {
-            buffer.vertex(matrix, localXInners[i], (float) vertexYInners[i], localZInners[i]).texture(localXInners[i], localZInners[i]).color(r, g, b, a * 0.6f);
-            buffer.vertex(matrix, localXOuters[i], (float) vertexYOuters[i], localZOuters[i]).texture(localXOuters[i], localZOuters[i]).color(r, g, b, a * 0.3f);
-        }
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // 3a. Volumetric outer border glow (3D depth wall - bottom half)
         buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
         for (int i = 0; i <= segments; i++) {
-            buffer.vertex(matrix, localXOuters[i], (float) (vertexYOuters[i] - 0.15), localZOuters[i]).texture(localXOuters[i], localZOuters[i]).color(r, g, b, 0.0f);
-            buffer.vertex(matrix, localXOuters[i], (float) vertexYOuters[i], localZOuters[i]).texture(localXOuters[i], localZOuters[i]).color(r, g, b, a * 0.4f);
+            float angle = i * (float) Math.PI * 2 / segments;
+            float rOuter = radiusOuters[i];
+            Vec3d pOuter = getPointOnPath(paths.get(i), rOuter);
+            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + 0.08 - 0.15), (float)(pOuter.z - p.z)).texture(rOuter - 0.15f, angle).color(r, g, b, 0.0f);
+            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + 0.08), (float)(pOuter.z - p.z)).texture(rOuter, angle).color(r, g, b, a * 0.4f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // 3b. Volumetric outer border glow (3D depth wall - top half)
         buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
         for (int i = 0; i <= segments; i++) {
-            buffer.vertex(matrix, localXOuters[i], (float) vertexYOuters[i], localZOuters[i]).texture(localXOuters[i], localZOuters[i]).color(r, g, b, a * 0.4f);
-            buffer.vertex(matrix, localXOuters[i], (float) (vertexYOuters[i] + 0.15), localZOuters[i]).texture(localXOuters[i], localZOuters[i]).color(r, g, b, 0.0f);
+            float angle = i * (float) Math.PI * 2 / segments;
+            float rOuter = radiusOuters[i];
+            Vec3d pOuter = getPointOnPath(paths.get(i), rOuter);
+            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + 0.08), (float)(pOuter.z - p.z)).texture(rOuter, angle).color(r, g, b, a * 0.4f);
+            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + 0.08 + 0.15), (float)(pOuter.z - p.z)).texture(rOuter + 0.15f, angle).color(r, g, b, 0.0f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // 4a. Volumetric inner border glow (3D depth wall - bottom half)
         buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
         for (int i = 0; i <= segments; i++) {
-            buffer.vertex(matrix, localXInners[i], (float) (vertexYInners[i] - 0.12), localZInners[i]).texture(localXInners[i], localZInners[i]).color(r, g, b, 0.0f);
-            buffer.vertex(matrix, localXInners[i], (float) vertexYInners[i], localZInners[i]).texture(localXInners[i], localZInners[i]).color(r, g, b, a * 0.3f);
+            float angle = i * (float) Math.PI * 2 / segments;
+            float rInner = radiusInners[i];
+            Vec3d pInner = getPointOnPath(paths.get(i), rInner);
+            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + 0.08 - 0.12), (float)(pInner.z - p.z)).texture(rInner - 0.12f, angle).color(r, g, b, 0.0f);
+            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + 0.08), (float)(pInner.z - p.z)).texture(rInner, angle).color(r, g, b, a * 0.3f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // 4b. Volumetric inner border glow (3D depth wall - top half)
         buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_TEXTURE_COLOR);
         for (int i = 0; i <= segments; i++) {
-            buffer.vertex(matrix, localXInners[i], (float) vertexYInners[i], localZInners[i]).texture(localXInners[i], localZInners[i]).color(r, g, b, a * 0.3f);
-            buffer.vertex(matrix, localXInners[i], (float) (vertexYInners[i] + 0.12), localZInners[i]).texture(localXInners[i], localZInners[i]).color(r, g, b, 0.0f);
+            float angle = i * (float) Math.PI * 2 / segments;
+            float rInner = radiusInners[i];
+            Vec3d pInner = getPointOnPath(paths.get(i), rInner);
+            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + 0.08), (float)(pInner.z - p.z)).texture(rInner, angle).color(r, g, b, a * 0.3f);
+            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + 0.08 + 0.12), (float)(pInner.z - p.z)).texture(rInner + 0.12f, angle).color(r, g, b, 0.0f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
@@ -507,9 +572,11 @@ public class JumpRingsManager {
         double lastX = 0, lastY = 0, lastZ = 0;
         boolean hasLast = false;
         for (int i = 0; i <= segments; i++) {
-            float localX = localXOuters[i];
-            float localZ = localZOuters[i];
-            double vertexY = vertexYOuters[i];
+            float angle = i * (float) Math.PI * 2 / segments;
+            Vec3d pOuter = getPointOnPath(paths.get(i), radiusOuters[i]);
+            float localX = (float) (pOuter.x - p.x);
+            float localZ = (float) (pOuter.z - p.z);
+            double vertexY = pOuter.y + 0.08;
             
             if (hasLast && Math.abs(vertexY - lastY) > 0.05) {
                 if (vertexY > lastY) {
@@ -532,9 +599,11 @@ public class JumpRingsManager {
         buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
         hasLast = false;
         for (int i = 0; i <= segments; i++) {
-            float localX = localXInners[i];
-            float localZ = localZInners[i];
-            double vertexY = vertexYInners[i];
+            float angle = i * (float) Math.PI * 2 / segments;
+            Vec3d pInner = getPointOnPath(paths.get(i), radiusInners[i]);
+            float localX = (float) (pInner.x - p.x);
+            float localZ = (float) (pInner.z - p.z);
+            double vertexY = pInner.y + 0.08;
             
             if (hasLast && Math.abs(vertexY - lastY) > 0.05) {
                 if (vertexY > lastY) {
@@ -552,9 +621,7 @@ public class JumpRingsManager {
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
         
-        // Reset line width
         RenderSystem.lineWidth(1.0f);
-        
         matrices.pop();
     }
 

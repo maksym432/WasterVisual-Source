@@ -1,20 +1,21 @@
 #version 150
 
 in vec4 vertexColor;
-in vec2 localPos;
+in vec2 localPos; // localPos.x = surface distance, localPos.y = angle
 
 out vec4 fragColor;
 
 uniform float Time;
 
 void main() {
-    float dist = length(localPos);
+    float dist = localPos.x;
+    float angle = localPos.y;
     
-    // Holographic energy wave pattern pulsing outwards
+    // Holographic energy wave pattern pulsing outwards based on true surface distance!
     float wave = sin(dist * 15.0 - Time * 8.0) * 0.5 + 0.5;
     
-    // Dynamic noise
-    float noise = fract(sin(dot(localPos, vec2(12.9898, 78.233))) * 43758.5453);
+    // Dynamic noise using both distance and angle
+    float noise = fract(sin(dot(vec2(dist, angle), vec2(12.9898, 78.233))) * 43758.5453);
     
     // Atmospheric glow strength
     float glow = 0.6 + 0.4 * wave + 0.1 * noise;
