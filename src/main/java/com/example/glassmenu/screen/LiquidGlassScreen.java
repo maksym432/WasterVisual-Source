@@ -465,7 +465,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsBedWarsTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 240, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 223, 80, 22, Text.literal("Back"), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsBedWarsWidgets.add(backBtn);
@@ -1115,7 +1115,7 @@ public class LiquidGlassScreen extends Screen {
         for (ClickableWidget w : visualsBedWarsWidgets) {
             w.setAlpha(contentAlpha);
             if (w == visualsBedWarsWidgets.get(0)) { // Back Button
-                w.setX(x + 40); w.setY((int)y + 240 - (int)slideOffset);
+                w.setX(x + 40); w.setY((int)y + 223 - (int)slideOffset);
             } else if (w == visualsBedWarsWidgets.get(1)) { // ESP Switch
                 w.setX(x + 330); w.setY((int)y + 75 - (int)slideOffset);
             } else if (w == visualsBedWarsWidgets.get(2)) { // Hearts Switch
