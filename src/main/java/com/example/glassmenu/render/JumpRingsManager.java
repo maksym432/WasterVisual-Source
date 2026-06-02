@@ -9,6 +9,7 @@ package com.example.glassmenu.render;
 
 import com.example.glassmenu.GlassMenuClient;
 import com.example.glassmenu.GlassMenuConfigModel;
+import com.example.glassmenu.shader.ModShaders;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
@@ -228,15 +229,60 @@ public class JumpRingsManager {
 
     private static void drawRing(Matrix4f matrix, float radius, float r, float g, float b, float a, float rotation) {
         Tessellator tessellator = Tessellator.getInstance();
-        
-        // SHARP NEON LINE RENDERING
-        RenderSystem.lineWidth(7.0f);
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
-        
         int segments = 120; // High precision for sharpness
         float radRot = rotation * (float)Math.PI / 180f;
-        
+
+        // --- PHASE 1: Atmospheric filled shapes with jump_glow shader ---
+        var glowShader = ModShaders.getJumpGlow();
+        var previousShader = RenderSystem.getShader();
+        if (glowShader != null) {
+            RenderSystem.setShader(() -> glowShader);
+            if (glowShader.getUniform("Time") != null) {
+                glowShader.getUniform("Time").set((net.minecraft.util.Util.getMeasuringTimeMs() % 100000L) / 1000.0f);
+            }
+        }
+
+        // 1. Soft inner star glow fading towards center
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+        buffer.vertex(matrix, 0, 0, 0).color(r, g, b, 0.0f);
+        for (int i = 0; i <= segments; i++) {
+            float angle = i * (float) Math.PI * 2 / segments;
+            float bumpInner = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.1f;
+            float radiusInner = (radius * 0.85f) + bumpInner;
+            
+            float cos = MathHelper.cos(angle + radRot);
+            float sin = MathHelper.sin(angle + radRot);
+            
+            buffer.vertex(matrix, cos * radiusInner, 0, sin * radiusInner).color(r, g, b, a * 0.2f);
+        }
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        // 2. Glowing fill ribbon between inner and outer star
+        buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
+        for (int i = 0; i <= segments; i++) {
+            float angle = i * (float) Math.PI * 2 / segments;
+            float bumpOuter = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.12f;
+            float radiusOuter = radius + bumpOuter;
+            
+            float bumpInner = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.1f;
+            float radiusInner = (radius * 0.85f) + bumpInner;
+            
+            float cos = MathHelper.cos(angle + radRot);
+            float sin = MathHelper.sin(angle + radRot);
+            
+            buffer.vertex(matrix, cos * radiusInner, 0, sin * radiusInner).color(r, g, b, a * 0.6f);
+            buffer.vertex(matrix, cos * radiusOuter, 0, sin * radiusOuter).color(r, g, b, a * 0.3f);
+        }
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        if (glowShader != null) {
+            RenderSystem.setShader(() -> previousShader);
+        }
+
+        // --- PHASE 2: Sharp Neon Borders ---
         // Main sharp outer ring
+        RenderSystem.lineWidth(7.0f);
+        buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
         for (int i = 0; i <= segments; i++) {
             float angle = i * (float) Math.PI * 2 / segments;
             float bump = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.12f;
