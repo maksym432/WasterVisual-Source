@@ -191,7 +191,7 @@ public class JumpRingsManager {
                     }
                     
                     matrices.push();
-                    matrices.translate(pos.getX() - cameraPos.x, surfaceY + 0.08 - cameraPos.y, pos.getZ() - cameraPos.z);
+                    matrices.translate(pos.getX() - cameraPos.x, surfaceY + 0.12 - cameraPos.y, pos.getZ() - cameraPos.z);
                     
                     drawSquareOutline(matrices.peek().getPositionMatrix(), r, g, b, localAlpha * 0.4f);
                     
@@ -370,7 +370,7 @@ public class JumpRingsManager {
             
             if (newY != lastY) {
                 // Determine normal offset direction to prevent Z-fighting with vertical block faces
-                double offsetAmount = 0.04;
+                double offsetAmount = 0.12;
                 double ox = dirX * offsetAmount;
                 double oz = dirZ * offsetAmount;
                 if (newY > lastY) {
@@ -427,6 +427,7 @@ public class JumpRingsManager {
         Tessellator tessellator = Tessellator.getInstance();
         int segments = 120;
         float radRot = rotation * (float)Math.PI / 180f;
+        float heightOffset = 0.12f;
 
         matrices.push();
         matrices.translate(p.x - cameraPos.x, -cameraPos.y, p.z - cameraPos.z);
@@ -484,8 +485,8 @@ public class JumpRingsManager {
                 float alpha1 = a * 0.2f * d1;
                 float alpha2 = a * 0.2f * d2;
                 
-                buffer.vertex(matrix, (float)(p1.x - p.x), (float)(p1.y + 0.08), (float)(p1.z - p.z)).texture(dist1, angle).color(r, g, b, alpha1);
-                buffer.vertex(matrix, (float)(p2.x - p.x), (float)(p2.y + 0.08), (float)(p2.z - p.z)).texture(dist2, angle).color(r, g, b, alpha2);
+                buffer.vertex(matrix, (float)(p1.x - p.x), (float)(p1.y + heightOffset), (float)(p1.z - p.z)).texture(dist1, angle).color(r, g, b, alpha1);
+                buffer.vertex(matrix, (float)(p2.x - p.x), (float)(p2.y + heightOffset), (float)(p2.z - p.z)).texture(dist2, angle).color(r, g, b, alpha2);
             }
             BufferRenderer.drawWithGlobalProgram(buffer.end());
         }
@@ -511,8 +512,8 @@ public class JumpRingsManager {
                 float alpha1 = a * (0.6f + (0.3f - 0.6f) * t1);
                 float alpha2 = a * (0.6f + (0.3f - 0.6f) * t2);
                 
-                buffer.vertex(matrix, (float)(p1.x - p.x), (float)(p1.y + 0.08), (float)(p1.z - p.z)).texture(dist1, angle).color(r, g, b, alpha1);
-                buffer.vertex(matrix, (float)(p2.x - p.x), (float)(p2.y + 0.08), (float)(p2.z - p.z)).texture(dist2, angle).color(r, g, b, alpha2);
+                buffer.vertex(matrix, (float)(p1.x - p.x), (float)(p1.y + heightOffset), (float)(p1.z - p.z)).texture(dist1, angle).color(r, g, b, alpha1);
+                buffer.vertex(matrix, (float)(p2.x - p.x), (float)(p2.y + heightOffset), (float)(p2.z - p.z)).texture(dist2, angle).color(r, g, b, alpha2);
             }
             BufferRenderer.drawWithGlobalProgram(buffer.end());
         }
@@ -523,8 +524,8 @@ public class JumpRingsManager {
             float angle = i * (float) Math.PI * 2 / segments;
             float rOuter = radiusOuters[i];
             Vec3d pOuter = getPointOnPath(paths.get(i), rOuter);
-            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + 0.08 - 0.15), (float)(pOuter.z - p.z)).texture(rOuter - 0.15f, angle).color(r, g, b, 0.0f);
-            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + 0.08), (float)(pOuter.z - p.z)).texture(rOuter, angle).color(r, g, b, a * 0.4f);
+            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + heightOffset - 0.15), (float)(pOuter.z - p.z)).texture(rOuter - 0.15f, angle).color(r, g, b, 0.0f);
+            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + heightOffset), (float)(pOuter.z - p.z)).texture(rOuter, angle).color(r, g, b, a * 0.4f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
@@ -534,8 +535,8 @@ public class JumpRingsManager {
             float angle = i * (float) Math.PI * 2 / segments;
             float rOuter = radiusOuters[i];
             Vec3d pOuter = getPointOnPath(paths.get(i), rOuter);
-            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + 0.08), (float)(pOuter.z - p.z)).texture(rOuter, angle).color(r, g, b, a * 0.4f);
-            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + 0.08 + 0.15), (float)(pOuter.z - p.z)).texture(rOuter + 0.15f, angle).color(r, g, b, 0.0f);
+            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + heightOffset), (float)(pOuter.z - p.z)).texture(rOuter, angle).color(r, g, b, a * 0.4f);
+            buffer.vertex(matrix, (float)(pOuter.x - p.x), (float)(pOuter.y + heightOffset + 0.15), (float)(pOuter.z - p.z)).texture(rOuter + 0.15f, angle).color(r, g, b, 0.0f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
@@ -545,8 +546,8 @@ public class JumpRingsManager {
             float angle = i * (float) Math.PI * 2 / segments;
             float rInner = radiusInners[i];
             Vec3d pInner = getPointOnPath(paths.get(i), rInner);
-            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + 0.08 - 0.12), (float)(pInner.z - p.z)).texture(rInner - 0.12f, angle).color(r, g, b, 0.0f);
-            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + 0.08), (float)(pInner.z - p.z)).texture(rInner, angle).color(r, g, b, a * 0.3f);
+            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + heightOffset - 0.12), (float)(pInner.z - p.z)).texture(rInner - 0.12f, angle).color(r, g, b, 0.0f);
+            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + heightOffset), (float)(pInner.z - p.z)).texture(rInner, angle).color(r, g, b, a * 0.3f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
@@ -556,8 +557,8 @@ public class JumpRingsManager {
             float angle = i * (float) Math.PI * 2 / segments;
             float rInner = radiusInners[i];
             Vec3d pInner = getPointOnPath(paths.get(i), rInner);
-            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + 0.08), (float)(pInner.z - p.z)).texture(rInner, angle).color(r, g, b, a * 0.3f);
-            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + 0.08 + 0.12), (float)(pInner.z - p.z)).texture(rInner + 0.12f, angle).color(r, g, b, 0.0f);
+            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + heightOffset), (float)(pInner.z - p.z)).texture(rInner, angle).color(r, g, b, a * 0.3f);
+            buffer.vertex(matrix, (float)(pInner.x - p.x), (float)(pInner.y + heightOffset + 0.12), (float)(pInner.z - p.z)).texture(rInner + 0.12f, angle).color(r, g, b, 0.0f);
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
@@ -576,7 +577,7 @@ public class JumpRingsManager {
             Vec3d pOuter = getPointOnPath(paths.get(i), radiusOuters[i]);
             float localX = (float) (pOuter.x - p.x);
             float localZ = (float) (pOuter.z - p.z);
-            double vertexY = pOuter.y + 0.08;
+            double vertexY = pOuter.y + heightOffset;
             
             if (hasLast && Math.abs(vertexY - lastY) > 0.05) {
                 if (vertexY > lastY) {
@@ -603,7 +604,7 @@ public class JumpRingsManager {
             Vec3d pInner = getPointOnPath(paths.get(i), radiusInners[i]);
             float localX = (float) (pInner.x - p.x);
             float localZ = (float) (pInner.z - p.z);
-            double vertexY = pInner.y + 0.08;
+            double vertexY = pInner.y + heightOffset;
             
             if (hasLast && Math.abs(vertexY - lastY) > 0.05) {
                 if (vertexY > lastY) {
