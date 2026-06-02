@@ -146,13 +146,8 @@ public class GlassRefractionEngine {
 
     public static void cleanup() {
         if (temporaryTextureId != -1) {
-            int previousTexture = com.example.glassmenu.render.RenderUtils.getTextureBinding2D(0);
-            if (previousTexture == temporaryTextureId) {
-                previousTexture = 0;
-            }
             GlStateManager._deleteTexture(temporaryTextureId);
             temporaryTextureId = -1;
-            RenderSystem.setShaderTexture(0, previousTexture);
         }
     }
 }

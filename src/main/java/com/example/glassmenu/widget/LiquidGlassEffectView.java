@@ -9,6 +9,7 @@ package com.example.glassmenu.widget;
 import com.example.glassmenu.mixin.GameRendererAccessor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
 import net.minecraft.util.Identifier;
@@ -38,6 +39,7 @@ public class LiquidGlassEffectView {
         RenderSystem.defaultBlendFunc();
         
         // 2. Use the most basic "Position-Color" shader (No textures allowed)
+        ShaderProgram previousShader = RenderSystem.getShader();
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
 
         Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
@@ -56,6 +58,10 @@ public class LiquidGlassEffectView {
         buffer.vertex(matrix, 0, 0, 0).color(r, g, b, a);
 
         BufferRenderer.drawWithGlobalProgram(buffer.end());
+        
+        if (previousShader != null) {
+            RenderSystem.setShader(() -> previousShader);
+        }
         
         // 5. Restore state
         RenderSystem.enableDepthTest();
