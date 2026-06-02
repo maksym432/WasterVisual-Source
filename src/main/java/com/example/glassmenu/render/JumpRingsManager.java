@@ -441,6 +441,8 @@ public class JumpRingsManager {
         // Main sharp outer ring
         RenderSystem.lineWidth(7.0f);
         buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
+        double lastX = 0, lastY = 0, lastZ = 0;
+        boolean hasLast = false;
         for (int i = 0; i <= segments; i++) {
             float angle = i * (float) Math.PI * 2 / segments;
             float bump = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.12f;
@@ -453,13 +455,26 @@ public class JumpRingsManager {
             float localZ = sin * currentRadius;
             double vertexY = getTerrainHeight(world, p.x + localX, p.z + localZ, p.y) + 0.08;
             
+            if (hasLast && Math.abs(vertexY - lastY) > 0.05) {
+                if (vertexY > lastY) {
+                    buffer.vertex(matrix, (float) lastX, (float) vertexY, (float) lastZ).color(r, g, b, a);
+                } else {
+                    buffer.vertex(matrix, localX, (float) lastY, localZ).color(r, g, b, a);
+                }
+            }
+            
             buffer.vertex(matrix, localX, (float) vertexY, localZ).color(r, g, b, a);
+            lastX = localX;
+            lastY = vertexY;
+            lastZ = localZ;
+            hasLast = true;
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // Nested sharp inner ring (0.85x scale) for high-fidelity look
         RenderSystem.lineWidth(4.0f);
         buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
+        hasLast = false;
         for (int i = 0; i <= segments; i++) {
             float angle = i * (float) Math.PI * 2 / segments;
             float bump = (float) Math.sin(angle * 5.0f + radRot * 2.0f) * 0.1f;
@@ -472,7 +487,19 @@ public class JumpRingsManager {
             float localZ = sin * currentRadius;
             double vertexY = getTerrainHeight(world, p.x + localX, p.z + localZ, p.y) + 0.08;
             
+            if (hasLast && Math.abs(vertexY - lastY) > 0.05) {
+                if (vertexY > lastY) {
+                    buffer.vertex(matrix, (float) lastX, (float) vertexY, (float) lastZ).color(r, g, b, a * 0.7f);
+                } else {
+                    buffer.vertex(matrix, localX, (float) lastY, localZ).color(r, g, b, a * 0.7f);
+                }
+            }
+            
             buffer.vertex(matrix, localX, (float) vertexY, localZ).color(r, g, b, a * 0.7f);
+            lastX = localX;
+            lastY = vertexY;
+            lastZ = localZ;
+            hasLast = true;
         }
         BufferRenderer.drawWithGlobalProgram(buffer.end());
         
