@@ -345,12 +345,16 @@ public class JumpRingsManager {
         double prevTraveled = 0.0;
         
         while (traveled < targetDistance) {
+            double remaining = targetDistance - traveled;
+            if (remaining < 0.001) {
+                break;
+            }
+            
             prevX = currentX;
             prevY = currentY;
             prevZ = currentZ;
             prevTraveled = traveled;
             
-            double remaining = targetDistance - traveled;
             double currentStep = Math.min(step, remaining);
             
             currentX += dirX * currentStep;
@@ -367,6 +371,10 @@ public class JumpRingsManager {
             double dz = currentZ - lastZ;
             double dy = newY - lastY;
             double stepDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            
+            if (stepDist < 0.001) {
+                break; // Prevent infinite loop under floating point underflow
+            }
             
             traveled += stepDist;
             
