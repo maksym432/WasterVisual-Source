@@ -26,6 +26,13 @@ public class GlassRefractionEngine {
     private static int lastHeight = -1;
 
     public static void drawRefractedPanel(DrawContext context, int x, int y, int width, int height, float strength, int color, float radius) {
+        drawRefractedPanel(context, x, y, width, height, (float) x, (float) y, (float) width, (float) height, strength, color, radius);
+    }
+
+    public static void drawRefractedPanel(DrawContext context, 
+                                          int copyX, int copyY, int copyWidth, int copyHeight,
+                                          float drawX, float drawY, float drawWidth, float drawHeight,
+                                          float strength, int color, float radius) {
         if (strength <= 0.0f) return;
 
         MinecraftClient client = MinecraftClient.getInstance();
@@ -64,13 +71,12 @@ public class GlassRefractionEngine {
         }
 
         // Calculate region boundaries from GUI coordinates to physical window space
+        int pCopyX = Math.max(0, (int) ((copyX / scaledW) * fbWidth));
+        int pCopyY = Math.max(0, (int) (((scaledH - (copyY + copyHeight)) / scaledH) * fbHeight));
+        int pCopyW = Math.min(fbWidth - pCopyX, (int) ((copyWidth / scaledW) * fbWidth));
+        int pCopyH = Math.min(fbHeight - pCopyY, (int) ((copyHeight / scaledH) * fbHeight));
 
-        int copyX = Math.max(0, (int) ((x / scaledW) * fbWidth));
-        int copyY = Math.max(0, (int) (((scaledH - (y + height)) / scaledH) * fbHeight));
-        int copyW = Math.min(fbWidth - copyX, (int) ((width / scaledW) * fbWidth));
-        int copyH = Math.min(fbHeight - copyY, (int) ((height / scaledH) * fbHeight));
-
-        if (copyW <= 0 || copyH <= 0) return;
+        if (pCopyW <= 0 || pCopyH <= 0) return;
 
         context.draw(); // Flush buffered UI elements first
 
@@ -78,7 +84,7 @@ public class GlassRefractionEngine {
         int previousTexture = com.example.glassmenu.render.RenderUtils.getTextureBinding2D(0);
         com.mojang.blaze3d.platform.GlStateManager._activeTexture(org.lwjgl.opengl.GL13.GL_TEXTURE0);
         com.mojang.blaze3d.platform.GlStateManager._bindTexture(temporaryTextureId);
-        GL11.glCopyTexSubImage2D(GL11.GL_TEXTURE_2D, 0, copyX, copyY, copyX, copyY, copyW, copyH);
+        GL11.glCopyTexSubImage2D(GL11.GL_TEXTURE_2D, 0, pCopyX, pCopyY, pCopyX, pCopyY, pCopyW, pCopyH);
         com.mojang.blaze3d.platform.GlStateManager._bindTexture(previousTexture);
         com.mojang.blaze3d.platform.GlStateManager._activeTexture(activeTexture);
 
@@ -98,7 +104,7 @@ public class GlassRefractionEngine {
             shader.getUniform("ScreenSize").set((float) fbWidth, (float) fbHeight);
         }
         if (shader.getUniform("Size") != null) {
-            shader.getUniform("Size").set((float) width, (float) height);
+            shader.getUniform("Size").set(drawWidth, drawHeight);
         }
         if (shader.getUniform("Radius") != null) {
             shader.getUniform("Radius").set(radius);
@@ -111,10 +117,10 @@ public class GlassRefractionEngine {
             shader.getUniform("Color").set(r, g, b, a);
         }
         if (shader.getUniform("TexBounds") != null) {
-            float u1 = (float) x / scaledW;
-            float v1 = 1.0f - ((float) y / scaledH);
-            float u2 = ((float) x + width) / scaledW;
-            float v2 = 1.0f - (((float) y + height) / scaledH);
+            float u1 = (float) copyX / scaledW;
+            float v1 = 1.0f - ((float) copyY / scaledH);
+            float u2 = ((float) copyX + copyWidth) / scaledW;
+            float v2 = 1.0f - (((float) copyY + copyHeight) / scaledH);
             shader.getUniform("TexBounds").set(u1, v1, u2, v2);
         }
 
@@ -123,15 +129,15 @@ public class GlassRefractionEngine {
         // 4. Draw refracted panel quad
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
-        
-        Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
-        float x2 = (float) x + width;
-        float y2 = (float) y + height;
 
-        buffer.vertex(matrix, x, y2, 0).texture(0.0f, 1.0f);
-        buffer.vertex(matrix, x2, y2, 0).texture(1.0f, 1.0f);
-        buffer.vertex(matrix, x2, y, 0).texture(1.0f, 0.0f);
-        buffer.vertex(matrix, x, y, 0).texture(0.0f, 0.0f);
+        Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
+        float dx2 = drawX + drawWidth;
+        float dy2 = drawY + drawHeight;
+
+        buffer.vertex(matrix, drawX, dy2, 0).texture(0.0f, 1.0f);
+        buffer.vertex(matrix, dx2, dy2, 0).texture(1.0f, 1.0f);
+        buffer.vertex(matrix, dx2, drawY, 0).texture(1.0f, 0.0f);
+        buffer.vertex(matrix, drawX, drawY, 0).texture(0.0f, 0.0f);
 
         BufferRenderer.drawWithGlobalProgram(buffer.end());
         RenderSystem.setShader(() -> previousShader);
