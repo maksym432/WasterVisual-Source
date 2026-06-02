@@ -35,6 +35,7 @@ public class UserHudRenderer {
         if (client.player == null || client.world == null) return;
 
         // --- Gather values ---
+        boolean isInfinite = client.player.getAbilities().creativeMode || client.player.isSpectator();
         int hp = (int) Math.ceil(client.player.getHealth());
         int food = client.player.getHungerManager().getFoodLevel();
         int xpLevel = client.player.experienceLevel;
@@ -96,12 +97,12 @@ public class UserHudRenderer {
         int textY = 9;
 
         // Slot 1: HP
-        String hpText = String.valueOf(hp);
+        String hpText = isInfinite ? "∞" : String.valueOf(hp);
         int hpW = tr.getWidth(hpText);
         context.drawText(tr, hpText, 31 - hpW / 2, textY, COL_HP, transparent);
 
         // Slot 2: FD
-        String fdText = String.valueOf(food);
+        String fdText = isInfinite ? "∞" : String.valueOf(food);
         int fdW = tr.getWidth(fdText);
         context.drawText(tr, fdText, 90 - fdW / 2, textY, COL_FD, transparent);
 
