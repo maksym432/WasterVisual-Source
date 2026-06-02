@@ -64,11 +64,17 @@ public class FastItemRenderer {
         int savedTexture = RenderUtils.getTextureBinding2D(0);
 
         // ── Phase 1: Background & Slots (SDF, no texture corruption) ──────────
+        boolean transparent = GlassMenuClient.CONFIG.transparentFastItem();
+        if (transparent) {
+            GlassRefractionEngine.drawRefractedPanel(context, x, y, targetW, targetH,
+                    0.8f, 0x22FFFFFF, radius * Math.min(scaleX, scaleY));
+        }
+
         context.getMatrices().push();
         context.getMatrices().translate(x, y, 0);
         context.getMatrices().scale(scaleX, scaleY, 1.0f);
 
-        if (!GlassMenuClient.CONFIG.transparentFastItem()) {
+        if (!transparent) {
             int panelColor = GlassMenuClient.CONFIG.fastItemColor();
             int alpha = (panelColor >> 24) & 0xFF;
             if (alpha > 0) {

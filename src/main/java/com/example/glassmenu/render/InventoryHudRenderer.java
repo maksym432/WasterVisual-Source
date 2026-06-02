@@ -37,11 +37,17 @@ public class InventoryHudRenderer {
 
         // ── Phase 1: Panel background & Slot Squares ──────────────────────────
         // Drawn within the scaled matrix so all UI elements align and scale together.
+        boolean transparent = GlassMenuClient.CONFIG.transparentBackground();
+        if (transparent) {
+            GlassRefractionEngine.drawRefractedPanel(context, x, y, targetW, targetH,
+                    0.8f, 0x22FFFFFF, 8f * Math.min(scaleX, scaleY));
+        }
+
         context.getMatrices().push();
         context.getMatrices().translate(x, y, 0);
         context.getMatrices().scale(scaleX, scaleY, 1.0f);
 
-        if (!GlassMenuClient.CONFIG.transparentBackground()) {
+        if (!transparent) {
             int panelColor = GlassMenuClient.CONFIG.inventoryHudColor();
             int alpha = (panelColor >> 24) & 0xFF;
             if (alpha > 0) {

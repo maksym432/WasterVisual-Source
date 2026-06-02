@@ -28,6 +28,8 @@ public class GlassMenuConfigModel {
 
     public int capsuleColor = 0xEE1C1C1E;
 
+    public boolean transparentIsland = false;
+
     @RestartRequired
     public boolean enableShaders = true;
 

@@ -149,10 +149,27 @@ public class PlayerCardRenderer {
             cardY = GlassMenuClient.CONFIG.playerCardY();
         }
 
-        context.getMatrices().push();
-        // Pivot scale transformation around the center of the card
         float centerX = cardX + cardW / 2f;
         float centerY = cardY + cardH / 2f;
+
+        float transformedX = cardX;
+        float transformedY = cardY;
+        float transformedW = cardW;
+        float transformedH = cardH;
+        if (scale != 1.0f) {
+            transformedW = cardW * scale;
+            transformedH = cardH * scale;
+            transformedX = centerX - transformedW / 2f;
+            transformedY = centerY - transformedH / 2f;
+        }
+
+        if (GlassMenuClient.CONFIG.transparentPlayerCard()) {
+            GlassRefractionEngine.drawRefractedPanel(context, (int)transformedX, (int)transformedY, (int)transformedW, (int)transformedH,
+                    0.8f, (Math.round(0x22 * alpha)) << 24 | 0x00FFFFFF, 8f * scale);
+        }
+
+        context.getMatrices().push();
+        // Pivot scale transformation around the center of the card
         context.getMatrices().translate(centerX, centerY, 300.0f);
         context.getMatrices().scale(scale, scale, 1.0f);
         context.getMatrices().translate(-centerX, -centerY, 0f);

@@ -7,6 +7,8 @@
 package com.example.glassmenu.widget;
 
 import com.example.glassmenu.GlassMenuClient;
+import com.example.glassmenu.render.GlassRefractionEngine;
+import com.example.glassmenu.render.RenderUtils;
 import com.example.glassmenu.shader.ModShaders;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
@@ -232,10 +234,16 @@ public class IslandManager {
         float expandedR = defaultCornerRadius;
         float finalRadius = MathHelper.lerp(smoothProgress, compactR, expandedR);
 
-        context.getMatrices().push();
-        context.getMatrices().translate(x, y, 0);
-        drawSdfBackground(context, 0, 0, currentWidth, currentHeight, finalRadius, islandColor, 1.5f);
-        context.getMatrices().pop();
+        if (GlassMenuClient.CONFIG.transparentIsland()) {
+            GlassRefractionEngine.drawRefractedPanel(context, (int)x, (int)y, (int)currentWidth, (int)currentHeight,
+                    0.8f, 0x22FFFFFF, finalRadius);
+            RenderUtils.drawSdfRoundedOutline(context.getMatrices(), x, y, currentWidth, currentHeight, finalRadius, 1.0f, 0x33FFFFFF);
+        } else {
+            context.getMatrices().push();
+            context.getMatrices().translate(x, y, 0);
+            drawSdfBackground(context, 0, 0, currentWidth, currentHeight, finalRadius, islandColor, 1.5f);
+            context.getMatrices().pop();
+        }
 
         // 2. Draw active module content
         if (active != null) {

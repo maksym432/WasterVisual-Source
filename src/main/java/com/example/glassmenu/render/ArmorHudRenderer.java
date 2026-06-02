@@ -34,11 +34,17 @@ public class ArmorHudRenderer {
         int y = GlassMenuClient.CONFIG.armorHudY() == -1 ? screenHeight - targetH - 45 : GlassMenuClient.CONFIG.armorHudY();
 
         // ── Phase 1: Background & Slot Squares ────────────────────────────────
+        boolean transparent = GlassMenuClient.CONFIG.transparentArmorHud();
+        if (transparent) {
+            GlassRefractionEngine.drawRefractedPanel(context, x, y, targetW, targetH,
+                    0.8f, 0x22FFFFFF, 8f * Math.min(scaleX, scaleY));
+        }
+
         context.getMatrices().push();
         context.getMatrices().translate(x, y, 0);
         context.getMatrices().scale(scaleX, scaleY, 1.0f);
 
-        if (!GlassMenuClient.CONFIG.transparentArmorHud()) {
+        if (!transparent) {
             int panelColor = GlassMenuClient.CONFIG.armorHudColor();
             int alpha = (panelColor >> 24) & 0xFF;
             if (alpha > 0) {
