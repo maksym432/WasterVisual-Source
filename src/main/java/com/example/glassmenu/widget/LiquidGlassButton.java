@@ -52,8 +52,8 @@ public class LiquidGlassButton extends ClickableWidget {
         float outerRadius = radius + 0.5f;
         
         if (GlassMenuClient.CONFIG.glassEffect()) {
-            fillColor = interpolateColor(0x26FFFFFF, 0x47FFFFFF, hoverProgress);
-            borderColor = interpolateColor(0x33FFFFFF, 0x66FFFFFF, hoverProgress);
+            fillColor = interpolateColor(0x15FFFFFF, 0x33FFFFFF, hoverProgress);
+            borderColor = interpolateColor(0x26FFFFFF, 0x4DFFFFFF, hoverProgress);
         } else {
             // iOS premium solid off-white to pure-white theme
             fillColor = interpolateColor(0xFFF2F2F7, 0xFFFFFFFF, hoverProgress);
