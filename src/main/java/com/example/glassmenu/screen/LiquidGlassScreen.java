@@ -393,7 +393,7 @@ public class LiquidGlassScreen extends Screen {
         GlassMenuConfigModel.JumpRingMode[] modes = GlassMenuConfigModel.JumpRingMode.values();
         for (int i = 0; i < modeLabels.length; i++) {
             final GlassMenuConfigModel.JumpRingMode mode = modes[i];
-            LiquidGlassButton btn = new LiquidGlassButton((int)x + 40, (int)y + 90 + i * 28, 80, 22, Text.literal(modeLabels[i]), b -> {
+            LiquidGlassButton btn = new LiquidGlassButton((int)x + 40, (int)y + 130 + i * 28, 80, 22, Text.literal(modeLabels[i]), b -> {
                 GlassMenuClient.CONFIG.jumpRingMode(mode); GlassMenuClient.CONFIG.save();
             });
             visualsJumpWidgets.add(btn);
@@ -941,9 +941,9 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void addMovementSliderGroup(float x, int y, String label, double vx, java.util.function.Consumer<Double> ax, double vy, java.util.function.Consumer<Double> ay, double vz, java.util.function.Consumer<Double> az) {
-        LiquidGlassSlider sX = new LiquidGlassSlider((int)x + 105, y + 25, 40, 16, vx); sX.setOnValueChange(ax); movementWidgets.add(sX);
-        LiquidGlassSlider sY = new LiquidGlassSlider((int)x + 155, y - 10, 20, 60, vy); sY.setVertical(true); sY.setOnValueChange(ay); movementWidgets.add(sY);
-        LiquidGlassSlider sZ = new LiquidGlassSlider((int)x + 185, y + 25, 40, 16, vz); sZ.setOnValueChange(az); movementWidgets.add(sZ);
+        LiquidGlassSlider sX = new LiquidGlassSlider((int)x + 100, y + 25, 40, 16, vx); sX.setOnValueChange(ax); movementWidgets.add(sX);
+        LiquidGlassSlider sY = new LiquidGlassSlider((int)x + 160, y - 10, 20, 60, vy); sY.setVertical(true); sY.setOnValueChange(ay); movementWidgets.add(sY);
+        LiquidGlassSlider sZ = new LiquidGlassSlider((int)x + 200, y + 25, 40, 16, vz); sZ.setOnValueChange(az); movementWidgets.add(sZ);
     }
 
     private TextFieldWidget createColorTextField(int x, int y, int w) {
@@ -1044,16 +1044,66 @@ public class LiquidGlassScreen extends Screen {
                 boolean isHovered = mouseX >= x + tabW * i && mouseX <= x + tabW * (i + 1) && mouseY >= y && mouseY <= y + 30;
                 tabHoverProgress[i] = MathHelper.lerp(MathHelper.clamp(dt * 8.0f, 0f, 1f), tabHoverProgress[i], isHovered ? 1.0f : 0.0f);
                 tabHoverProgress[i] = MathHelper.clamp(tabHoverProgress[i], 0f, 1f);
-                float swell = 1.0f + tabHoverProgress[i] * 0.12f;
                 
-                // Highlight GENERAL if we are in BRIDGE, or VISUALS if we are in VISUALS_JUMP/VISUALS_INV_HUD/VISUALS_PLAYER_CARD/POSITION
                 boolean isActive = (topTabs[i] == currentTab) 
                     || (topTabs[i] == Tab.GENERAL && currentTab == Tab.BRIDGE)
                     || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.POSITION));
-                int color = ((int)(255 * contentAlpha) << 24) | ((isActive ? 0xFFFFFFFF : 0x88FFFFFF) & 0xFFFFFF);
                 
-                context.getMatrices().push(); context.getMatrices().translate(x + tabW * i + tabW / 2f, y + 15, 0);
-                context.getMatrices().scale(swell, swell, 1.0f); context.drawCenteredTextWithShadow(textRenderer, topTabs[i].name(), 0, -5, color);
+                float swell = 1.0f + tabHoverProgress[i] * 0.04f; // Subtle scale swell on hover
+
+                int fillColor, borderColor, textColor;
+                if (GlassMenuClient.CONFIG.glassEffect()) {
+                    int baseFill = isActive ? 0x3DFFFFFF : (isHovered ? 0x26FFFFFF : 0x10FFFFFF);
+                    int hoverFill = isActive ? 0x4DFFFFFF : 0x2EFFFFFF;
+                    fillColor = interpolateColor(baseFill, hoverFill, tabHoverProgress[i]);
+
+                    int baseBorder = isActive ? 0x55FFFFFF : (isHovered ? 0x33FFFFFF : 0x1AFFFFFF);
+                    int hoverBorder = isActive ? 0x66FFFFFF : 0x40FFFFFF;
+                    borderColor = interpolateColor(baseBorder, hoverBorder, tabHoverProgress[i]);
+                    
+                    textColor = ((int)(255 * contentAlpha) << 24) | 0xFFFFFF;
+                } else {
+                    int baseFill = isActive ? 0xFFFFFFFF : (isHovered ? 0xFFF2F2F7 : 0xFFE5E5EA);
+                    int hoverFill = 0xFFFFFFFF;
+                    fillColor = interpolateColor(baseFill, hoverFill, tabHoverProgress[i]);
+
+                    int baseBorder = isActive ? 0xFFC7C7CC : (isHovered ? 0xFFD1D1D6 : 0xFFE5E5EA);
+                    int hoverBorder = 0xFFC7C7CC;
+                    borderColor = interpolateColor(baseBorder, hoverBorder, tabHoverProgress[i]);
+                    
+                    int textRGB = isActive ? 0xFF1C1C1E : 0xFF8E8E93;
+                    textColor = ((int)(255 * contentAlpha) << 24) | (textRGB & 0xFFFFFF);
+                }
+
+                // Apply alpha to colors
+                int fillAlpha = Math.round(((fillColor >> 24) & 0xFF) * contentAlpha);
+                int finalFillColor = (fillAlpha << 24) | (fillColor & 0x00FFFFFF);
+
+                int borderAlpha = Math.round(((borderColor >> 24) & 0xFF) * contentAlpha);
+                int finalBorderColor = (borderAlpha << 24) | (borderColor & 0x00FFFFFF);
+
+                float boxW = tabW - 8f;
+                float boxH = 20f;
+                float boxX = x + tabW * i + 4f;
+                float boxY = y + 5f;
+
+                context.getMatrices().push();
+                context.getMatrices().translate(boxX + boxW / 2f, boxY + boxH / 2f, 0);
+                context.getMatrices().scale(swell, swell, 1.0f);
+                context.getMatrices().translate(-(boxX + boxW / 2f), -(boxY + boxH / 2f), 0);
+
+                // Draw background and outline
+                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), boxX, boxY, boxW, boxH, 8f, 0.6f, finalBorderColor);
+                RenderUtils.drawSdfRoundedRect(context.getMatrices(), boxX, boxY, boxW, boxH, 8f, finalFillColor, 0);
+                context.draw(); // Flush to render SDF backgrounds
+
+                // Draw centered text
+                if (GlassMenuClient.CONFIG.glassEffect()) {
+                    context.drawCenteredTextWithShadow(textRenderer, topTabs[i].name(), (int)(boxX + boxW / 2f), (int)(boxY + (boxH - 8) / 2f), textColor);
+                } else {
+                    context.drawText(textRenderer, topTabs[i].name(), (int)(boxX + (boxW - textRenderer.getWidth(topTabs[i].name())) / 2f), (int)(boxY + (boxH - 8) / 2f), textColor, false);
+                }
+
                 context.getMatrices().pop();
             }
         }
@@ -2305,12 +2355,19 @@ public class LiquidGlassScreen extends Screen {
             int itemOffset = (i < 2) ? 0 : ((i-2)%3 == 1 ? -22 : 0);
             boolean isVert = (w instanceof LiquidGlassSlider lgs) && lgs.isVertical();
             
-            // Nudge first two widgets (Switch and Speed Slider) slightly right
-            int xOffset = (isVert ? 165 : (i == 0 ? 160 : (i == 1 ? 110 : ( (i-2)%3 == 0 ? 105 : 195))));
-            if (i >= 2 && !isVert) { // Position group sliders
-                 xOffset = ( (i-2)%3 == 0 ? 105 : 195);
-            } else if (i < 2) {
-                 xOffset = (i == 0 ? 160 : 110);
+            // Symmetrically layout X, Y, Z widgets (gaps 20px on both sides of vertical Y slider)
+            int xOffset;
+            if (i < 2) {
+                xOffset = (i == 0 ? 160 : 110);
+            } else {
+                int rem = (i - 2) % 3;
+                if (rem == 0) {
+                    xOffset = 100;
+                } else if (rem == 1) {
+                    xOffset = 160;
+                } else {
+                    xOffset = 200;
+                }
             }
             
             w.setY(yPos + itemOffset); w.setX(x + xOffset);
@@ -2320,9 +2377,10 @@ public class LiquidGlassScreen extends Screen {
                 if (labelY > y + 40 && labelY < y + currentH - 25) {
                     context.drawTextWithShadow(textRenderer, labels[lIdx], x + 20, labelY, colorAlpha | 0xFFFFFF);
                     if (lIdx >= 2) {
-                        context.drawTextWithShadow(textRenderer, "X", x + 125, yPos + 35, colorAlpha | 0x88FFFFFF);
-                        context.drawTextWithShadow(textRenderer, "Y", x + 170, yPos + 35, colorAlpha | 0x88FFFFFF);
-                        context.drawTextWithShadow(textRenderer, "Z", x + 215, yPos + 35, colorAlpha | 0x88FFFFFF);
+                        // Position labels above sliders to avoid overlap with vertical slider Y
+                        context.drawTextWithShadow(textRenderer, "X", x + 117, yPos - 28, colorAlpha | 0x88FFFFFF);
+                        context.drawTextWithShadow(textRenderer, "Y", x + 167, yPos - 28, colorAlpha | 0x88FFFFFF);
+                        context.drawTextWithShadow(textRenderer, "Z", x + 217, yPos - 28, colorAlpha | 0x88FFFFFF);
                     }
                 }
                 lIdx++;
@@ -2755,8 +2813,6 @@ public class LiquidGlassScreen extends Screen {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
 
-        context.drawTextWithShadow(textRenderer, "Dynamic Island Settings", x + 30, y + 25 - (int)slideOffset, colorAlpha | 0xFFFFFF);
-
         context.drawTextWithShadow(textRenderer, "Enable Dynamic Island", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (ClickableWidget w : visualsIslandWidgets) {
@@ -3027,10 +3083,12 @@ public class LiquidGlassScreen extends Screen {
         // Colour picker section header
         boolean rgbOn = GlassMenuClient.CONFIG.ghostTrailRgb();
         boolean showColorPicker = !rgbOn;
-        context.drawTextWithShadow(textRenderer, "Color",  x + 46,  y + 100 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "R",      x + 210, y + 122 - (int)slideOffset, colorAlpha | 0xFF5555);
-        context.drawTextWithShadow(textRenderer, "G",      x + 210, y + 152 - (int)slideOffset, colorAlpha | 0x55FF55);
-        context.drawTextWithShadow(textRenderer, "B",      x + 210, y + 182 - (int)slideOffset, colorAlpha | 0x5555FF);
+        if (showColorPicker) {
+            context.drawTextWithShadow(textRenderer, "Color",  x + 110,  y + 98 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Red",    x + 230,  y + 108 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Green",  x + 230,  y + 138 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, "Blue",   x + 230,  y + 168 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        }
 
         // Reposition interactive widgets
         if (ghostSliderR != null) { ghostSliderR.setY((int)y + 118 - (int)slideOffset); ghostSliderR.visible = showColorPicker; ghostSliderR.active = showColorPicker; }
@@ -3055,6 +3113,14 @@ public class LiquidGlassScreen extends Screen {
                 addDrawableChild(ghostRgbInput); addSelectableChild(ghostRgbInput);
             }
         }
+    }
+
+    private int interpolateColor(int c1, int c2, float p) {
+        int a = (int) MathHelper.lerp(p, (c1 >> 24) & 0xFF, (c2 >> 24) & 0xFF);
+        int r = (int) MathHelper.lerp(p, (c1 >> 16) & 0xFF, (c2 >> 16) & 0xFF);
+        int g = (int) MathHelper.lerp(p, (c1 >> 8) & 0xFF, (c2 >> 8) & 0xFF);
+        int b = (int) MathHelper.lerp(p, c1 & 0xFF, c2 & 0xFF);
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 }
 
