@@ -239,8 +239,8 @@ public class JumpRingsManager {
         int floorX = net.minecraft.util.math.MathHelper.floor(x);
         int floorZ = net.minecraft.util.math.MathHelper.floor(z);
         
-        // Scan a 6-block vertical range from defaultY + 3.0 down to defaultY - 3.0
-        int startY = net.minecraft.util.math.MathHelper.floor(defaultY) + 3;
+        // Scan a 4-block vertical range from defaultY + 1.0 down to defaultY - 3.0
+        int startY = net.minecraft.util.math.MathHelper.floor(defaultY) + 1;
         int endY = net.minecraft.util.math.MathHelper.floor(defaultY) - 3;
         
         double bestY = defaultY;
@@ -293,8 +293,8 @@ public class JumpRingsManager {
     private static double getTerrainHeightAt(net.minecraft.client.world.ClientWorld world, int floorX, int floorZ, double referenceY, net.minecraft.util.math.BlockPos.Mutable bp) {
         int refY = net.minecraft.util.math.MathHelper.floor(referenceY);
         
-        // Scan around referenceY: refY + 4 down to refY - 4 (9 blocks total)
-        for (int y = refY + 4; y >= refY - 4; y--) {
+        // Scan around referenceY: refY + 1 down to refY - 3 (5 blocks total)
+        for (int y = refY + 1; y >= refY - 3; y--) {
             bp.set(floorX, y, floorZ);
             if (!world.isPosLoaded(bp.getX(), bp.getZ())) continue;
             

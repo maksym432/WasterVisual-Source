@@ -142,12 +142,18 @@ public class GlassRefractionEngine {
         BufferRenderer.drawWithGlobalProgram(buffer.end());
         RenderSystem.setShader(() -> previousShader);
         RenderSystem.setShaderTexture(0, previousTexture);
+        com.mojang.blaze3d.platform.GlStateManager._activeTexture(activeTexture);
     }
 
     public static void cleanup() {
         if (temporaryTextureId != -1) {
+            int previousTexture = com.example.glassmenu.render.RenderUtils.getTextureBinding2D(0);
+            if (previousTexture == temporaryTextureId) {
+                previousTexture = 0;
+            }
             GlStateManager._deleteTexture(temporaryTextureId);
             temporaryTextureId = -1;
+            RenderSystem.setShaderTexture(0, previousTexture);
         }
     }
 }

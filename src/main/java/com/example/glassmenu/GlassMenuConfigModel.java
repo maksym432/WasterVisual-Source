@@ -96,10 +96,13 @@ public class GlassMenuConfigModel {
     public int inventoryHudY = -1;
     public int playerCardX = -1;
     public int playerCardY = -1;
+    public int playerCardWidth = 140;
+    public int playerCardHeight = 54;
 
     // --- BRIDGE ---
     public boolean enableBridgeVortex = true;
     public int bridgeVortexColor = 0x00BFFF; // Default Cyan
+    public boolean transparentBridge = false;
 
     // --- PLAYER CARD ---
     public boolean enablePlayerCard = true;
@@ -172,4 +175,15 @@ public class GlassMenuConfigModel {
     public int leftHandItemY = -1;
     public int leftHandItemWidth = 32;
     public int leftHandItemHeight = 32;
+
+    // --- CUSTOM HIT PARTICLES ---
+    public boolean enableCustomHit = false;
+    public boolean customHitRgb = false;
+    public int customHitColor = 0xFFFFD700; // Default Gold/Yellow
+    public int customHitCount = 8;          // Number of stars per burst (1-30)
+
+    // --- GHOST TRAIL (Afterimage) ---
+    public boolean enableGhostTrail = false;
+    public boolean ghostTrailRgb = false;
+    public int ghostTrailColor = 0xFF88CCFF; // Default light-blue
 }

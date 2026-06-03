@@ -34,6 +34,9 @@ public class LiquidGlassEffectView {
 
     public void render(DrawContext context, int width, int height) {
         // 1. COMPLETELY isolate OpenGL state
+        boolean wasBlendEnabled = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
+        boolean wasDepthEnabled = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_DEPTH_TEST);
+
         RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -64,6 +67,13 @@ public class LiquidGlassEffectView {
         }
         
         // 5. Restore state
-        RenderSystem.enableDepthTest();
+        if (wasDepthEnabled) {
+            RenderSystem.enableDepthTest();
+        } else {
+            RenderSystem.disableDepthTest();
+        }
+        if (!wasBlendEnabled) {
+            RenderSystem.disableBlend();
+        }
     }
 }

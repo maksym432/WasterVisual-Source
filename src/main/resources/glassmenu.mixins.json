@@ -12,7 +12,8 @@
     "InGameHudMixin",
     "AbstractInventoryScreenMixin",
     "PotionLayerMixin",
-    "InvConfigMixin"
+    "InvConfigMixin",
+    "ParticleManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -170,19 +170,26 @@ public class BridgeBoxRenderer {
         float pulseTime = (float) (now % 100000) / 1000f;
         float pulse = 0.85f + 0.15f * (float) Math.sin(pulseTime * 6.0f);
 
+        float alphaFactor = GlassMenuClient.CONFIG.transparentBridge() ? 0.35f : 1.0f;
+
         BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
         // Layer 1: Outer Aura (Wide, soft neon light)
-        drawAllEdges(buffer, matrix, 0.035f * pulse, r, g, b, 0.12f * pulse * globalAlpha, minX, maxX, minY, maxY, minZ, maxZ);
+        drawAllEdges(buffer, matrix, 0.035f * pulse, r, g, b, 0.12f * pulse * globalAlpha * alphaFactor, minX, maxX, minY, maxY, minZ, maxZ);
 
         // Layer 2: Mid Glow (Medium width, dense color)
-        drawAllEdges(buffer, matrix, 0.015f * pulse, r, g, b, 0.35f * pulse * globalAlpha, minX, maxX, minY, maxY, minZ, maxZ);
+        drawAllEdges(buffer, matrix, 0.015f * pulse, r, g, b, 0.35f * pulse * globalAlpha * alphaFactor, minX, maxX, minY, maxY, minZ, maxZ);
 
         // Layer 3: Inner Core (Thin, intense, extremely bright neon core)
         float cr = Math.min(1.0f, (r + 1.5f) / 2.5f);
         float cg = Math.min(1.0f, (g + 1.5f) / 2.5f);
         float cb = Math.min(1.0f, (b + 1.5f) / 2.5f);
-        drawAllEdges(buffer, matrix, 0.005f, cr, cg, cb, 0.90f * globalAlpha, minX, maxX, minY, maxY, minZ, maxZ);
+        drawAllEdges(buffer, matrix, 0.005f, cr, cg, cb, 0.90f * globalAlpha * alphaFactor, minX, maxX, minY, maxY, minZ, maxZ);
+
+        // Volumetric Glass Effect (Translucent filled box faces)
+        if (GlassMenuClient.CONFIG.transparentBridge()) {
+            drawSolidBox(buffer, matrix, minX, minY, minZ, maxX, maxY, maxZ, r, g, b, 0.12f * globalAlpha);
+        }
 
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 

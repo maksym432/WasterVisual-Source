@@ -146,6 +146,7 @@ public class UserIndicatorRenderer {
 
         // Save original states at the very beginning of the method
         ShaderProgram originalShader = RenderSystem.getShader();
+        int originalActive = com.mojang.blaze3d.platform.GlStateManager._getActiveTexture();
         int originalTex = RenderUtils.getTextureBinding2D(0);
         boolean originalBlend = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
 
@@ -262,6 +263,7 @@ public class UserIndicatorRenderer {
         // Restore original states at the very end of the method
         RenderSystem.setShader(() -> originalShader);
         RenderSystem.setShaderTexture(0, originalTex);
+        com.mojang.blaze3d.platform.GlStateManager._activeTexture(originalActive);
         if (!originalBlend) {
             RenderSystem.disableBlend();
         } else {

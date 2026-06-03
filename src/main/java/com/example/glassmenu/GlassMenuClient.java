@@ -49,6 +49,8 @@ public class GlassMenuClient implements ClientModInitializer {
             com.example.glassmenu.render.TargetESPManager.tick();
             com.example.glassmenu.render.JumpRingsManager.tick();
             com.example.glassmenu.render.PlayerCardRenderer.tick();
+            com.example.glassmenu.render.CustomHitParticleManager.tick();
+            com.example.glassmenu.render.GhostTrailManager.tick();
         });
 
         // SAFE World Rendering via Fabric API (Compatible with Sodium/Iris)
@@ -60,6 +62,12 @@ public class GlassMenuClient implements ClientModInitializer {
 
             // BedWars ESP (Rendering)
             com.example.glassmenu.render.BedWarsESPManager.render(context);
+
+            // Custom Hit Particles (Rendering)
+            com.example.glassmenu.render.CustomHitParticleManager.render(context);
+
+            // Ghost Trail / Afterimage (Rendering)
+            com.example.glassmenu.render.GhostTrailManager.render(context);
         });
 
         // Cancel vanilla outline if Vortex is enabled

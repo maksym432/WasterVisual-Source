@@ -57,6 +57,7 @@ public class RenderUtils {
             return;
         }
 
+        int originalActiveTexture = com.mojang.blaze3d.platform.GlStateManager._getActiveTexture();
         int previousTexture = getTextureBinding2D(0);
 
         RenderSystem.enableBlend();
@@ -85,6 +86,7 @@ public class RenderUtils {
             RenderSystem.setShader(() -> originalShader);
         }
         RenderSystem.setShaderTexture(0, previousTexture);
+        com.mojang.blaze3d.platform.GlStateManager._activeTexture(originalActiveTexture);
         if (!wasBlendEnabled) {
             RenderSystem.disableBlend();
         }
@@ -129,6 +131,7 @@ public class RenderUtils {
             return;
         }
 
+        int originalActiveTexture = com.mojang.blaze3d.platform.GlStateManager._getActiveTexture();
         int previousTexture = getTextureBinding2D(0);
 
         RenderSystem.enableBlend();
@@ -158,6 +161,7 @@ public class RenderUtils {
             RenderSystem.setShader(() -> originalShader);
         }
         RenderSystem.setShaderTexture(0, previousTexture);
+        com.mojang.blaze3d.platform.GlStateManager._activeTexture(originalActiveTexture);
         if (!wasBlendEnabled) {
             RenderSystem.disableBlend();
         }
@@ -296,5 +300,79 @@ public class RenderUtils {
         public VertexConsumer getBuffer(RenderLayer layer) {
             return new TintedVertexConsumer(delegate.getBuffer(layer), r, g, b, a);
         }
+    }
+
+    public static void drawSdfRoundedTexture(MatrixStack matrices, float x, float y, float w, float h, float radius, net.minecraft.util.Identifier texture, int color, float u1, float v1, float u2, float v2) {
+        float centerX = x + w / 2f;
+        float centerY = y + h / 2f;
+        
+        matrices.push();
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+
+        float a = (float) (color >> 24 & 255) / 255.0F;
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+
+        boolean wasBlendEnabled = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
+        ShaderProgram originalShader = RenderSystem.getShader();
+
+        ShaderProgram shader = !com.example.glassmenu.GlassMenuClient.CONFIG.enableShaders() ? null : ModShaders.getSdfRoundedRect();
+        if (shader == null) {
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
+            RenderSystem.setShaderTexture(0, texture);
+            Tessellator tessellator = Tessellator.getInstance();
+            BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+            buffer.vertex(matrix, x, y + h, 0).texture(u1, v2).color(r, g, b, a);
+            buffer.vertex(matrix, x + w, y + h, 0).texture(u2, v2).color(r, g, b, a);
+            buffer.vertex(matrix, x + w, y, 0).texture(u2, v1).color(r, g, b, a);
+            buffer.vertex(matrix, x, y, 0).texture(u1, v1).color(r, g, b, a);
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
+            if (originalShader != null) {
+                RenderSystem.setShader(() -> originalShader);
+            }
+            if (!wasBlendEnabled) {
+                RenderSystem.disableBlend();
+            }
+            matrices.pop();
+            return;
+        }
+
+        int originalActiveTexture = com.mojang.blaze3d.platform.GlStateManager._getActiveTexture();
+        int previousTexture = getTextureBinding2D(0);
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(() -> shader);
+        if (shader.getUniform("Color") != null) shader.getUniform("Color").set(r, g, b, a);
+        if (shader.getUniform("Size") != null) shader.getUniform("Size").set(w, h);
+        if (shader.getUniform("Radius") != null) shader.getUniform("Radius").set(radius);
+        if (shader.getUniform("EdgeSoftness") != null) shader.getUniform("EdgeSoftness").set(1.0f);
+        if (shader.getUniform("TexBounds") != null) shader.getUniform("TexBounds").set(u1, v1, u2, v2);
+        if (shader.getUniform("OutlineThickness") != null) shader.getUniform("OutlineThickness").set(0.0f);
+        if (shader.getUniform("UseTexture") != null) shader.getUniform("UseTexture").set(1.0f);
+
+        RenderSystem.setShaderTexture(0, texture);
+
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+
+        buffer.vertex(matrix, x, y + h, 0).texture(0, 1);
+        buffer.vertex(matrix, x + w, y + h, 0).texture(1, 1);
+        buffer.vertex(matrix, x + w, y, 0).texture(1, 0);
+        buffer.vertex(matrix, x, y, 0).texture(0, 0);
+
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        if (originalShader != null) {
+            RenderSystem.setShader(() -> originalShader);
+        }
+        RenderSystem.setShaderTexture(0, previousTexture);
+        com.mojang.blaze3d.platform.GlStateManager._activeTexture(originalActiveTexture);
+        if (!wasBlendEnabled) {
+            RenderSystem.disableBlend();
+        }
+        matrices.pop();
     }
 }
