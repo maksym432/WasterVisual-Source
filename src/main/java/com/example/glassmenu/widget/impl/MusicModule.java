@@ -499,12 +499,7 @@ public class MusicModule implements IslandModule {
                 if (idx >= 3) break;
                 float itemY = 32f + idx * 24f;
                 if (rx >= 6 && rx <= width - 6 && ry >= itemY && ry <= itemY + 22f) {
-                    System.out.println("GlassMenu Debug: selected player source: " + info.name);
-                    LinuxMediaController.selectedPlayer = info.name;
-                    new Thread(() -> {
-                        try { Thread.sleep(50); } catch (InterruptedException ignored) {}
-                        LinuxMediaController.poll();
-                    }).start();
+                    LinuxMediaController.selectAndPlayPlayer(info.name);
                     routingMenuOpen = false;
                     return true;
                 }

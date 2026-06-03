@@ -521,6 +521,50 @@ public class LinuxMediaController {
         }); 
     }
 
+    public static void selectAndPlayPlayer(String newPlayerName) {
+        String oldPlayer = selectedPlayer;
+        if (oldPlayer != null && !oldPlayer.isEmpty() && !oldPlayer.equals(newPlayerName)) {
+            // Pause the old player
+            EXECUTOR.execute(() -> {
+                if (oldPlayer.startsWith("browser_tab_")) {
+                    try {
+                        int tabId = Integer.parseInt(oldPlayer.substring(12));
+                        PENDING_COMMANDS.add(new BrowserCommand("pause", tabId));
+                    } catch (Exception ignored) {}
+                } else {
+                    if (IS_WINDOWS) {
+                        execWin("pause", oldPlayer, "");
+                    } else {
+                        exec("playerctl -p " + oldPlayer + " pause");
+                    }
+                }
+            });
+        }
+        
+        selectedPlayer = newPlayerName;
+        
+        // Play the new player
+        EXECUTOR.execute(() -> {
+            try { Thread.sleep(150); } catch (InterruptedException ignored) {}
+            if (newPlayerName.startsWith("browser_tab_")) {
+                try {
+                    int tabId = Integer.parseInt(newPlayerName.substring(12));
+                    PENDING_COMMANDS.add(new BrowserCommand("play", tabId));
+                } catch (Exception ignored) {}
+            } else {
+                if (IS_WINDOWS) {
+                    execWin("play", newPlayerName, "");
+                } else {
+                    exec("playerctl -p " + newPlayerName + " play");
+                }
+            }
+            for (int i = 0; i < 4; i++) {
+                try { Thread.sleep(150); } catch (InterruptedException ignored) {}
+                poll();
+            }
+        });
+    }
+
     public static void toggleShuffle() {
         EXECUTOR.execute(() -> {
             exec("playerctl shuffle Toggle");
@@ -799,7 +843,11 @@ public class LinuxMediaController {
                 "    foreach ($session in $sessions) {\n" +
                 "        $name = $session.SourceAppUserModelId\n" +
                 "        if ($name.ToLower().Contains($target.ToLower())) {\n" +
-                "            if ($action -eq 'playPause') {\n" +
+                "            if ($action -eq 'play') {\n" +
+                "                Await ($session.TryPlayAsync()) ([bool]) | Out-Null\n" +
+                "            } elseif ($action -eq 'pause') {\n" +
+                "                Await ($session.TryPauseAsync()) ([bool]) | Out-Null\n" +
+                "            } elseif ($action -eq 'playPause') {\n" +
                 "                $playback = $session.GetPlaybackInfo()\n" +
                 "                if ($playback.PlaybackStatus -eq 4) {\n" +
                 "                    Await ($session.TryPauseAsync()) ([bool]) | Out-Null\n" +

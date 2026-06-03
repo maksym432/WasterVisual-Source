@@ -49,7 +49,23 @@ async function updateTabs() {
 }
 
 function handleCommand(command, tabId) {
-  if (command === "playPause") {
+  if (command === "play") {
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      func: () => {
+        let media = document.querySelectorAll('video, audio');
+        media.forEach(m => m.play());
+      }
+    });
+  } else if (command === "pause") {
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      func: () => {
+        let media = document.querySelectorAll('video, audio');
+        media.forEach(m => m.pause());
+      }
+    });
+  } else if (command === "playPause") {
     chrome.scripting.executeScript({
       target: { tabId: tabId },
       func: () => {
