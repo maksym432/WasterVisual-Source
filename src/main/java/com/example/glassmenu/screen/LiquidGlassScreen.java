@@ -1082,10 +1082,10 @@ public class LiquidGlassScreen extends Screen {
                 int borderAlpha = Math.round(((borderColor >> 24) & 0xFF) * contentAlpha);
                 int finalBorderColor = (borderAlpha << 24) | (borderColor & 0x00FFFFFF);
 
-                float boxW = tabW - 14f;
-                float boxH = 18f;
-                float boxX = x + tabW * i + 7f;
-                float boxY = y + 6f;
+                float boxW = tabW - 20f;
+                float boxH = 16f;
+                float boxX = x + tabW * i + 10f;
+                float boxY = y + 7f;
 
                 context.getMatrices().push();
                 context.getMatrices().translate(boxX + boxW / 2f, boxY + boxH / 2f, 0);
@@ -1093,8 +1093,8 @@ public class LiquidGlassScreen extends Screen {
                 context.getMatrices().translate(-(boxX + boxW / 2f), -(boxY + boxH / 2f), 0);
 
                 // Draw background and outline
-                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), boxX, boxY, boxW, boxH, 7f, 0.6f, finalBorderColor);
-                RenderUtils.drawSdfRoundedRect(context.getMatrices(), boxX, boxY, boxW, boxH, 7f, finalFillColor, 0);
+                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), boxX, boxY, boxW, boxH, 6f, 0.6f, finalBorderColor);
+                RenderUtils.drawSdfRoundedRect(context.getMatrices(), boxX, boxY, boxW, boxH, 6f, finalFillColor, 0);
                 context.draw(); // Flush to render SDF backgrounds
 
                 // Draw centered text
