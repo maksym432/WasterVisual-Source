@@ -1082,10 +1082,10 @@ public class LiquidGlassScreen extends Screen {
                 int borderAlpha = Math.round(((borderColor >> 24) & 0xFF) * contentAlpha);
                 int finalBorderColor = (borderAlpha << 24) | (borderColor & 0x00FFFFFF);
 
-                float boxW = tabW - 8f;
-                float boxH = 20f;
-                float boxX = x + tabW * i + 4f;
-                float boxY = y + 5f;
+                float boxW = tabW - 14f;
+                float boxH = 18f;
+                float boxX = x + tabW * i + 7f;
+                float boxY = y + 6f;
 
                 context.getMatrices().push();
                 context.getMatrices().translate(boxX + boxW / 2f, boxY + boxH / 2f, 0);
@@ -1093,8 +1093,8 @@ public class LiquidGlassScreen extends Screen {
                 context.getMatrices().translate(-(boxX + boxW / 2f), -(boxY + boxH / 2f), 0);
 
                 // Draw background and outline
-                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), boxX, boxY, boxW, boxH, 8f, 0.6f, finalBorderColor);
-                RenderUtils.drawSdfRoundedRect(context.getMatrices(), boxX, boxY, boxW, boxH, 8f, finalFillColor, 0);
+                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), boxX, boxY, boxW, boxH, 7f, 0.6f, finalBorderColor);
+                RenderUtils.drawSdfRoundedRect(context.getMatrices(), boxX, boxY, boxW, boxH, 7f, finalFillColor, 0);
                 context.draw(); // Flush to render SDF backgrounds
 
                 // Draw centered text
@@ -1211,7 +1211,7 @@ public class LiquidGlassScreen extends Screen {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
         context.drawTextWithShadow(textRenderer, "Jump Pulse Rings", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
-        context.drawTextWithShadow(textRenderer, "Mode", x + 40, y + 85 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Mode", x + 40, y + 110 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         int btnIdx = 0;
         for (ClickableWidget w : visualsJumpWidgets) {
@@ -1222,7 +1222,7 @@ public class LiquidGlassScreen extends Screen {
             else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton) {
-                w.setX(x + 40); w.setY((int)y + 90 + (btnIdx++) * 28 - (int)slideOffset);
+                w.setX(x + 40); w.setY((int)y + 130 + (btnIdx++) * 28 - (int)slideOffset);
             } else {
                 w.setX(x + 330); w.setY((int)y + 45 - (int)slideOffset);
             }
