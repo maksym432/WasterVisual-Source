@@ -886,11 +886,15 @@ public class MusicModule implements IslandModule {
                 
                 // Player display name
                 String displayName = info.name;
-                if (displayName.contains(".")) {
-                    displayName = displayName.substring(0, displayName.indexOf("."));
-                }
-                if (!displayName.isEmpty()) {
-                    displayName = displayName.substring(0, 1).toUpperCase() + displayName.substring(1);
+                if (displayName.startsWith("browser_tab_")) {
+                    displayName = info.artist;
+                } else {
+                    if (displayName.contains(".")) {
+                        displayName = displayName.substring(0, displayName.indexOf("."));
+                    }
+                    if (!displayName.isEmpty()) {
+                        displayName = displayName.substring(0, 1).toUpperCase() + displayName.substring(1);
+                    }
                 }
                 
                 int nameColor = info.name.equals(LinuxMediaController.selectedPlayer) ? 0xFF34C759 : 0xFFFFFF;

@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Minecraft Dynamic Island Media Controller",
+  "version": "1.0.0",
+  "description": "Bridges active playing browser tabs to the Minecraft Dynamic Island.",
+  "permissions": [
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost:31252/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

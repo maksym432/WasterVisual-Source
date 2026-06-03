@@ -36,6 +36,26 @@ public class LinuxMediaController {
     public static String selectedPlayer = "";
     
     public static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
+
+    public static class BrowserCommand {
+        public String command;
+        public int tabId;
+        public BrowserCommand(String command, int tabId) {
+            this.command = command;
+            this.tabId = tabId;
+        }
+    }
+    public static class BrowserTabInfo {
+        public int id;
+        public String title = "";
+        public String url = "";
+        public String favIconUrl = "";
+        public boolean audible = false;
+        public boolean active = false;
+    }
+    public static final java.util.Queue<BrowserCommand> PENDING_COMMANDS = new java.util.concurrent.ConcurrentLinkedQueue<>();
+    public static final java.util.List<BrowserTabInfo> BROWSER_TABS = new java.util.concurrent.CopyOnWriteArrayList<>();
+    private static com.sun.net.httpserver.HttpServer httpServer = null;
     
     private static final java.util.Map<String, String> LOADED_ART_URLS = new java.util.concurrent.ConcurrentHashMap<>();
     public static final java.util.Map<String, Identifier> PLAYER_ART_TEXTURES = new java.util.concurrent.ConcurrentHashMap<>();
@@ -87,6 +107,7 @@ public class LinuxMediaController {
         if (IS_WINDOWS) {
             writeWindowsScript();
         }
+        startHttpServer();
         EXECUTOR.scheduleAtFixedRate(LinuxMediaController::poll, 0, 1000, TimeUnit.MILLISECONDS);
     }
 
@@ -109,7 +130,14 @@ public class LinuxMediaController {
                 }
             }
 
-            if (!selectedPlayer.isEmpty() && !players.contains(selectedPlayer)) {
+            boolean foundSelected = false;
+            for (String p : players) {
+                if (p.equals(selectedPlayer)) { foundSelected = true; break; }
+            }
+            for (BrowserTabInfo tab : BROWSER_TABS) {
+                if (("browser_tab_" + tab.id).equals(selectedPlayer)) { foundSelected = true; break; }
+            }
+            if (!selectedPlayer.isEmpty() && !foundSelected) {
                 selectedPlayer = "";
             }
 
@@ -150,6 +178,8 @@ public class LinuxMediaController {
                 }
                 playerInfos.add(pi);
             }
+            addBrowserTabsToPlayerInfos(playerInfos);
+
             ALL_PLAYERS_INFO.clear();
             ALL_PLAYERS_INFO.addAll(playerInfos);
 
@@ -159,7 +189,19 @@ public class LinuxMediaController {
             MediaState oldState = CURRENT_STATE.get();
             MediaState newState = new MediaState();
             
-            if (!output.isEmpty() && output.contains(";;;")) {
+            PlayerInfo active = null;
+            if (!selectedPlayer.isEmpty()) {
+                for (PlayerInfo p : playerInfos) {
+                    if (p.name.equals(selectedPlayer)) {
+                        active = p;
+                        break;
+                    }
+                }
+            }
+
+            if (handleActiveBrowserTab(active, newState, oldState)) {
+                // Handled!
+            } else if (!output.isEmpty() && output.contains(";;;")) {
                 String[] parts = output.split(";;;", -1);
                 if (parts.length >= 5) {
                     String title = parts[0].trim();
@@ -354,6 +396,35 @@ public class LinuxMediaController {
     }
 
     public static void playPause() { 
+        if (selectedPlayer.startsWith("browser_tab_")) {
+            try {
+                int tabId = Integer.parseInt(selectedPlayer.substring(12));
+                PENDING_COMMANDS.add(new BrowserCommand("playPause", tabId));
+                MediaState state = CURRENT_STATE.get();
+                if (state != null) {
+                    MediaState newState = new MediaState();
+                    newState.title = state.title;
+                    newState.artist = state.artist;
+                    newState.isPlaying = !state.isPlaying;
+                    newState.volume = state.volume;
+                    newState.artUrl = state.artUrl;
+                    newState.artTexture = state.artTexture;
+                    newState.artWidth = state.artWidth;
+                    newState.artHeight = state.artHeight;
+                    newState.avgColor = state.avgColor;
+                    newState.position = state.position;
+                    newState.length = state.length;
+                    newState.shuffle = state.shuffle;
+                    newState.loopStatus = state.loopStatus;
+                    newState.visualizerGradients = state.visualizerGradients;
+                    
+                    isPlayingLockUntil = System.currentTimeMillis() + 800;
+                    lockedIsPlaying = newState.isPlaying;
+                    CURRENT_STATE.set(newState);
+                }
+            } catch (Exception ignored) {}
+            return;
+        }
         MediaState state = CURRENT_STATE.get();
         if (state != null) {
             MediaState newState = new MediaState();
@@ -389,6 +460,13 @@ public class LinuxMediaController {
         }); 
     }
     public static void next() { 
+        if (selectedPlayer.startsWith("browser_tab_")) {
+            try {
+                int tabId = Integer.parseInt(selectedPlayer.substring(12));
+                PENDING_COMMANDS.add(new BrowserCommand("next", tabId));
+            } catch (Exception ignored) {}
+            return;
+        }
         EXECUTOR.execute(() -> {
             if (IS_WINDOWS) {
                 execWin("next", selectedPlayer, "");
@@ -402,6 +480,13 @@ public class LinuxMediaController {
         }); 
     }
     public static void previous() { 
+        if (selectedPlayer.startsWith("browser_tab_")) {
+            try {
+                int tabId = Integer.parseInt(selectedPlayer.substring(12));
+                PENDING_COMMANDS.add(new BrowserCommand("previous", tabId));
+            } catch (Exception ignored) {}
+            return;
+        }
         EXECUTOR.execute(() -> {
             if (IS_WINDOWS) {
                 execWin("previous", selectedPlayer, "");
@@ -423,6 +508,9 @@ public class LinuxMediaController {
         }); 
     }
     public static void seek(double seconds) { 
+        if (selectedPlayer.startsWith("browser_tab_")) {
+            return;
+        }
         EXECUTOR.execute(() -> {
             if (IS_WINDOWS) {
                 execWin("seek", selectedPlayer, String.format(java.util.Locale.US, "%.2f", seconds));
@@ -563,6 +651,8 @@ public class LinuxMediaController {
                 }
             }
 
+            addBrowserTabsToPlayerInfos(playerInfos);
+
             if (!selectedPlayer.isEmpty()) {
                 boolean foundSelected = false;
                 for (PlayerInfo p : playerInfos) {
@@ -601,7 +691,9 @@ public class LinuxMediaController {
             MediaState oldState = CURRENT_STATE.get();
             MediaState newState = new MediaState();
 
-            if (active != null) {
+            if (handleActiveBrowserTab(active, newState, oldState)) {
+                // Handled!
+            } else if (active != null) {
                 newState.title = active.title;
                 newState.artist = active.artist;
                 newState.isPlaying = active.isPlaying;
@@ -775,5 +867,220 @@ public class LinuxMediaController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static void startHttpServer() {
+        try {
+            httpServer = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress(31252), 0);
+            httpServer.createContext("/api/media/update", exchange -> {
+                try {
+                    if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+                        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+                        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+                        exchange.sendResponseHeaders(204, -1);
+                        return;
+                    }
+                    
+                    if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                        java.io.InputStream is = exchange.getRequestBody();
+                        java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                        byte[] buffer = new byte[1024];
+                        int len;
+                        while ((len = is.read(buffer)) != -1) {
+                            bos.write(buffer, 0, len);
+                        }
+                        String json = bos.toString("UTF-8");
+                        
+                        updateBrowserTabsFromJson(json);
+                        
+                        String responseJson = "{\"status\":\"ok\"}";
+                        BrowserCommand cmd = PENDING_COMMANDS.poll();
+                        if (cmd != null) {
+                            responseJson = String.format("{\"command\":\"%s\",\"tabId\":%d}", cmd.command, cmd.tabId);
+                        }
+                        
+                        byte[] respBytes = responseJson.getBytes("UTF-8");
+                        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                        exchange.sendResponseHeaders(200, respBytes.length);
+                        exchange.getResponseBody().write(respBytes);
+                    } else {
+                        exchange.sendResponseHeaders(405, -1);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    try { exchange.sendResponseHeaders(500, -1); } catch (Exception ignored) {}
+                } finally {
+                    exchange.close();
+                }
+            });
+            httpServer.setExecutor(null);
+            httpServer.start();
+        } catch (Exception e) {
+            System.err.println("Failed to start media controller HTTP server: " + e.getMessage());
+        }
+    }
+
+    private static void updateBrowserTabsFromJson(String json) {
+        java.util.List<BrowserTabInfo> newTabs = new java.util.ArrayList<>();
+        try {
+            int index = 0;
+            while ((index = json.indexOf("{", index)) != -1) {
+                int endIndex = json.indexOf("}", index);
+                if (endIndex == -1) break;
+                String obj = json.substring(index, endIndex + 1);
+                index = endIndex + 1;
+                
+                BrowserTabInfo tab = new BrowserTabInfo();
+                try {
+                    tab.id = Integer.parseInt(extractJsonValue(obj, "id"));
+                    tab.title = decodeJsonString(extractJsonValue(obj, "title"));
+                    tab.url = decodeJsonString(extractJsonValue(obj, "url"));
+                    tab.favIconUrl = decodeJsonString(extractJsonValue(obj, "favIconUrl"));
+                    tab.audible = Boolean.parseBoolean(extractJsonValue(obj, "audible"));
+                    tab.active = Boolean.parseBoolean(extractJsonValue(obj, "active"));
+                    newTabs.add(tab);
+                } catch (Exception ignored) {}
+            }
+            BROWSER_TABS.clear();
+            BROWSER_TABS.addAll(newTabs);
+        } catch (Exception e) {
+            // Ignore parse errors
+        }
+    }
+
+    private static String extractJsonValue(String obj, String key) {
+        String searchKey = "\"" + key + "\":";
+        int keyIndex = obj.indexOf(searchKey);
+        if (keyIndex == -1) return "";
+        int valStart = keyIndex + searchKey.length();
+        char firstChar = obj.charAt(valStart);
+        if (firstChar == '"') {
+            int end = valStart + 1;
+            while (end < obj.length()) {
+                if (obj.charAt(end) == '"' && obj.charAt(end - 1) != '\\') {
+                    break;
+                }
+                end++;
+            }
+            return obj.substring(valStart + 1, end);
+        } else {
+            int end = valStart;
+            while (end < obj.length() && obj.charAt(end) != ',' && obj.charAt(end) != '}') {
+                end++;
+            }
+            return obj.substring(valStart, end).trim();
+        }
+    }
+    
+    private static String decodeJsonString(String val) {
+        if (val == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < val.length(); i++) {
+            char c = val.charAt(i);
+            if (c == '\\' && i + 1 < val.length()) {
+                char next = val.charAt(i + 1);
+                if (next == 'u' && i + 5 < val.length()) {
+                    try {
+                        int code = Integer.parseInt(val.substring(i + 2, i + 6), 16);
+                        sb.append((char) code);
+                        i += 5;
+                    } catch (Exception e) {
+                        sb.append(c);
+                    }
+                } else if (next == 'n') {
+                    sb.append('\n');
+                    i++;
+                } else if (next == 'r') {
+                    sb.append('\n');
+                    i++;
+                } else if (next == 't') {
+                    sb.append('\t');
+                    i++;
+                } else {
+                    sb.append(next);
+                    i++;
+                }
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    private static void addBrowserTabsToPlayerInfos(java.util.List<PlayerInfo> playerInfos) {
+        for (BrowserTabInfo tab : BROWSER_TABS) {
+            PlayerInfo pi = new PlayerInfo();
+            pi.name = "browser_tab_" + tab.id;
+            pi.title = tab.title;
+            
+            String domain = "Web";
+            if (!tab.url.isEmpty()) {
+                try {
+                    String host = new java.net.URI(tab.url).getHost();
+                    if (host != null) {
+                        if (host.startsWith("www.")) host = host.substring(4);
+                        if (host.contains("youtube.com")) domain = "YouTube";
+                        else if (host.contains("spotify.com")) domain = "Spotify Web";
+                        else if (host.contains("soundcloud.com")) domain = "SoundCloud";
+                        else {
+                            String[] parts = host.split("\\.");
+                            if (parts.length >= 2) {
+                                domain = parts[parts.length - 2];
+                                domain = domain.substring(0, 1).toUpperCase() + domain.substring(1);
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+            pi.artist = domain;
+            pi.isPlaying = tab.audible;
+            pi.position = 0;
+            pi.length = 0;
+            
+            if (tab.favIconUrl != null && !tab.favIconUrl.isEmpty()) {
+                pi.artUrl = tab.favIconUrl;
+                String lastUrlForPlayer = LOADED_ART_URLS.get(pi.name);
+                if (!tab.favIconUrl.equals(lastUrlForPlayer)) {
+                    LOADED_ART_URLS.put(pi.name, tab.favIconUrl);
+                    loadArtForPlayer(pi.name, tab.favIconUrl);
+                }
+                pi.artTexture = PLAYER_ART_TEXTURES.get(pi.name);
+                pi.artWidth = PLAYER_ART_WIDTHS.getOrDefault(pi.name, 0);
+                pi.artHeight = PLAYER_ART_HEIGHTS.getOrDefault(pi.name, 0);
+            }
+            
+            playerInfos.add(pi);
+        }
+    }
+
+    private static boolean handleActiveBrowserTab(PlayerInfo active, MediaState newState, MediaState oldState) {
+        if (active != null && active.name.startsWith("browser_tab_")) {
+            newState.title = active.title;
+            newState.artist = active.artist;
+            newState.isPlaying = active.isPlaying;
+            if (System.currentTimeMillis() < isPlayingLockUntil) {
+                newState.isPlaying = lockedIsPlaying;
+            }
+            newState.volume = oldState.volume;
+            newState.artUrl = active.artUrl;
+            newState.position = active.position;
+            newState.length = active.length;
+            newState.shuffle = oldState.shuffle;
+            newState.loopStatus = oldState.loopStatus;
+            
+            if (active.artTexture != null) {
+                newState.artTexture = active.artTexture;
+                newState.artWidth = active.artWidth;
+                newState.artHeight = active.artHeight;
+                newState.avgColor = oldState.avgColor;
+                newState.visualizerGradients = oldState.visualizerGradients;
+            } else {
+                newState.artTexture = null;
+            }
+            return true;
+        }
+        return false;
     }
 }
