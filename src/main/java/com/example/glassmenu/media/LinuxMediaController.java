@@ -26,10 +26,21 @@ public class LinuxMediaController {
         public boolean isPlaying = false;
         public double position = 0;
         public double length = 0;
+        public String artUrl = "";
+        public Identifier artTexture = null;
+        public int artWidth = 0;
+        public int artHeight = 0;
     }
 
     public static final java.util.List<PlayerInfo> ALL_PLAYERS_INFO = new java.util.concurrent.CopyOnWriteArrayList<>();
     public static String selectedPlayer = "";
+    
+    public static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
+    
+    private static final java.util.Map<String, String> LOADED_ART_URLS = new java.util.concurrent.ConcurrentHashMap<>();
+    public static final java.util.Map<String, Identifier> PLAYER_ART_TEXTURES = new java.util.concurrent.ConcurrentHashMap<>();
+    public static final java.util.Map<String, Integer> PLAYER_ART_WIDTHS = new java.util.concurrent.ConcurrentHashMap<>();
+    public static final java.util.Map<String, Integer> PLAYER_ART_HEIGHTS = new java.util.concurrent.ConcurrentHashMap<>();
 
     private static final ScheduledExecutorService EXECUTOR = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "MediaController-Polling");
@@ -73,11 +84,19 @@ public class LinuxMediaController {
             placeholder.setColor(0, 0, 0x00000000); // Transparent
             MinecraftClient.getInstance().getTextureManager().registerTexture(ART_TEXTURE_ID, new NativeImageBackedTexture(placeholder));
         });
+        if (IS_WINDOWS) {
+            writeWindowsScript();
+        }
         EXECUTOR.scheduleAtFixedRate(LinuxMediaController::poll, 0, 1000, TimeUnit.MILLISECONDS);
     }
 
     public static void poll() {
         try {
+            if (IS_WINDOWS) {
+                pollWindows();
+                return;
+            }
+
             // 1. Query running players list
             String listOutput = exec("playerctl -l");
             java.util.List<String> players = new java.util.ArrayList<>();
@@ -98,7 +117,7 @@ public class LinuxMediaController {
             for (String pName : players) {
                 PlayerInfo pi = new PlayerInfo();
                 pi.name = pName;
-                String metaOut = exec("playerctl -p " + pName + " metadata --format {{title}};;;{{artist}};;;{{status}};;;{{position}};;;{{mpris:length}}");
+                String metaOut = exec("playerctl -p " + pName + " metadata --format {{title}};;;{{artist}};;;{{status}};;;{{position}};;;{{mpris:length}};;;{{mpris:artUrl}}");
                 if (!metaOut.isEmpty() && metaOut.contains(";;;")) {
                     String[] parts = metaOut.split(";;;", -1);
                     if (parts.length >= 3) {
@@ -112,6 +131,20 @@ public class LinuxMediaController {
                             try {
                                 pi.length = Double.parseDouble(parts[4].trim()) / 1_000_000.0;
                             } catch (Exception ignored) {}
+                        }
+                        if (parts.length >= 6) {
+                            String artUrl = parts[5].trim();
+                            pi.artUrl = artUrl;
+                            if (!artUrl.isEmpty()) {
+                                String lastUrlForPlayer = LOADED_ART_URLS.get(pName);
+                                if (!artUrl.equals(lastUrlForPlayer)) {
+                                    LOADED_ART_URLS.put(pName, artUrl);
+                                    loadArtForPlayer(pName, artUrl);
+                                }
+                                pi.artTexture = PLAYER_ART_TEXTURES.get(pName);
+                                pi.artWidth = PLAYER_ART_WIDTHS.getOrDefault(pName, 0);
+                                pi.artHeight = PLAYER_ART_HEIGHTS.getOrDefault(pName, 0);
+                            }
                         }
                     }
                 }
@@ -201,9 +234,13 @@ public class LinuxMediaController {
                 String finalUrl = url;
                 if (url.startsWith("file://")) {
                     finalUrl = url.substring(7);
+                    if (finalUrl.startsWith("/") && finalUrl.length() > 2 && finalUrl.charAt(2) == ':') {
+                        finalUrl = finalUrl.substring(1);
+                    }
                 }
                 
-                try (InputStream is = finalUrl.startsWith("/") ? new java.io.FileInputStream(finalUrl) : new URL(finalUrl).openStream()) {
+                boolean isLocal = finalUrl.startsWith("/") || finalUrl.contains(":\\") || finalUrl.contains(":/") || new java.io.File(finalUrl).exists();
+                try (InputStream is = isLocal ? new java.io.FileInputStream(finalUrl) : new URL(finalUrl).openStream()) {
                     NativeImage image = NativeImage.read(is);
                     int width = image.getWidth();
                     int height = image.getHeight();
@@ -281,6 +318,37 @@ public class LinuxMediaController {
         });
     }
 
+    private static void loadArtForPlayer(String pName, String url) {
+        IMAGE_LOADER.execute(() -> {
+            try {
+                String finalUrl = url;
+                if (url.startsWith("file://")) {
+                    finalUrl = url.substring(7);
+                    if (finalUrl.startsWith("/") && finalUrl.length() > 2 && finalUrl.charAt(2) == ':') {
+                        finalUrl = finalUrl.substring(1);
+                    }
+                }
+                boolean isLocal = finalUrl.startsWith("/") || finalUrl.contains(":\\") || finalUrl.contains(":/") || new java.io.File(finalUrl).exists();
+                try (InputStream is = isLocal ? new java.io.FileInputStream(finalUrl) : new URL(finalUrl).openStream()) {
+                    NativeImage image = NativeImage.read(is);
+                    int width = image.getWidth();
+                    int height = image.getHeight();
+                    
+                    Identifier textureId = Identifier.of("glassmenu", "art_" + pName.toLowerCase().replaceAll("[^a-z0-9_]", "_"));
+                    
+                    RenderSystem.recordRenderCall(() -> {
+                        MinecraftClient.getInstance().getTextureManager().registerTexture(textureId, new NativeImageBackedTexture(image));
+                        PLAYER_ART_TEXTURES.put(pName, textureId);
+                        PLAYER_ART_WIDTHS.put(pName, width);
+                        PLAYER_ART_HEIGHTS.put(pName, height);
+                    });
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to load player art for " + pName + ": " + e.getMessage());
+            }
+        });
+    }
+
     public static MediaState getCurrentState() {
         return CURRENT_STATE.get();
     }
@@ -309,7 +377,11 @@ public class LinuxMediaController {
             CURRENT_STATE.set(newState);
         }
         EXECUTOR.execute(() -> {
-            exec("playerctl play-pause");
+            if (IS_WINDOWS) {
+                execWin("playPause", selectedPlayer, "");
+            } else {
+                exec("playerctl play-pause");
+            }
             for (int i = 0; i < 4; i++) {
                 try { Thread.sleep(150); } catch (InterruptedException ignored) {}
                 poll();
@@ -318,7 +390,11 @@ public class LinuxMediaController {
     }
     public static void next() { 
         EXECUTOR.execute(() -> {
-            exec("playerctl next");
+            if (IS_WINDOWS) {
+                execWin("next", selectedPlayer, "");
+            } else {
+                exec("playerctl next");
+            }
             for (int i = 0; i < 4; i++) {
                 try { Thread.sleep(150); } catch (InterruptedException ignored) {}
                 poll();
@@ -327,7 +403,11 @@ public class LinuxMediaController {
     }
     public static void previous() { 
         EXECUTOR.execute(() -> {
-            exec("playerctl previous");
+            if (IS_WINDOWS) {
+                execWin("previous", selectedPlayer, "");
+            } else {
+                exec("playerctl previous");
+            }
             for (int i = 0; i < 4; i++) {
                 try { Thread.sleep(150); } catch (InterruptedException ignored) {}
                 poll();
@@ -336,13 +416,19 @@ public class LinuxMediaController {
     }
     public static void setVolume(float vol) { 
         EXECUTOR.execute(() -> {
-            exec("playerctl volume " + String.format("%.2f", vol));
+            if (!IS_WINDOWS) {
+                exec("playerctl volume " + String.format("%.2f", vol));
+            }
             com.example.glassmenu.GlassMenuClient.saveConfig(vol);
         }); 
     }
     public static void seek(double seconds) { 
         EXECUTOR.execute(() -> {
-            exec("playerctl position " + String.format(java.util.Locale.US, "%.2f", seconds));
+            if (IS_WINDOWS) {
+                execWin("seek", selectedPlayer, String.format(java.util.Locale.US, "%.2f", seconds));
+            } else {
+                exec("playerctl position " + String.format(java.util.Locale.US, "%.2f", seconds));
+            }
             poll();
         }); 
     }
@@ -388,9 +474,10 @@ public class LinuxMediaController {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    if (sb.length() == 0) {
-                        sb.append(line.trim());
+                    if (sb.length() > 0) {
+                        sb.append("\n");
                     }
+                    sb.append(line.trim());
                 }
             }
             try (InputStream err = p.getErrorStream()) {
@@ -407,6 +494,286 @@ public class LinuxMediaController {
             if (p != null) {
                 p.destroyForcibly();
             }
+        }
+    }
+
+    public static void pollWindows() {
+        try {
+            String output = execWin("poll", "", "");
+            if (output.isEmpty()) {
+                ALL_PLAYERS_INFO.clear();
+                MediaState newState = new MediaState();
+                newState.title = "";
+                newState.artist = "";
+                newState.isPlaying = false;
+                newState.volume = 1.0f;
+                newState.artUrl = "";
+                CURRENT_STATE.set(newState);
+                return;
+            }
+
+            java.util.List<PlayerInfo> playerInfos = new java.util.ArrayList<>();
+            PlayerInfo currentDefault = null;
+            PlayerInfo firstPlaying = null;
+            PlayerInfo firstAny = null;
+
+            String[] lines = output.split("\n");
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+                String[] parts = line.split(";;;", -1);
+                if (parts.length >= 8) {
+                    PlayerInfo pi = new PlayerInfo();
+                    pi.name = parts[0].trim();
+                    pi.title = parts[1].trim();
+                    pi.artist = parts[2].trim();
+                    pi.isPlaying = "Playing".equalsIgnoreCase(parts[3].trim());
+                    try {
+                        pi.position = Double.parseDouble(parts[4].trim());
+                    } catch (Exception ignored) {}
+                    try {
+                        pi.length = Double.parseDouble(parts[5].trim());
+                    } catch (Exception ignored) {}
+                    
+                    String artPath = parts[6].trim();
+                    pi.artUrl = artPath;
+                    if (!artPath.isEmpty()) {
+                        String lastUrlForPlayer = LOADED_ART_URLS.get(pi.name);
+                        if (!artPath.equals(lastUrlForPlayer)) {
+                            LOADED_ART_URLS.put(pi.name, artPath);
+                            loadArtForPlayer(pi.name, artPath);
+                        }
+                        pi.artTexture = PLAYER_ART_TEXTURES.get(pi.name);
+                        pi.artWidth = PLAYER_ART_WIDTHS.getOrDefault(pi.name, 0);
+                        pi.artHeight = PLAYER_ART_HEIGHTS.getOrDefault(pi.name, 0);
+                    }
+
+                    playerInfos.add(pi);
+
+                    boolean isCurrent = "True".equalsIgnoreCase(parts[7].trim());
+                    if (isCurrent) {
+                        currentDefault = pi;
+                    }
+                    if (pi.isPlaying && firstPlaying == null) {
+                        firstPlaying = pi;
+                    }
+                    if (firstAny == null) {
+                        firstAny = pi;
+                    }
+                }
+            }
+
+            if (!selectedPlayer.isEmpty()) {
+                boolean foundSelected = false;
+                for (PlayerInfo p : playerInfos) {
+                    if (p.name.equals(selectedPlayer)) {
+                        foundSelected = true;
+                        break;
+                    }
+                }
+                if (!foundSelected) {
+                    selectedPlayer = "";
+                }
+            }
+
+            ALL_PLAYERS_INFO.clear();
+            ALL_PLAYERS_INFO.addAll(playerInfos);
+
+            PlayerInfo active = null;
+            if (!selectedPlayer.isEmpty()) {
+                for (PlayerInfo p : playerInfos) {
+                    if (p.name.equals(selectedPlayer)) {
+                        active = p;
+                        break;
+                    }
+                }
+            }
+            if (active == null) {
+                active = currentDefault;
+            }
+            if (active == null) {
+                active = firstPlaying;
+            }
+            if (active == null) {
+                active = firstAny;
+            }
+
+            MediaState oldState = CURRENT_STATE.get();
+            MediaState newState = new MediaState();
+
+            if (active != null) {
+                newState.title = active.title;
+                newState.artist = active.artist;
+                newState.isPlaying = active.isPlaying;
+                if (System.currentTimeMillis() < isPlayingLockUntil) {
+                    newState.isPlaying = lockedIsPlaying;
+                }
+                newState.volume = oldState.volume;
+                newState.artUrl = active.artUrl;
+                newState.position = active.position;
+                newState.length = active.length;
+                newState.shuffle = oldState.shuffle;
+                newState.loopStatus = oldState.loopStatus;
+
+                if (!active.artUrl.isEmpty()) {
+                    if (!active.artUrl.equals(lastArtUrl)) {
+                        lastArtUrl = active.artUrl;
+                        loadArt(active.artUrl);
+                    }
+                    newState.artTexture = oldState.artTexture;
+                    newState.artWidth = oldState.artWidth;
+                    newState.artHeight = oldState.artHeight;
+                    newState.avgColor = oldState.avgColor;
+                    newState.visualizerGradients = oldState.visualizerGradients;
+                } else {
+                    lastArtUrl = "";
+                    newState.artTexture = null;
+                }
+            } else {
+                newState.title = "";
+                newState.artist = "";
+                newState.isPlaying = false;
+                newState.volume = 1.0f;
+                newState.artUrl = "";
+            }
+
+            CURRENT_STATE.set(newState);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String execWin(String action, String target, String value) {
+        Process p = null;
+        try {
+            java.io.File scriptFile = new java.io.File(System.getProperty("java.io.tmpdir"), "glassmenu_smtc.ps1");
+            if (!scriptFile.exists()) {
+                writeWindowsScript();
+            }
+            
+            String[] cmd = new String[]{
+                "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+                scriptFile.getAbsolutePath(), action, target, value
+            };
+            
+            p = Runtime.getRuntime().exec(cmd);
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (sb.length() > 0) {
+                        sb.append("\n");
+                    }
+                    sb.append(line.trim());
+                }
+            }
+            try (InputStream err = p.getErrorStream()) {
+                byte[] buffer = new byte[1024];
+                while (err.read(buffer) != -1) {
+                    // Drain error stream
+                }
+            }
+            p.waitFor(400, TimeUnit.MILLISECONDS);
+            return sb.toString();
+        } catch (Exception e) {
+            return "";
+        } finally {
+            if (p != null) {
+                p.destroyForcibly();
+            }
+        }
+    }
+
+    private static void writeWindowsScript() {
+        try {
+            java.io.File scriptFile = new java.io.File(System.getProperty("java.io.tmpdir"), "glassmenu_smtc.ps1");
+            String script = "Add-Type -AssemblyName System.Runtime.WindowsRuntime\n" +
+                "$asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | ? { \n" +
+                "    $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 \n" +
+                "})[0]\n" +
+                "function Await($WinRtTask, $ResultType) {\n" +
+                "    $asTask = $asTaskGeneric.MakeGenericMethod($ResultType)\n" +
+                "    $netTask = $asTask.Invoke($null, @($WinRtTask))\n" +
+                "    $netTask.Wait(-1) | Out-Null\n" +
+                "    return $netTask.Result\n" +
+                "}\n" +
+                "$mgr = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])\n" +
+                "if (-not $mgr) { exit }\n" +
+                "$action = $args[0]\n" +
+                "$target = $args[1]\n" +
+                "$value = $args[2]\n" +
+                "if ($action -and $action -ne 'poll') {\n" +
+                "    $sessions = $mgr.GetSessions()\n" +
+                "    foreach ($session in $sessions) {\n" +
+                "        $name = $session.SourceAppUserModelId\n" +
+                "        if ($name.ToLower().Contains($target.ToLower())) {\n" +
+                "            if ($action -eq 'playPause') {\n" +
+                "                $playback = $session.GetPlaybackInfo()\n" +
+                "                if ($playback.PlaybackStatus -eq 4) {\n" +
+                "                    Await ($session.TryPauseAsync()) ([bool]) | Out-Null\n" +
+                "                } else {\n" +
+                "                    Await ($session.TryPlayAsync()) ([bool]) | Out-Null\n" +
+                "                }\n" +
+                "            } elseif ($action -eq 'next') {\n" +
+                "                Await ($session.TrySkipNextAsync()) ([bool]) | Out-Null\n" +
+                "            } elseif ($action -eq 'previous') {\n" +
+                "                Await ($session.TrySkipPreviousAsync()) ([bool]) | Out-Null\n" +
+                "            } elseif ($action -eq 'seek') {\n" +
+                "                $ticks = [Int64]([double]$value * 10000000)\n" +
+                "                Await ($session.TryChangePlaybackPositionAsync($ticks)) ([bool]) | Out-Null\n" +
+                "            }\n" +
+                "            break\n" +
+                "        }\n" +
+                "    }\n" +
+                "    exit\n" +
+                "}\n" +
+                "$sessions = $mgr.GetSessions()\n" +
+                "$currentSession = $mgr.GetCurrentSession()\n" +
+                "$currentName = ''\n" +
+                "if ($currentSession) { $currentName = $currentSession.SourceAppUserModelId }\n" +
+                "$output = @()\n" +
+                "foreach ($session in $sessions) {\n" +
+                "    $name = $session.SourceAppUserModelId\n" +
+                "    $playback = $session.GetPlaybackInfo()\n" +
+                "    $status = 'Paused'\n" +
+                "    if ($playback.PlaybackStatus -eq 4) { $status = 'Playing' }\n" +
+                "    $props = Await ($session.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties])\n" +
+                "    $title = $props.Title\n" +
+                "    $artist = $props.Artist\n" +
+                "    $timeline = $session.GetTimelineProperties()\n" +
+                "    $position = 0\n" +
+                "    $length = 0\n" +
+                "    if ($timeline) {\n" +
+                "        $position = $timeline.Position.TotalSeconds\n" +
+                "        $length = $timeline.EndTime.TotalSeconds\n" +
+                "    }\n" +
+                "    $artPath = ''\n" +
+                "    if ($props.Thumbnail) {\n" +
+                "        try {\n" +
+                "            $stream = Await ($props.Thumbnail.OpenReadAsync()) ([Windows.Storage.Streams.IRandomAccessStreamWithContentType])\n" +
+                "            if ($stream) {\n" +
+                "                $hash = [Math]::Abs(($title + $artist).GetHashCode())\n" +
+                "                $tempPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), \"glassmenu_art_$hash.png\")\n" +
+                "                if (-not (Test-Path $tempPath)) {\n" +
+                "                    $fileStream = [System.IO.File]::Create($tempPath)\n" +
+                "                    $netStream = [System.IO.WindowsRuntimeStreamExtensions]::AsStream($stream)\n" +
+                "                    $netStream.CopyTo($fileStream)\n" +
+                "                    $fileStream.Dispose()\n" +
+                "                }\n" +
+                "                $artPath = $tempPath\n" +
+                "                $stream.Dispose()\n" +
+                "                if ((Get-Item $tempPath).Length -eq 0) { Remove-Item $tempPath; $artPath = '' }\n" +
+                "            }\n" +
+                "        } catch {}\n" +
+                "    }\n" +
+                "    $isCurrent = ($name -eq $currentName) ? 'True' : 'False'\n" +
+                "    $output += \"$name;;;$title;;;$artist;;;$status;;;$position;;;$length;;;$artPath;;;$isCurrent\"\n" +
+                "}\n" +
+                "$output -join \"`n\"";
+            
+            java.nio.file.Files.write(scriptFile.toPath(), script.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

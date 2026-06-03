@@ -872,13 +872,17 @@ public class MusicModule implements IslandModule {
                 if (idx >= 3) break;
                 float itemY = 32f + idx * 24f;
                 
-                // Icon (emoji 🌐 or 🎵)
-                String iconChar = info.name.toLowerCase().contains("spotify") ? "🎵" : "🌐";
-                context.getMatrices().push();
-                context.getMatrices().translate(x + 16f, y + itemY + 6f, 0);
-                context.getMatrices().scale(0.7f, 0.7f, 1.0f);
-                context.drawText(client.textRenderer, iconChar, 0, 0, 0xFFFFFFFF, false);
-                context.getMatrices().pop();
+                // Icon / Avatar of the song or fallback emoji
+                if (info.artTexture != null) {
+                    drawRoundedTexture(context, info.artTexture, x + 14f, y + itemY + 4f, 14f, 4f, alpha, info.artWidth, info.artHeight);
+                } else {
+                    String iconChar = info.name.toLowerCase().contains("spotify") ? "🎵" : "🌐";
+                    context.getMatrices().push();
+                    context.getMatrices().translate(x + 16f, y + itemY + 6f, 0);
+                    context.getMatrices().scale(0.7f, 0.7f, 1.0f);
+                    context.drawText(client.textRenderer, iconChar, 0, 0, ((int)(alpha * 255) << 24) | 0xFFFFFF, false);
+                    context.getMatrices().pop();
+                }
                 
                 // Player display name
                 String displayName = info.name;
