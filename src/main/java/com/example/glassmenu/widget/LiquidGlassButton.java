@@ -39,29 +39,38 @@ public class LiquidGlassButton extends ClickableWidget {
 
         hoverProgress = MathHelper.lerp(MathHelper.clamp(dt * 10f, 0f, 1f), hoverProgress, isHovered() ? 1.0f : 0.0f);
         hoverProgress = MathHelper.clamp(hoverProgress, 0f, 1f);
-        float swell = 1.0f + hoverProgress * 0.05f;
+        float swell = 1.0f + hoverProgress * 0.03f; // Premium subtle hover swell
 
         context.getMatrices().push();
         context.getMatrices().translate(getX() + width / 2f, getY() + height / 2f, 0);
         context.getMatrices().scale(swell, swell, 1.0f);
         context.getMatrices().translate(-(getX() + width / 2f), -(getY() + height / 2f), 0);
 
-        // Draw design: iOS glassmorphic button vs Solid Black mode
+        // iOS glassmorphic button (white translucent glass) vs Solid Premium light-gray style
         int fillColor, borderColor;
+        float radius = height / 2.2f;
+        float outerRadius = radius + 0.5f;
+        
         if (GlassMenuClient.CONFIG.glassEffect()) {
-            fillColor = interpolateColor(0x1F222226, 0x3833333D, hoverProgress);
-            borderColor = interpolateColor(0x22FFFFFF, 0x3DFFFFFF, hoverProgress);
+            fillColor = interpolateColor(0x26FFFFFF, 0x47FFFFFF, hoverProgress);
+            borderColor = interpolateColor(0x33FFFFFF, 0x66FFFFFF, hoverProgress);
         } else {
-            // Premium solid black/dark mode theme
-            fillColor = interpolateColor(0xFF0C0C0F, 0xFF1E1E26, hoverProgress);
-            borderColor = interpolateColor(0xFF22222B, 0xFF555566, hoverProgress);
+            // iOS premium solid off-white to pure-white theme
+            fillColor = interpolateColor(0xFFF2F2F7, 0xFFFFFFFF, hoverProgress);
+            borderColor = interpolateColor(0xFFD1D1D6, 0xFFC7C7CC, hoverProgress);
         }
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), getX() - 0.5f, getY() - 0.5f, width + 1f, height + 1f, 6.5f, borderColor, 0);
-        RenderUtils.drawSdfRoundedRect(context.getMatrices(), getX(), getY(), width, height, 6f, fillColor, 0);
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), getX() - 0.5f, getY() - 0.5f, width + 1f, height + 1f, outerRadius, borderColor, 0);
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), getX(), getY(), width, height, radius, fillColor, 0);
 
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
-        // Text is white
-        context.drawCenteredTextWithShadow(tr, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, 0xFFFFFFFF);
+        
+        if (GlassMenuClient.CONFIG.glassEffect()) {
+            // White text with shadow for glass transparency contrast
+            context.drawCenteredTextWithShadow(tr, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, 0xFFFFFFFF);
+        } else {
+            // Dark text without shadow for flat iOS aesthetic
+            context.drawText(tr, getMessage(), getX() + (width - tr.getWidth(getMessage())) / 2, getY() + (height - 8) / 2, 0xFF1C1C1E, false);
+        }
 
         context.getMatrices().pop();
     }
