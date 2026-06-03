@@ -51,8 +51,19 @@ public class MusicModule implements IslandModule {
     private long lastRenderTime = 0;
     private long lastRealTimeSeek = 0;
 
+    // Routing menu states
+    private boolean routingMenuOpen = false;
+    private float routingMenuProgress = 0.0f;
+    private double lastRx = -1.0;
+    private double lastRy = -1.0;
+    
+    // Highlight spring physics states
+    private float highlightY = -100f;
+    private float highlightVelocity = 0.0f;
+
     public void resetMode() {
         this.currentMode = Mode.COMPACT;
+        this.routingMenuOpen = false;
     }
 
     @Override
@@ -107,6 +118,62 @@ public class MusicModule implements IslandModule {
         prevScale = MathHelper.lerp(10.0f * dt, prevScale, 1.0f);
         playScale = MathHelper.lerp(10.0f * dt, playScale, 1.0f);
         nextScale = MathHelper.lerp(10.0f * dt, nextScale, 1.0f);
+
+        // Animate routingMenuProgress
+        float targetProgress = routingMenuOpen ? 1.0f : 0.0f;
+        routingMenuProgress = MathHelper.lerp(12.0f * dt, routingMenuProgress, targetProgress);
+
+        // Highlight spring physics
+        if (routingMenuOpen && !LinuxMediaController.ALL_PLAYERS_INFO.isEmpty()) {
+            float targetY = -100f;
+            boolean anyHovered = false;
+            
+            // Check if mouse is hovering any item (Expanded width is 220f)
+            int idx = 0;
+            for (LinuxMediaController.PlayerInfo info : LinuxMediaController.ALL_PLAYERS_INFO) {
+                if (idx >= 3) break;
+                float itemY = 32f + idx * 24f;
+                if (lastRx >= 6 && lastRx <= 214 && lastRy >= itemY && lastRy <= itemY + 22f) {
+                    targetY = itemY;
+                    anyHovered = true;
+                    break;
+                }
+                idx++;
+            }
+            
+            if (!anyHovered) {
+                // Find selected player index
+                int selIdx = -1;
+                for (int i = 0; i < LinuxMediaController.ALL_PLAYERS_INFO.size(); i++) {
+                    if (LinuxMediaController.ALL_PLAYERS_INFO.get(i).name.equals(LinuxMediaController.selectedPlayer)) {
+                        selIdx = i;
+                        break;
+                    }
+                }
+                if (selIdx == -1 && !LinuxMediaController.ALL_PLAYERS_INFO.isEmpty()) {
+                    selIdx = 0;
+                }
+                if (selIdx >= 0 && selIdx < 3) {
+                    targetY = 32f + selIdx * 24f;
+                }
+            }
+            
+            if (targetY != -100f) {
+                if (highlightY == -100f) {
+                    highlightY = targetY;
+                }
+                float forceY = (targetY - highlightY) * 350f;
+                highlightVelocity += forceY * dt;
+                highlightVelocity *= (float) Math.exp(-18f * dt);
+                highlightY += highlightVelocity * dt;
+            } else {
+                highlightY = -100f;
+                highlightVelocity = 0f;
+            }
+        } else {
+            highlightY = -100f;
+            highlightVelocity = 0f;
+        }
     }
 
     @Override
@@ -120,6 +187,11 @@ public class MusicModule implements IslandModule {
         lastRenderTime = timeNow;
         if (renderDt < 0f || renderDt > 0.1f) renderDt = 0.016f;
 
+        this.lastRx = rx;
+        this.lastRy = ry;
+
+        float activeWidgetAlpha = widgetAlpha * (1.0f - routingMenuProgress);
+
         float minW = 75f;
         float minH = 20f;
 
@@ -128,99 +200,106 @@ public class MusicModule implements IslandModule {
         float heightProgress = MathHelper.clamp((height - 30f) / (110f - 30f), 0.0f, 1.0f);
         float smoothProgress = heightProgress * heightProgress * (3 - 2 * heightProgress);
 
-        // 1. MORPHING ALBUM ART
-        float s1 = MathHelper.lerp(wProgress, 16f, 20f);
-        float artSize = MathHelper.lerp(smoothProgress, s1, 36f);
+        if (activeWidgetAlpha > 0.01f) {
+            // 1. MORPHING ALBUM ART
+            float s1 = MathHelper.lerp(wProgress, 16f, 20f);
+            float artSize = MathHelper.lerp(smoothProgress, s1, 36f);
 
-        float artX = MathHelper.lerp(smoothProgress, 4f, 12f);
-        
-        float y1 = MathHelper.lerp(wProgress, (minH - 16f) / 2f, 5f);
-        float artY = MathHelper.lerp(smoothProgress, y1, 12f);
+            float artX = MathHelper.lerp(smoothProgress, 4f, 12f);
+            
+            float y1 = MathHelper.lerp(wProgress, (minH - 16f) / 2f, 5f);
+            float artY = MathHelper.lerp(smoothProgress, y1, 12f);
 
-        float r1 = MathHelper.lerp(wProgress, 8f, 10f);
-        float artRadius = MathHelper.lerp(smoothProgress, r1, 6f);
+            float r1 = MathHelper.lerp(wProgress, 8f, 10f);
+            float artRadius = MathHelper.lerp(smoothProgress, r1, 6f);
 
-        context.getMatrices().push();
-        float currentArtScale = MathHelper.lerp(smoothProgress, 1.0f, artScale);
-        float centerX = artX + artSize / 2f;
-        float centerY = artY + artSize / 2f;
-        context.getMatrices().translate(x + centerX, y + centerY, 0);
-        context.getMatrices().scale(currentArtScale, currentArtScale, 1.0f);
-        context.getMatrices().translate(-(x + centerX), -(y + centerY), 0);
+            context.getMatrices().push();
+            float currentArtScale = MathHelper.lerp(smoothProgress, 1.0f, artScale);
+            float centerX = artX + artSize / 2f;
+            float centerY = artY + artSize / 2f;
+            context.getMatrices().translate(x + centerX, y + centerY, 0);
+            context.getMatrices().scale(currentArtScale, currentArtScale, 1.0f);
+            context.getMatrices().translate(-(x + centerX), -(y + centerY), 0);
 
-        if (state.artTexture != null && state.artWidth > 0 && MinecraftClient.getInstance().getTextureManager().getTexture(state.artTexture) != null) {
-            drawRoundedTexture(context, state.artTexture, x + artX, y + artY, artSize, artRadius, widgetAlpha, state.artWidth, state.artHeight);
-        } else {
-            drawSdfBackground(context, x + artX, y + artY, artSize, artSize, artRadius, 0xFF1E1E1E, 1.5f, widgetAlpha);
-        }
-        
-        // Render 1px border highlight (rgba(255, 255, 255, 0.15))
-        int borderColor = ((int)(widgetAlpha * 38) << 24) | 0xFFFFFF;
-        com.example.glassmenu.render.RenderUtils.drawSdfRoundedOutline(context.getMatrices(), x + artX, y + artY, artSize, artSize, artRadius, 0.5f, borderColor);
-        context.getMatrices().pop();
+            if (state.artTexture != null && state.artWidth > 0 && MinecraftClient.getInstance().getTextureManager().getTexture(state.artTexture) != null) {
+                drawRoundedTexture(context, state.artTexture, x + artX, y + artY, artSize, artRadius, activeWidgetAlpha, state.artWidth, state.artHeight);
+            } else {
+                drawSdfBackground(context, x + artX, y + artY, artSize, artSize, artRadius, 0xFF1E1E1E, 1.5f, activeWidgetAlpha);
+            }
+            
+            // Render 1px border highlight (rgba(255, 255, 255, 0.15))
+            int borderColor = ((int)(activeWidgetAlpha * 38) << 24) | 0xFFFFFF;
+            com.example.glassmenu.render.RenderUtils.drawSdfRoundedOutline(context.getMatrices(), x + artX, y + artY, artSize, artSize, artRadius, 0.5f, borderColor);
+            context.getMatrices().pop();
 
-        // 2. IDLE MODE DECORATION: iOS Bouncing Waveform Equalizer on the right when not hovered
-        if (wProgress < 0.99f) {
-            float idleVisualizerAlpha = (1.0f - wProgress) * widgetAlpha;
-            drawVerticalWaveform(context, x + width - 22f, y + (height - 10f) / 2f, 12f, 10f, idleVisualizerAlpha, state);
-        }
-
-        // 3. COMPACT CONTROLS MODE (Visible when hovered, but not expanded)
-        float compactAlpha = wProgress * (1.0f - smoothProgress) * widgetAlpha;
-        if (compactAlpha > 0.01f) {
-            renderCompactModeContent(context, x, y, width, height, state, compactAlpha);
-        }
-
-        // 4. EXPANDED PLAYER CARD MODE (Visible when expanded)
-        float expandedAlpha = smoothProgress * widgetAlpha;
-        if (expandedAlpha > 0.01f) {
-            renderExpandedModeContent(context, x, y, width, height, state, expandedAlpha, rx, ry, renderDt);
-        }
-
-        // --- DRAW UNIFIED ANIMATED BUTTONS ---
-        if (wProgress > 0.01f) {
-            float playX = MathHelper.lerp(smoothProgress, width - 36f, width / 2f);
-            float playY = MathHelper.lerp(smoothProgress, height / 2f, 90f);
-            float playSize = MathHelper.lerp(smoothProgress, 14f, 24f);
-            float playIconSize = MathHelper.lerp(smoothProgress, 7f, 12f);
-
-            float nextX = MathHelper.lerp(smoothProgress, width - 16f, width / 2f + 40f);
-            float nextY = MathHelper.lerp(smoothProgress, height / 2f, 90f);
-            float nextSize = MathHelper.lerp(smoothProgress, 14f, 20f);
-            float nextIconSize = MathHelper.lerp(smoothProgress, 7f, 10f);
-
-            float prevX = MathHelper.lerp(smoothProgress, width - 36f, width / 2f - 40f);
-            float prevY = MathHelper.lerp(smoothProgress, height / 2f, 90f);
-            float prevSize = MathHelper.lerp(smoothProgress, 14f, 20f);
-            float prevIconSize = MathHelper.lerp(smoothProgress, 7f, 10f);
-
-            // 1. Draw Prev button (fades in as it expands)
-            float prevAlpha = smoothProgress * wProgress * widgetAlpha;
-            if (prevAlpha > 0.01f) {
-                boolean prevHovered = rx >= prevX - prevSize/2f - 2f && rx <= prevX + prevSize/2f + 2f && ry >= prevY - prevSize/2f - 2f && ry <= prevY + prevSize/2f + 2f;
-                prevHover = MathHelper.lerp(12f * renderDt, prevHover, prevHovered ? 1.15f : 1.0f);
-                float prevHoverProgress = MathHelper.clamp((prevHover - 1.0f) / 0.15f, 0.0f, 1.0f);
-                drawSymbolicButton(context, x, y, "media-seek-backward", prevX, prevY, prevSize, prevIconSize, prevAlpha, prevScale * prevHover, prevHoverProgress, prevAlpha);
+            // 2. IDLE MODE DECORATION: iOS Bouncing Waveform Equalizer on the right when not hovered
+            if (wProgress < 0.99f) {
+                float idleVisualizerAlpha = (1.0f - wProgress) * activeWidgetAlpha;
+                drawVerticalWaveform(context, x + width - 22f, y + (height - 10f) / 2f, 12f, 10f, idleVisualizerAlpha, state);
             }
 
-            // 2. Draw Play/Pause button
-            float playAlpha = wProgress * widgetAlpha;
-            if (playAlpha > 0.01f) {
-                boolean playHovered = rx >= playX - playSize/2f - 2f && rx <= playX + playSize/2f + 2f && ry >= playY - playSize/2f - 2f && ry <= playY + playSize/2f + 2f;
-                playHover = MathHelper.lerp(12f * renderDt, playHover, playHovered ? 1.15f : 1.0f);
-                float playHoverProgress = MathHelper.clamp((playHover - 1.0f) / 0.15f, 0.0f, 1.0f);
-                String playPauseIcon = state.isPlaying ? "media-playback-pause-symbolic" : "media-playback-start-symbolic";
-                drawSymbolicButton(context, x, y, playPauseIcon, playX, playY, playSize, playIconSize, playAlpha, playScale * playHover, playHoverProgress, playAlpha);
+            // 3. COMPACT CONTROLS MODE (Visible when hovered, but not expanded)
+            float compactAlpha = wProgress * (1.0f - smoothProgress) * activeWidgetAlpha;
+            if (compactAlpha > 0.01f) {
+                renderCompactModeContent(context, x, y, width, height, state, compactAlpha);
             }
 
-            // 3. Draw Next button
-            float nextAlpha = wProgress * widgetAlpha;
-            if (nextAlpha > 0.01f) {
-                boolean nextHovered = rx >= nextX - nextSize/2f - 2f && rx <= nextX + nextSize/2f + 2f && ry >= nextY - nextSize/2f - 2f && ry <= nextY + nextSize/2f + 2f;
-                nextHover = MathHelper.lerp(12f * renderDt, nextHover, nextHovered ? 1.15f : 1.0f);
-                float nextHoverProgress = MathHelper.clamp((nextHover - 1.0f) / 0.15f, 0.0f, 1.0f);
-                drawSymbolicButton(context, x, y, "media-seek-forward", nextX, nextY, nextSize, nextIconSize, nextAlpha, nextScale * nextHover, nextHoverProgress, nextAlpha);
+            // 4. EXPANDED PLAYER CARD MODE (Visible when expanded)
+            float expandedAlpha = smoothProgress * activeWidgetAlpha;
+            if (expandedAlpha > 0.01f) {
+                renderExpandedModeContent(context, x, y, width, height, state, expandedAlpha, rx, ry, renderDt);
             }
+
+            // --- DRAW UNIFIED ANIMATED BUTTONS ---
+            if (wProgress > 0.01f) {
+                float playX = MathHelper.lerp(smoothProgress, width - 36f, width / 2f);
+                float playY = MathHelper.lerp(smoothProgress, height / 2f, 90f);
+                float playSize = MathHelper.lerp(smoothProgress, 14f, 24f);
+                float playIconSize = MathHelper.lerp(smoothProgress, 7f, 12f);
+
+                float nextX = MathHelper.lerp(smoothProgress, width - 16f, width / 2f + 40f);
+                float nextY = MathHelper.lerp(smoothProgress, height / 2f, 90f);
+                float nextSize = MathHelper.lerp(smoothProgress, 14f, 20f);
+                float nextIconSize = MathHelper.lerp(smoothProgress, 7f, 10f);
+
+                float prevX = MathHelper.lerp(smoothProgress, width - 36f, width / 2f - 40f);
+                float prevY = MathHelper.lerp(smoothProgress, height / 2f, 90f);
+                float prevSize = MathHelper.lerp(smoothProgress, 14f, 20f);
+                float prevIconSize = MathHelper.lerp(smoothProgress, 7f, 10f);
+
+                // 1. Draw Prev button (fades in as it expands)
+                float prevAlpha = smoothProgress * wProgress * activeWidgetAlpha;
+                if (prevAlpha > 0.01f) {
+                    boolean prevHovered = rx >= prevX - prevSize/2f - 2f && rx <= prevX + prevSize/2f + 2f && ry >= prevY - prevSize/2f - 2f && ry <= prevY + prevSize/2f + 2f;
+                    prevHover = MathHelper.lerp(12f * renderDt, prevHover, prevHovered ? 1.15f : 1.0f);
+                    float prevHoverProgress = MathHelper.clamp((prevHover - 1.0f) / 0.15f, 0.0f, 1.0f);
+                    drawSymbolicButton(context, x, y, "media-seek-backward", prevX, prevY, prevSize, prevIconSize, prevAlpha, prevScale * prevHover, prevHoverProgress, prevAlpha);
+                }
+
+                // 2. Draw Play/Pause button
+                float playAlpha = wProgress * activeWidgetAlpha;
+                if (playAlpha > 0.01f) {
+                    boolean playHovered = rx >= playX - playSize/2f - 2f && rx <= playX + playSize/2f + 2f && ry >= playY - playSize/2f - 2f && ry <= playY + playSize/2f + 2f;
+                    playHover = MathHelper.lerp(12f * renderDt, playHover, playHovered ? 1.15f : 1.0f);
+                    float playHoverProgress = MathHelper.clamp((playHover - 1.0f) / 0.15f, 0.0f, 1.0f);
+                    String playPauseIcon = state.isPlaying ? "media-playback-pause-symbolic" : "media-playback-start-symbolic";
+                    drawSymbolicButton(context, x, y, playPauseIcon, playX, playY, playSize, playIconSize, playAlpha, playScale * playHover, playHoverProgress, playAlpha);
+                }
+
+                // 3. Draw Next button
+                float nextAlpha = wProgress * activeWidgetAlpha;
+                if (nextAlpha > 0.01f) {
+                    boolean nextHovered = rx >= nextX - nextSize/2f - 2f && rx <= nextX + nextSize/2f + 2f && ry >= nextY - nextSize/2f - 2f && ry <= nextY + nextSize/2f + 2f;
+                    nextHover = MathHelper.lerp(12f * renderDt, nextHover, nextHovered ? 1.15f : 1.0f);
+                    float nextHoverProgress = MathHelper.clamp((nextHover - 1.0f) / 0.15f, 0.0f, 1.0f);
+                    drawSymbolicButton(context, x, y, "media-seek-forward", nextX, nextY, nextSize, nextIconSize, nextAlpha, nextScale * nextHover, nextHoverProgress, nextAlpha);
+                }
+            }
+        }
+
+        // Render source routing menu if it's opening/open
+        if (routingMenuProgress > 0.01f) {
+            renderRoutingMenu(context, x, y, width, height, widgetAlpha, renderDt);
         }
     }
 
@@ -404,11 +483,56 @@ public class MusicModule implements IslandModule {
         LinuxMediaController.MediaState state = LinuxMediaController.getCurrentState();
         if (state == null) return false;
 
+        if (routingMenuProgress > 0.8f) {
+            // 1. Check if clicked the Close button (top right)
+            float airplayX = width - 24f;
+            float airplayY = 18f;
+            if (rx >= airplayX - 12f && rx <= airplayX + 12f && ry >= airplayY - 8f && ry <= airplayY + 8f) {
+                System.out.println("GlassMenu Debug: clicked Close button to close routing menu");
+                routingMenuOpen = false;
+                return true;
+            }
+            
+            // 2. Check if clicked a player item
+            int idx = 0;
+            for (LinuxMediaController.PlayerInfo info : LinuxMediaController.ALL_PLAYERS_INFO) {
+                if (idx >= 3) break;
+                float itemY = 32f + idx * 24f;
+                if (rx >= 6 && rx <= width - 6 && ry >= itemY && ry <= itemY + 22f) {
+                    System.out.println("GlassMenu Debug: selected player source: " + info.name);
+                    LinuxMediaController.selectedPlayer = info.name;
+                    new Thread(() -> {
+                        try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+                        LinuxMediaController.poll();
+                    }).start();
+                    routingMenuOpen = false;
+                    return true;
+                }
+                idx++;
+            }
+            
+            if (rx >= 0 && rx <= width && ry >= 0 && ry <= height) {
+                return true;
+            }
+            return false;
+        }
+
         float minW = 75f;
         float minH = 20f;
         float wProgress = MathHelper.clamp((width - minW) / (190f - minW), 0.0f, 1.0f);
         float heightProgress = MathHelper.clamp((height - 30f) / (110f - 30f), 0.0f, 1.0f);
         float smoothProgress = heightProgress * heightProgress * (3 - 2 * heightProgress);
+
+        // Check AirPlay button click to open routing menu
+        if (currentMode == Mode.EXPANDED && !routingMenuOpen) {
+            float airplayX = width - 24f;
+            float airplayY = 22f;
+            if (rx >= airplayX - 12f && rx <= airplayX + 12f && ry >= airplayY - 8f && ry <= airplayY + 8f) {
+                System.out.println("GlassMenu Debug: clicked AirPlay button to open routing menu");
+                routingMenuOpen = true;
+                return true;
+            }
+        }
 
         float playX = MathHelper.lerp(smoothProgress, width - 36f, width / 2f);
         float playY = MathHelper.lerp(smoothProgress, height / 2f, 90f);
@@ -680,6 +804,133 @@ public class MusicModule implements IslandModule {
     private String truncate(String s, int max) {
         if (s == null) return "";
         return s.length() > max ? s.substring(0, max - 3) + "..." : s;
+    }
+
+    private void renderRoutingMenu(DrawContext context, float x, float y, float w, float h, float widgetAlpha, float renderDt) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        float p = routingMenuProgress;
+        float alpha = p * widgetAlpha;
+        
+        // 1. Draw the expanding card "droplet"
+        float cx = MathHelper.lerp(p, w - 24f, 6f);
+        float cy = MathHelper.lerp(p, 22f, 6f);
+        float cw = MathHelper.lerp(p, 16f, w - 12f);
+        float ch = MathHelper.lerp(p, 8f, h - 12f);
+        float cr = MathHelper.lerp(p, 4f, 10f);
+        
+        int cardFillColor = GlassMenuClient.CONFIG.transparentIsland() ? 0x2A000000 : 0xFF1C1C1E;
+        int cardBorderColor = ((int)(alpha * 45) << 24) | 0xFFFFFF; // subtle white border outline
+        
+        drawSdfBackground(context, x + cx, y + cy, cw, ch, cr, cardFillColor, 1.0f, alpha);
+        com.example.glassmenu.render.RenderUtils.drawSdfRoundedOutline(context.getMatrices(), x + cx, y + cy, cw, ch, cr, 0.5f, cardBorderColor);
+        
+        if (p < 0.8f) return; // Wait until mostly expanded to draw inner text and list items
+        
+        // 2. Draw Header
+        context.getMatrices().push();
+        context.getMatrices().translate(x + 16f, y + 15f, 0);
+        context.getMatrices().scale(0.7f, 0.7f, 1.0f);
+        context.drawText(client.textRenderer, "Select Source", 0, 0, ((int)(alpha * 200) << 24) | 0xFFFFFF, false);
+        context.getMatrices().pop();
+        
+        // Draw small Close button on the top right
+        float airplayX = w - 24f;
+        float airplayY = 18f;
+        context.getMatrices().push();
+        context.getMatrices().translate(x + airplayX, y + airplayY, 0);
+        context.getMatrices().scale(0.6f, 0.6f, 1.0f);
+        context.drawText(client.textRenderer, "✖", -4, -4, ((int)(alpha * 180) << 24) | 0xFFFFFF, false);
+        context.getMatrices().pop();
+        
+        // 3. Draw Rubber Highlight
+        if (highlightY != -100f && !LinuxMediaController.ALL_PLAYERS_INFO.isEmpty()) {
+            float stretch = Math.abs(highlightVelocity) * 0.04f;
+            stretch = MathHelper.clamp(stretch, 0f, 10f);
+            float drawY = highlightVelocity > 0 ? (highlightY - stretch) : highlightY;
+            float drawH = 22f + stretch;
+            
+            int highlightColor = 0x22FFFFFF;
+            if (!GlassMenuClient.CONFIG.transparentIsland()) {
+                highlightColor = 0x33FFFFFF;
+            }
+            drawSdfBackground(context, x + 10f, y + drawY, w - 20f, drawH, 6f, highlightColor, 0.5f, alpha);
+        }
+        
+        // 4. Draw Player Items
+        int idx = 0;
+        java.util.List<LinuxMediaController.PlayerInfo> players = LinuxMediaController.ALL_PLAYERS_INFO;
+        if (players.isEmpty()) {
+            context.getMatrices().push();
+            context.getMatrices().translate(x + w / 2f, y + h / 2f - 4f, 0);
+            context.getMatrices().scale(0.65f, 0.65f, 1.0f);
+            String text = "No active sources";
+            float tw = client.textRenderer.getWidth(text) * 0.65f;
+            context.drawText(client.textRenderer, text, (int)(-tw / 2f / 0.65f), 0, ((int)(alpha * 120) << 24) | 0xCCCCCC, false);
+            context.getMatrices().pop();
+        } else {
+            for (LinuxMediaController.PlayerInfo info : players) {
+                if (idx >= 3) break;
+                float itemY = 32f + idx * 24f;
+                
+                // Icon (emoji 🌐 or 🎵)
+                String iconChar = info.name.toLowerCase().contains("spotify") ? "🎵" : "🌐";
+                context.getMatrices().push();
+                context.getMatrices().translate(x + 16f, y + itemY + 6f, 0);
+                context.getMatrices().scale(0.7f, 0.7f, 1.0f);
+                context.drawText(client.textRenderer, iconChar, 0, 0, 0xFFFFFFFF, false);
+                context.getMatrices().pop();
+                
+                // Player display name
+                String displayName = info.name;
+                if (displayName.contains(".")) {
+                    displayName = displayName.substring(0, displayName.indexOf("."));
+                }
+                if (!displayName.isEmpty()) {
+                    displayName = displayName.substring(0, 1).toUpperCase() + displayName.substring(1);
+                }
+                
+                int nameColor = info.name.equals(LinuxMediaController.selectedPlayer) ? 0xFF34C759 : 0xFFFFFF;
+                context.getMatrices().push();
+                context.getMatrices().translate(x + 32f, y + itemY + 4f, 0);
+                context.getMatrices().scale(0.7f, 0.7f, 1.0f);
+                context.drawText(client.textRenderer, displayName, 0, 0, ((int)(alpha * 255) << 24) | (nameColor & 0xFFFFFF), false);
+                context.getMatrices().pop();
+                
+                // Mini slide / progress bar
+                float barX = 32f;
+                float barW = w - 48f;
+                float barY = itemY + 16f;
+                
+                double pct = info.length > 0 ? (info.position / info.length) : 0.0;
+                pct = MathHelper.clamp(pct, 0.0, 1.0);
+                
+                // Draw progress background line
+                int barBgCol = ((int)(alpha * 30) << 24) | 0xFFFFFF;
+                drawSdfBackground(context, x + barX, y + barY, barW, 2f, 1f, barBgCol, 0.5f, alpha);
+                
+                // Draw progress fill line
+                if (pct > 0.0) {
+                    int fillColVal = info.isPlaying ? 0xFF34C759 : 0xFF8E8E93;
+                    int barFillCol = ((int)(alpha * 255) << 24) | (fillColVal & 0xFFFFFF);
+                    drawSdfBackground(context, x + barX, y + barY, (float)(barW * pct), 2f, 1f, barFillCol, 0.5f, alpha);
+                }
+                
+                // Song track info
+                String trackInfo = info.title;
+                if (!info.artist.isEmpty() && !info.artist.equals("Unknown")) {
+                    trackInfo += " - " + info.artist;
+                }
+                if (!trackInfo.isEmpty() && !trackInfo.equals("Unknown")) {
+                    context.getMatrices().push();
+                    context.getMatrices().translate(x + 95f, y + itemY + 5f, 0);
+                    context.getMatrices().scale(0.55f, 0.55f, 1.0f);
+                    context.drawText(client.textRenderer, truncate(trackInfo, 22), 0, 0, ((int)(alpha * 150) << 24) | 0xCCCCCC, false);
+                    context.getMatrices().pop();
+                }
+                
+                idx++;
+            }
+        }
     }
 
     private void drawRoundedRectGeometry(DrawContext context, float x, float y, float w, float h, float r, int argb, float widgetAlpha) {

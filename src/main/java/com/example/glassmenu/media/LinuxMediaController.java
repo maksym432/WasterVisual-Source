@@ -19,6 +19,18 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class LinuxMediaController {
+    public static class PlayerInfo {
+        public String name = "";
+        public String title = "Unknown";
+        public String artist = "Unknown";
+        public boolean isPlaying = false;
+        public double position = 0;
+        public double length = 0;
+    }
+
+    public static final java.util.List<PlayerInfo> ALL_PLAYERS_INFO = new java.util.concurrent.CopyOnWriteArrayList<>();
+    public static String selectedPlayer = "";
+
     private static final ScheduledExecutorService EXECUTOR = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "MediaController-Polling");
         t.setDaemon(true);
@@ -64,8 +76,51 @@ public class LinuxMediaController {
         EXECUTOR.scheduleAtFixedRate(LinuxMediaController::poll, 0, 1000, TimeUnit.MILLISECONDS);
     }
 
-    private static void poll() {
+    public static void poll() {
         try {
+            // 1. Query running players list
+            String listOutput = exec("playerctl -l");
+            java.util.List<String> players = new java.util.ArrayList<>();
+            if (!listOutput.isEmpty()) {
+                for (String p : listOutput.split("\n")) {
+                    p = p.trim();
+                    if (!p.isEmpty()) {
+                        players.add(p);
+                    }
+                }
+            }
+
+            if (!selectedPlayer.isEmpty() && !players.contains(selectedPlayer)) {
+                selectedPlayer = "";
+            }
+
+            java.util.List<PlayerInfo> playerInfos = new java.util.ArrayList<>();
+            for (String pName : players) {
+                PlayerInfo pi = new PlayerInfo();
+                pi.name = pName;
+                String metaOut = exec("playerctl -p " + pName + " metadata --format {{title}};;;{{artist}};;;{{status}};;;{{position}};;;{{mpris:length}}");
+                if (!metaOut.isEmpty() && metaOut.contains(";;;")) {
+                    String[] parts = metaOut.split(";;;", -1);
+                    if (parts.length >= 3) {
+                        pi.title = parts[0].trim();
+                        pi.artist = parts[1].trim();
+                        pi.isPlaying = "Playing".equalsIgnoreCase(parts[2].trim());
+                        if (parts.length >= 5) {
+                            try {
+                                pi.position = Double.parseDouble(parts[3].trim()) / 1_000_000.0;
+                            } catch (Exception ignored) {}
+                            try {
+                                pi.length = Double.parseDouble(parts[4].trim()) / 1_000_000.0;
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                }
+                playerInfos.add(pi);
+            }
+            ALL_PLAYERS_INFO.clear();
+            ALL_PLAYERS_INFO.addAll(playerInfos);
+
+            // 2. Poll metadata of the default/selected player
             String output = exec("playerctl metadata --format {{title}};;;{{artist}};;;{{status}};;;{{volume}};;;{{mpris:artUrl}};;;{{position}};;;{{mpris:length}}");
             
             MediaState oldState = CURRENT_STATE.get();
@@ -314,6 +369,18 @@ public class LinuxMediaController {
     }
 
     private static String exec(String cmd) {
+        if (cmd.startsWith("playerctl") && !selectedPlayer.isEmpty() 
+            && !cmd.contains("-l") && !cmd.contains("--list-all") 
+            && !cmd.contains("-p") && !cmd.contains("--player")) {
+            
+            String[] parts = cmd.split(" ", 2);
+            if (parts.length == 2) {
+                cmd = parts[0] + " -p " + selectedPlayer + " " + parts[1];
+            } else {
+                cmd = cmd + " -p " + selectedPlayer;
+            }
+        }
+
         Process p = null;
         try {
             p = Runtime.getRuntime().exec(cmd.split(" "));
