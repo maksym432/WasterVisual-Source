@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.24.68] - 2026-06-12
+
+### Fixed
+- **Item HUD (Fast Item Wheel) Glass Refraction Effect:** Fixed glass shader effect on the Fast Item circular overlay by drawing it outside the pushed/scaled matrix stack, avoiding layout/rounding distortion and matching `InventoryHudRenderer` behaviour.
+
+### Changed
+- Renamed GUI configuration menu option "Fast Item Wheel" to "Item HUD" (and titles "Fast Item" to "Item HUD") for cleaner nomenclature.
+- Incremented `mod_version` to `2.24.68` in `gradle.properties`.
+
+### Files Modified
+- [FastItemRenderer.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/render/FastItemRenderer.java)
+- [LiquidGlassScreen.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/screen/LiquidGlassScreen.java)
+- [gradle.properties](file:///home/waster/vibecoding/minecraft/wastervisual/gradle.properties)
+
 ## [2.24.67] - 2026-06-12
 
 ### Optimized

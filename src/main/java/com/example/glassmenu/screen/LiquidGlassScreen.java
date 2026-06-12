@@ -263,7 +263,7 @@ public class LiquidGlassScreen extends Screen {
         LiquidGlassButton armorHudBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Armor HUD"), b -> {
             currentTab = Tab.VISUALS_ARMOR_HUD; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton fastItemBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Fast Item Wheel"), b -> {
+        LiquidGlassButton fastItemBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Item HUD"), b -> {
             currentTab = Tab.VISUALS_FAST_ITEM; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         LiquidGlassButton userHudBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("User HUD"), b -> {
@@ -1373,10 +1373,10 @@ public class LiquidGlassScreen extends Screen {
         boolean isTransparent = GlassMenuClient.CONFIG.transparentFastItem();
 
         // Left column: labels + buttons
-        context.drawTextWithShadow(textRenderer, "Enable Fast Item", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Enable Item HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         // Right column title (short enough to not overlap switch at x+370)
-        context.drawTextWithShadow(textRenderer, "Fast Item", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, "Item HUD", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsFastItemWidgets) {
             w.setAlpha(contentAlpha);
