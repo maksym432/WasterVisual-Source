@@ -46,6 +46,28 @@ public class TargetESPManager {
     private static final long PERSISTENCE_MS = 5000;
     private static final long START_TIME = System.currentTimeMillis();
 
+    private static final int CIRCLE_SEGMENTS = 32;
+    private static final float[] CIRCLE_COS = precomputeCircleCos();
+    private static final float[] CIRCLE_SIN = precomputeCircleSin();
+
+    private static float[] precomputeCircleCos() {
+        float[] c = new float[CIRCLE_SEGMENTS + 1];
+        for (int i = 0; i <= CIRCLE_SEGMENTS; i++) {
+            float a = i * (float)Math.PI * 2 / CIRCLE_SEGMENTS;
+            c[i] = MathHelper.cos(a);
+        }
+        return c;
+    }
+
+    private static float[] precomputeCircleSin() {
+        float[] s = new float[CIRCLE_SEGMENTS + 1];
+        for (int i = 0; i <= CIRCLE_SEGMENTS; i++) {
+            float a = i * (float)Math.PI * 2 / CIRCLE_SEGMENTS;
+            s[i] = MathHelper.sin(a);
+        }
+        return s;
+    }
+
     /**
      * Data structure for the Painter's Algorithm sorting.
      */
@@ -193,6 +215,11 @@ public class TargetESPManager {
         // just like how camera.getRotation() billboards particles to face the first-person/third-person player camera in-game!
         Quaternionf rotation = camera != null ? camera.getRotation() : new Quaternionf().rotateY(-rotationDegrees * (float)Math.PI / 180f);
 
+        Tessellator tessellator = Tessellator.getInstance();
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
+        boolean hasVertices = false;
+
         for (DropData drop : drops) {
             matrices.push();
             matrices.translate(drop.ox, drop.oy, drop.oz);
@@ -200,8 +227,13 @@ public class TargetESPManager {
             
             if (camera != null) matrices.translate(0, 0, 0.02f);
 
-            drawVolumetricDroplet(matrices, drop.size, r, g, b, drop.alpha, camera != null);
+            drawVolumetricDropletBatched(buffer, matrices, drop.size, r, g, b, drop.alpha, camera != null);
+            hasVertices = true;
             matrices.pop();
+        }
+
+        if (hasVertices) {
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
         }
 
         RenderSystem.depthMask(true);
@@ -219,33 +251,35 @@ public class TargetESPManager {
         provider.draw();
     }
 
-    private static void drawVolumetricDroplet(MatrixStack matrices, float size, float r, float g, float b, float alpha, boolean isWorld) {
+    private static void drawVolumetricDropletBatched(BufferBuilder buffer, MatrixStack matrices, float size, float r, float g, float b, float alpha, boolean isWorld) {
         float zStep = isWorld ? 0.012f : 0.35f;
-        Matrix4f matrix = matrices.peek().getPositionMatrix();
         
         // 1. Back Layer (Glow)
-        matrices.push(); matrices.translate(0, 0, -zStep);
-        drawCircle(matrices.peek().getPositionMatrix(), size * 2.6f, r, g, b, alpha * 0.18f);
+        matrices.push();
+        matrices.translate(0, 0, -zStep);
+        addCircleBatched(buffer, matrices.peek().getPositionMatrix(), size * 2.6f, r, g, b, alpha * 0.18f);
         matrices.pop();
 
         // 2. Middle Layer (Body)
-        drawCircle(matrix, size * 1.5f, r, g, b, alpha * 0.42f);
+        addCircleBatched(buffer, matrices.peek().getPositionMatrix(), size * 1.5f, r, g, b, alpha * 0.42f);
 
         // 3. Front Layer (Core)
-        matrices.push(); matrices.translate(0, 0, zStep);
-        drawCircle(matrices.peek().getPositionMatrix(), size, r, g, b, alpha * 0.95f);
+        matrices.push();
+        matrices.translate(0, 0, zStep);
+        addCircleBatched(buffer, matrices.peek().getPositionMatrix(), size, r, g, b, alpha * 0.95f);
         matrices.pop();
     }
 
-    private static void drawCircle(Matrix4f matrix, float size, float r, float g, float b, float alpha) {
-        Tessellator tessellator = Tessellator.getInstance();
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
-        buffer.vertex(matrix, 0, 0, 0).color(r, g, b, alpha);
-        for (int i = 0; i <= 32; i++) {
-            float a = i * (float)Math.PI * 2 / 32f;
-            buffer.vertex(matrix, MathHelper.cos(a) * size, MathHelper.sin(a) * size, 0).color(r, g, b, 0f);
+    private static void addCircleBatched(BufferBuilder buffer, Matrix4f matrix, float size, float r, float g, float b, float alpha) {
+        for (int i = 0; i < CIRCLE_SEGMENTS; i++) {
+            float x1 = CIRCLE_COS[i] * size;
+            float y1 = CIRCLE_SIN[i] * size;
+            float x2 = CIRCLE_COS[i+1] * size;
+            float y2 = CIRCLE_SIN[i+1] * size;
+
+            buffer.vertex(matrix, 0, 0, 0).color(r, g, b, alpha);
+            buffer.vertex(matrix, x1, y1, 0).color(r, g, b, 0f);
+            buffer.vertex(matrix, x2, y2, 0).color(r, g, b, 0f);
         }
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
 }

@@ -52,6 +52,11 @@ public class CustomHitParticleManager {
 
     /** Precomputed normalised boundary radii for one full revolution (0..2π). */
     private static final float[] BOUNDARY_R = precomputeBoundary();
+    private static final float[] STAR_COS = precomputeCos();
+    private static final float[] STAR_SIN = precomputeSin();
+    private static final int SPEC_SEGMENTS = 12;
+    private static final float[] SPEC_COS = precomputeSpecCos();
+    private static final float[] SPEC_SIN = precomputeSpecSin();
 
     private static float[] precomputeBoundary() {
         float[] r = new float[STAR_SEGMENTS + 1];
@@ -60,6 +65,42 @@ public class CustomHitParticleManager {
             r[i] = findBoundaryRadius(angle);
         }
         return r;
+    }
+
+    private static float[] precomputeCos() {
+        float[] c = new float[STAR_SEGMENTS + 1];
+        for (int i = 0; i <= STAR_SEGMENTS; i++) {
+            float angle = (float)(Math.PI * 2.0 * i / STAR_SEGMENTS - Math.PI / 2.0);
+            c[i] = (float)Math.cos(angle);
+        }
+        return c;
+    }
+
+    private static float[] precomputeSin() {
+        float[] s = new float[STAR_SEGMENTS + 1];
+        for (int i = 0; i <= STAR_SEGMENTS; i++) {
+            float angle = (float)(Math.PI * 2.0 * i / STAR_SEGMENTS - Math.PI / 2.0);
+            s[i] = (float)Math.sin(angle);
+        }
+        return s;
+    }
+
+    private static float[] precomputeSpecCos() {
+        float[] c = new float[SPEC_SEGMENTS + 1];
+        for (int i = 0; i <= SPEC_SEGMENTS; i++) {
+            float angle = (float)(Math.PI * 2.0 * i / SPEC_SEGMENTS);
+            c[i] = (float)Math.cos(angle);
+        }
+        return c;
+    }
+
+    private static float[] precomputeSpecSin() {
+        float[] s = new float[SPEC_SEGMENTS + 1];
+        for (int i = 0; i <= SPEC_SEGMENTS; i++) {
+            float angle = (float)(Math.PI * 2.0 * i / SPEC_SEGMENTS);
+            s[i] = (float)Math.sin(angle);
+        }
+        return s;
     }
 
     /** smin of 5 circles (same formula as the FSH). */
@@ -223,6 +264,10 @@ public class CustomHitParticleManager {
         boolean rgb = GlassMenuClient.CONFIG.customHitRgb();
         float tHue  = (System.currentTimeMillis() % 6000L) / 6000f;
 
+        Tessellator tess = Tessellator.getInstance();
+        BufferBuilder buf = tess.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
+        boolean hasVertices = false;
+
         for (StarParticle p : active) {
             float alpha = p.alpha(), scale = p.scale();
             if (alpha <= 0.002f || scale <= 0.001f) continue;
@@ -239,8 +284,14 @@ public class CustomHitParticleManager {
             matrices.multiply(camRot);
             matrices.multiply(new Quaternionf().rotateZ(p.rotation));
 
-            drawPuffStar(matrices.peek().getPositionMatrix(), scale, pr, pg, pb, alpha);
+            drawPuffStarBatched(buf, matrices.peek().getPositionMatrix(), scale, pr, pg, pb, alpha);
+            hasVertices = true;
+
             matrices.pop();
+        }
+
+        if (hasVertices) {
+            BufferRenderer.drawWithGlobalProgram(buf.end());
         }
 
         // ── Restore ALL GL state ──────────────────────────────────────────────
@@ -260,71 +311,70 @@ public class CustomHitParticleManager {
     }
 
     /**
-     * Draws one puff-star using precomputed boundary radii.
+     * Draws one puff-star using precomputed boundary radii into the batched builder.
      * Three layers:
      *   1. Wide outer glow ring (transparent at rim — looks like an aura).
      *   2. Star body: bright centre (self-illumination) → base colour at edge.
      *   3. Tiny specular dot (white → transparent) near the centre.
      */
-    private static void drawPuffStar(Matrix4f mat, float size,
-                                     float r, float g, float b, float alpha) {
-        Tessellator tess = Tessellator.getInstance();
+    private static void drawPuffStarBatched(BufferBuilder buf, Matrix4f mat, float size,
+                                            float r, float g, float b, float alpha) {
+        // ── 1. Outer glow (TRIANGLES) ─────────────────────────────────────────
+        float outerGlowAlpha = alpha * 0.40f;
+        for (int i = 0; i < STAR_SEGMENTS; i++) {
+            float rad1 = BOUNDARY_R[i] * size * 2.0f;
+            float vx1 = STAR_COS[i] * rad1;
+            float vy1 = STAR_SIN[i] * rad1;
 
-        // ── 1. Outer glow ────────────────────────────────────────────────────
-        {
-            BufferBuilder buf = tess.begin(VertexFormat.DrawMode.TRIANGLE_FAN,
-                                           VertexFormats.POSITION_COLOR);
-            // Glow centre: base colour, semi-transparent
-            buf.vertex(mat, 0, 0, 0).color(r, g, b, alpha * 0.40f);
-            for (int i = 0; i <= STAR_SEGMENTS; i++) {
-                float angle   = (float)(Math.PI * 2.0 * i / STAR_SEGMENTS - Math.PI / 2.0);
-                float rad     = BOUNDARY_R[i] * size * 2.0f; // glow extends 2× beyond body
-                float vx = (float)Math.cos(angle) * rad;
-                float vy = (float)Math.sin(angle) * rad;
-                buf.vertex(mat, vx, vy, 0).color(r, g, b, 0f);
-            }
-            BufferRenderer.drawWithGlobalProgram(buf.end());
+            float rad2 = BOUNDARY_R[i+1] * size * 2.0f;
+            float vx2 = STAR_COS[i+1] * rad2;
+            float vy2 = STAR_SIN[i+1] * rad2;
+
+            buf.vertex(mat, 0, 0, 0).color(r, g, b, outerGlowAlpha);
+            buf.vertex(mat, vx1, vy1, 0).color(r, g, b, 0f);
+            buf.vertex(mat, vx2, vy2, 0).color(r, g, b, 0f);
         }
 
-        // ── 2. Star body with inner-volume gradient ───────────────────────────
-        {
-            BufferBuilder buf = tess.begin(VertexFormat.DrawMode.TRIANGLE_FAN,
-                                           VertexFormats.POSITION_COLOR);
-            // Bright centre = self-illumination (clamped to 1.0)
-            float bc = 1.0f;
-            buf.vertex(mat, 0, 0, 0)
-               .color(Math.min(1f, r*1.9f + bc*0.05f),
-                      Math.min(1f, g*1.9f + bc*0.05f),
-                      Math.min(1f, b*1.9f + bc*0.05f), alpha);
-            for (int i = 0; i <= STAR_SEGMENTS; i++) {
-                float angle = (float)(Math.PI * 2.0 * i / STAR_SEGMENTS - Math.PI / 2.0);
-                float rad   = BOUNDARY_R[i] * size;
-                float vx = (float)Math.cos(angle) * rad;
-                float vy = (float)Math.sin(angle) * rad;
-                // Edge: slightly darker than base (creates the volume illusion)
-                buf.vertex(mat, vx, vy, 0)
-                   .color(r * 0.72f, g * 0.72f, b * 0.72f, alpha);
-            }
-            BufferRenderer.drawWithGlobalProgram(buf.end());
+        // ── 2. Star body with inner-volume gradient (TRIANGLES) ───────────────
+        float bc = 1.0f;
+        float centerR = Math.min(1f, r * 1.9f + bc * 0.05f);
+        float centerG = Math.min(1f, g * 1.9f + bc * 0.05f);
+        float centerB = Math.min(1f, b * 1.9f + bc * 0.05f);
+
+        float edgeR = r * 0.72f;
+        float edgeG = g * 0.72f;
+        float edgeB = b * 0.72f;
+
+        for (int i = 0; i < STAR_SEGMENTS; i++) {
+            float rad1 = BOUNDARY_R[i] * size;
+            float vx1 = STAR_COS[i] * rad1;
+            float vy1 = STAR_SIN[i] * rad1;
+
+            float rad2 = BOUNDARY_R[i+1] * size;
+            float vx2 = STAR_COS[i+1] * rad2;
+            float vy2 = STAR_SIN[i+1] * rad2;
+
+            buf.vertex(mat, 0, 0, 0).color(centerR, centerG, centerB, alpha);
+            buf.vertex(mat, vx1, vy1, 0).color(edgeR, edgeG, edgeB, alpha);
+            buf.vertex(mat, vx2, vy2, 0).color(edgeR, edgeG, edgeB, alpha);
         }
 
-        // ── 3. Specular highlight (small bright disc, off-centre) ─────────────
-        {
-            float specR = size * 0.14f;
-            // Offset specular towards upper-left
-            float ox = -size * 0.12f;
-            float oy =  size * 0.15f;
-            int   segs = 12;
-            BufferBuilder buf = tess.begin(VertexFormat.DrawMode.TRIANGLE_FAN,
-                                           VertexFormats.POSITION_COLOR);
-            buf.vertex(mat, ox, oy, 0).color(1f, 1f, 1f, alpha * 0.75f);
-            for (int i = 0; i <= segs; i++) {
-                float a = (float)(Math.PI * 2.0 * i / segs);
-                buf.vertex(mat, ox + (float)Math.cos(a)*specR,
-                                oy + (float)Math.sin(a)*specR, 0)
-                   .color(1f, 1f, 1f, 0f);
-            }
-            BufferRenderer.drawWithGlobalProgram(buf.end());
+        // ── 3. Specular highlight (TRIANGLES) ─────────────────────────────────
+        float specR = size * 0.14f;
+        float ox = -size * 0.12f;
+        float oy =  size * 0.15f;
+        float specAlpha = alpha * 0.75f;
+
+        for (int i = 0; i < SPEC_SEGMENTS; i++) {
+            float vx1 = ox + SPEC_COS[i] * specR;
+            float vy1 = oy + SPEC_SIN[i] * specR;
+
+            float vx2 = ox + SPEC_COS[i+1] * specR;
+            float vy2 = oy + SPEC_SIN[i+1] * specR;
+
+            buf.vertex(mat, ox, oy, 0).color(1f, 1f, 1f, specAlpha);
+            buf.vertex(mat, vx1, vy1, 0).color(1f, 1f, 1f, 0f);
+            buf.vertex(mat, vx2, vy2, 0).color(1f, 1f, 1f, 0f);
         }
     }
 
