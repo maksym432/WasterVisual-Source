@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.24.70] - 2026-06-12
+
+### Added
+- **Item HUD Classic Layout & Orientation Toggle:** Classic HUD mode now supports horizontal and vertical layouts (controlled via `itemHudVertical` toggle in the settings screen).
+- **Hotkey Numbers Support:** Added toggleable rendering of hotkey numbers (1–9) positioned cleanly below the slot for horizontal layout, and to the left of the slot for vertical layout. They dynamically center when disabled to ensure perfect symmetry.
+- **Enhanced Slot Visibility:** Adjusted the slot outline and slot background fill colors to make them clearly visible on both transparent/glass and solid colored HUD layouts.
+- **Aspect-Ratio Resizing Constraints:** Enforced square aspect-ratio resizing in CIRCLE mode and correct orientation-dependent aspect ratio bounds in CLASSIC mode.
+- **Scaled Previews and Mock Items:** Implemented preview support for the CLASSIC HUD configuration, including scaling math for slots, numbers, and active/mock item icons.
+
+### Files Modified
+- [ItemHudRenderer.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/render/ItemHudRenderer.java)
+- [LiquidGlassScreen.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/screen/LiquidGlassScreen.java)
+- [gradle.properties](file:///home/waster/vibecoding/minecraft/wastervisual/gradle.properties)
+
 ## [2.24.69] - 2026-06-12
 
 ### Added

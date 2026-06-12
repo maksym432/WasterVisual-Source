@@ -115,6 +115,11 @@ public class GlassMenuClient implements ClientModInitializer {
                     client.getWindow().getScaledWidth(),
                     client.getWindow().getScaledHeight()
                 );
+                com.example.glassmenu.render.GlassHotbarRenderer.render(
+                    context,
+                    client.getWindow().getScaledWidth(),
+                    client.getWindow().getScaledHeight()
+                );
                 com.example.glassmenu.render.UserHudRenderer.render(
                     context,
                     client.getWindow().getScaledWidth(),

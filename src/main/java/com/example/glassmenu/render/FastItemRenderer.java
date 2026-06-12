@@ -53,6 +53,8 @@ public class FastItemRenderer {
 
         int x = GlassMenuClient.CONFIG.fastItemX() == -1 ? (screenWidth - targetW) / 2 : GlassMenuClient.CONFIG.fastItemX();
         int y = GlassMenuClient.CONFIG.fastItemY() == -1 ? screenHeight - targetH - 10 : GlassMenuClient.CONFIG.fastItemY();
+        x = Math.max(0, Math.min(x, screenWidth - targetW));
+        y = Math.max(0, Math.min(y, screenHeight - targetH));
 
         float radius = baseW / 2f;
         float distributionRadius = radius - 20f;

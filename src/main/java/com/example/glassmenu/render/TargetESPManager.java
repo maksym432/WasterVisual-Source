@@ -163,6 +163,10 @@ public class TargetESPManager {
         net.minecraft.client.gl.ShaderProgram previousShader = RenderSystem.getShader();
         boolean previousBlend = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_BLEND);
 
+        int prevActiveTexture = com.mojang.blaze3d.platform.GlStateManager._getActiveTexture();
+        com.mojang.blaze3d.platform.GlStateManager._activeTexture(org.lwjgl.opengl.GL13.GL_TEXTURE0);
+        int prevTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableCull();
@@ -247,6 +251,13 @@ public class TargetESPManager {
         if (previousShader != null) {
             RenderSystem.setShader(() -> previousShader);
         }
+
+        // Restore texture slot 0 — both the raw GL binding and Minecraft's tracked state.
+        com.mojang.blaze3d.platform.GlStateManager._activeTexture(org.lwjgl.opengl.GL13.GL_TEXTURE0);
+        org.lwjgl.opengl.GL11.glBindTexture(GL11.GL_TEXTURE_2D, prevTexture0);
+        RenderSystem.setShaderTexture(0, prevTexture0);
+        // Restore active texture unit.
+        com.mojang.blaze3d.platform.GlStateManager._activeTexture(prevActiveTexture);
 
         provider.draw();
     }

@@ -147,7 +147,18 @@ public class GlassMenuConfigModel {
     public int fastItemHeight = 160;
     public int fastItemX = -1;
     public int fastItemY = -1;
+
+    // --- GLASS HOTBAR (Standard Hotbar replacement) ---
     public boolean glassHotbar = true;
+    public int glassHotbarColor = 0xEE1C1C24;
+    public boolean glassHotbarTransparent = true;
+    public boolean glassHotbarSlots = true;
+    public boolean glassHotbarVertical = false;
+    public boolean glassHotbarNumbers = true;
+    public int glassHotbarWidth = 220;
+    public int glassHotbarHeight = 34;
+    public int glassHotbarX = -1;
+    public int glassHotbarY = -1;
 
     // --- USER HUD (custom HP / Food / XP bars) ---
     public boolean enableUserHud = false;

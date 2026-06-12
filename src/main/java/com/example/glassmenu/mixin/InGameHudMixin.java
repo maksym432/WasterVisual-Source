@@ -24,7 +24,7 @@ public abstract class InGameHudMixin {
     /** Cancel vanilla hotbar when Fast Item circular hotbar is active. */
     @Inject(method = "renderHotbar", at = @At("HEAD"), cancellable = true)
     private void glassmenu$onRenderHotbar(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        if (GlassMenuClient.CONFIG.enableFastItem()) {
+        if (GlassMenuClient.CONFIG.enableFastItem() || GlassMenuClient.CONFIG.glassHotbar()) {
             ci.cancel();
         }
     }
