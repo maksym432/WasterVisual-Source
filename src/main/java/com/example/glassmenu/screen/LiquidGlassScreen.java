@@ -672,6 +672,15 @@ public class LiquidGlassScreen extends Screen {
             b.setMessage(Text.literal(GlassMenuClient.CONFIG.fastItemSlots() ? "Item Slots: ON" : "Item Slots: OFF"));
         });
         visualsFastItemWidgets.add(slotsBtn);
+
+        String hotbarText = GlassMenuClient.CONFIG.glassHotbar() ? "Glass Hotbar: ON" : "Glass Hotbar: OFF";
+        LiquidGlassButton hotbarBtn = new LiquidGlassButton((int)x + 40, (int)y + 150, 120, 22, Text.literal(hotbarText), b -> {
+            boolean current = GlassMenuClient.CONFIG.glassHotbar();
+            GlassMenuClient.CONFIG.glassHotbar(!current);
+            GlassMenuClient.CONFIG.save();
+            b.setMessage(Text.literal(GlassMenuClient.CONFIG.glassHotbar() ? "Glass Hotbar: ON" : "Glass Hotbar: OFF"));
+        });
+        visualsFastItemWidgets.add(hotbarBtn);
     }
 
     private void initVisualsUserHudTab(float x, float y) {
@@ -1373,7 +1382,7 @@ public class LiquidGlassScreen extends Screen {
         boolean isTransparent = GlassMenuClient.CONFIG.transparentFastItem();
 
         // Left column: labels + buttons
-        context.drawTextWithShadow(textRenderer, "Enable Item HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Circle Hotbar", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         // Right column title (short enough to not overlap switch at x+370)
         context.drawTextWithShadow(textRenderer, "Item HUD", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
@@ -1391,6 +1400,8 @@ public class LiquidGlassScreen extends Screen {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Item Slots")) {
                 w.setX(x + 40); w.setY((int)y + 115 - (int)slideOffset);
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Hotbar")) {
+                w.setX(x + 40); w.setY((int)y + 150 - (int)slideOffset);
             } else {
                 // Enable toggle switch — at x+370 to avoid overlap with title
                 w.setX(x + 370); w.setY((int)y + 45 - (int)slideOffset);

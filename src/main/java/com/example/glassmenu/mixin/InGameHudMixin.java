@@ -15,6 +15,7 @@ import net.minecraft.client.render.RenderTickCounter;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(InGameHud.class)
@@ -25,6 +26,20 @@ public abstract class InGameHudMixin {
     private void glassmenu$onRenderHotbar(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (GlassMenuClient.CONFIG.enableFastItem()) {
             ci.cancel();
+        }
+    }
+
+    @Redirect(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V"))
+    private void glassmenu$redirectDrawGuiTexture(DrawContext context, net.minecraft.util.Identifier texture, int x, int y, int width, int height) {
+        if (GlassMenuClient.CONFIG.glassHotbar() && texture.getPath().contains("hotbar")) {
+            if (texture.getPath().endsWith("hotbar_selection")) {
+                context.drawGuiTexture(texture, x, y, width, height);
+            } else {
+                com.example.glassmenu.render.GlassRefractionEngine.drawRefractedPanel(context, x, y, width, height, 0.8f, 0x22FFFFFF, 4f);
+                com.example.glassmenu.render.RenderUtils.drawSdfRoundedOutline(context.getMatrices(), x, y, width, height, 4f, 0.8f, 0x33FFFFFF);
+            }
+        } else {
+            context.drawGuiTexture(texture, x, y, width, height);
         }
     }
 

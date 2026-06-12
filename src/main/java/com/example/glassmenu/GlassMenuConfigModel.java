@@ -147,6 +147,7 @@ public class GlassMenuConfigModel {
     public int fastItemHeight = 160;
     public int fastItemX = -1;
     public int fastItemY = -1;
+    public boolean glassHotbar = true;
 
     // --- USER HUD (custom HP / Food / XP bars) ---
     public boolean enableUserHud = false;

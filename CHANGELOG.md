@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.24.69] - 2026-06-12
+
+### Added
+- **Vanilla Glass Hotbar Styling:** Added a feature to render the vanilla hotbar background and offhand slot backgrounds with a beautiful glass-refraction style (with a subtle border outline) when the circular Item HUD (Circle Hotbar) is disabled.
+- **Glass Hotbar Configuration Toggle:** Added a configuration button `"Glass Hotbar"` in the Item HUD settings tab to toggle this style on/off.
+
+### Changed
+- Incremented `mod_version` to `2.24.69` in `gradle.properties`.
+
+### Files Modified
+- [InGameHudMixin.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/mixin/InGameHudMixin.java)
+- [LiquidGlassScreen.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/screen/LiquidGlassScreen.java)
+- [GlassMenuConfigModel.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/GlassMenuConfigModel.java)
+- [gradle.properties](file:///home/waster/vibecoding/minecraft/wastervisual/gradle.properties)
+
 ## [2.24.68] - 2026-06-12
 
 ### Fixed
