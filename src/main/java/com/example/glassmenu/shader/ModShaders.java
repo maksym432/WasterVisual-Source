@@ -18,6 +18,7 @@ public class ModShaders {
     private static ShaderProgram invGlass;
     private static ShaderProgram jumpGlow;
     private static ShaderProgram hitStar;
+    private static ShaderProgram colorGrading;
 
     public static void init() {
         CoreShaderRegistrationCallback.EVENT.register(context -> {
@@ -42,6 +43,9 @@ public class ModShaders {
                 });
                 context.register(Identifier.of("glassmenu", "hit_star"), VertexFormats.POSITION_TEXTURE_COLOR, shader -> {
                     hitStar = shader;
+                });
+                context.register(Identifier.of("glassmenu", "color_grading"), VertexFormats.POSITION_TEXTURE, shader -> {
+                    colorGrading = shader;
                 });
             } catch (Exception e) {
                 System.err.println("Failed to register glassmenu shaders!");
@@ -75,5 +79,9 @@ public class ModShaders {
 
     public static ShaderProgram getHitStar() {
         return hitStar;
+    }
+
+    public static ShaderProgram getColorGrading() {
+        return colorGrading;
     }
 }

@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.24.77] - 2026-06-19
+
+### Added
+- **Global Color Grading**: Added "Color Grading" configuration to the Visuals menu.
+  - Apply global saturation, contrast, and color tint filters to the entire game (world + UI).
+  - Configurable via 5 sliders: Saturation, Contrast, Tint Red, Tint Green, and Tint Blue.
+  - High-performance, robust post-processing implemented via framebuffer texture copying and a custom core shader (`color_grading.fsh`), injected at the end of `GameRenderer#render`.
+
+### Files Modified
+- [GlassMenuConfigModel.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/GlassMenuConfigModel.java)
+- [LiquidGlassScreen.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/screen/LiquidGlassScreen.java)
+- [ColorGradingEngine.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/render/ColorGradingEngine.java)
+- [ModShaders.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/shader/ModShaders.java)
+- `color_grading` shader files
+- [GameRendererMixin.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/mixin/GameRendererMixin.java)
 ## [2.24.76] - 2026-06-19
 
 ### Added

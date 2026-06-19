@@ -7,6 +7,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import com.example.glassmenu.render.ColorGradingEngine;
+import net.minecraft.client.render.RenderTickCounter;
 
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
@@ -23,5 +26,10 @@ public class GameRendererMixin {
             matrix.scale(1.0f / h, 1.0f / v, 1.0f);
             cir.setReturnValue(matrix);
         }
+    }
+
+    @Inject(method = "render", at = @At("TAIL"))
+    private void onRender(RenderTickCounter tickCounter, boolean tick, CallbackInfo ci) {
+        ColorGradingEngine.renderColorGrading();
     }
 }

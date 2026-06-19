@@ -203,4 +203,10 @@ public class GlassMenuConfigModel {
     public boolean enableStretch = false;
     public float stretchHorizontal = 1.0f;
     public float stretchVertical = 1.0f;
+
+    // --- COLOR GRADING ---
+    public boolean enableColorGrading = false;
+    public float cgSaturation = 1.0f;
+    public float cgContrast = 1.0f;
+    public int cgTint = 0xFFFFFF; // default white
 }
