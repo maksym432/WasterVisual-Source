@@ -48,7 +48,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassEffectView effectView;
     private LiquidLensView lensView;
     
-    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_GLASS_HOTBAR, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, VISUALS_ISLAND, VISUALS_HIT, VISUALS_GHOST, POSITION, BRIDGE }
+    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_GLASS_HOTBAR, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, VISUALS_ISLAND, VISUALS_HIT, VISUALS_GHOST, VISUALS_STRETCH, POSITION, BRIDGE }
     private Tab currentTab = Tab.GENERAL;
     
     private final List<ClickableWidget> generalWidgets = new ArrayList<>();
@@ -69,6 +69,7 @@ public class LiquidGlassScreen extends Screen {
     private final List<ClickableWidget> visualsIslandWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsHitWidgets  = new ArrayList<>();
     private final List<ClickableWidget> visualsGhostWidgets = new ArrayList<>();
+    private final List<ClickableWidget> visualsStretchWidgets = new ArrayList<>();
     private final List<ClickableWidget> positionWidgets = new ArrayList<>();
     private final List<ClickableWidget> bridgeWidgets = new ArrayList<>();
 
@@ -78,8 +79,8 @@ public class LiquidGlassScreen extends Screen {
     private static final float PANEL_H_NORMAL = 220f;
     private static final float PANEL_H_EXPANDED = 280f;
 
-    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
-    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
+    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
+    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
 
     // State
     private TextFieldWidget hexInput, rgbInput, visHexInput, visRgbInput, invHexInput, invRgbInput, bridgeHexInput, bridgeRgbInput, hitHexInput, hitRgbInput, ghostHexInput, ghostRgbInput;
@@ -126,7 +127,7 @@ public class LiquidGlassScreen extends Screen {
         this.lensView = new LiquidLensView(x, y, getPanelW(), getPanelH());
 
         // 1. Initialize Lists once per screen init (resize/open)
-        generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsGlassHotbarWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); visualsLeftHandItemWidgets.clear(); visualsIslandWidgets.clear(); visualsHitWidgets.clear(); visualsGhostWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
+        generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsGlassHotbarWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); visualsLeftHandItemWidgets.clear(); visualsIslandWidgets.clear(); visualsHitWidgets.clear(); visualsGhostWidgets.clear(); visualsStretchWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
         
         initGeneralTab(x, y);
         initCombatTab(x, y);
@@ -146,6 +147,7 @@ public class LiquidGlassScreen extends Screen {
         initVisualsIslandTab(x, y);
         initVisualsHitTab(x, y);
         initVisualsGhostTab(x, y);
+        initVisualsStretchTab(x, y);
         initPositionTab();
         initBridgeTab(x, y);
 
@@ -299,6 +301,10 @@ public class LiquidGlassScreen extends Screen {
         visualsWidgets.add(leftHandItemBtn);
         visualsWidgets.add(invHudBtn);
         visualsWidgets.add(glassHotbarBtn);
+        LiquidGlassButton stretchBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Stretch"), b -> {
+            currentTab = Tab.VISUALS_STRETCH; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsWidgets.add(stretchBtn);
 
         // Right Column: World & Interaction
         visualsWidgets.add(jumpEffectsBtn);
@@ -1080,6 +1086,7 @@ public class LiquidGlassScreen extends Screen {
                 case VISUALS_ISLAND -> visualsIslandWidgets;
                 case VISUALS_HIT   -> visualsHitWidgets;
                 case VISUALS_GHOST -> visualsGhostWidgets;
+                case VISUALS_STRETCH -> visualsStretchWidgets;
                 case POSITION -> positionWidgets;
                 case MOVEMENT -> movementWidgets; case BRIDGE -> bridgeWidgets;
             };
@@ -1108,8 +1115,8 @@ public class LiquidGlassScreen extends Screen {
         if (dt < 0f) dt = 0f;
         dt = Math.min(dt, 0.1f);
         
-        float targetW = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
-        float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        float targetW = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
         float targetXOff = (currentTab == Tab.COMBAT) ? 40f : 0f;
 
         panelWidthProgress = MathHelper.lerp(MathHelper.clamp(dt * 10.0f, 0f, 1f), panelWidthProgress, targetW);
@@ -1140,7 +1147,7 @@ public class LiquidGlassScreen extends Screen {
                 
                 boolean isActive = (topTabs[i] == currentTab) 
                     || (topTabs[i] == Tab.GENERAL && currentTab == Tab.BRIDGE)
-                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.POSITION));
+                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.POSITION));
                 
                 float swell = 1.0f + tabHoverProgress[i] * 0.04f; // Subtle scale swell on hover
 
@@ -1219,6 +1226,7 @@ public class LiquidGlassScreen extends Screen {
         else if (currentTab == Tab.VISUALS_ISLAND) renderVisualsIslandTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_HIT)   renderVisualsHitTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_GHOST)  renderVisualsGhostTab(context, x, y, mouseX, mouseY, delta);
+        else if (currentTab == Tab.VISUALS_STRETCH) renderVisualsStretchTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.POSITION) renderPositionTab(context, mouseX, mouseY, delta);
 
         super.render(context, mouseX, mouseY, delta);
@@ -3301,6 +3309,47 @@ public class LiquidGlassScreen extends Screen {
         context.drawTextWithShadow(textRenderer, "Stars", x + 230, y + 200 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         context.drawTextWithShadow(textRenderer, String.valueOf(countNow), x + 382, y + 200 - (int)slideOffset, colorAlpha | 0xFFFFFF);
     }
+    // ─── STRETCH (Растяг) ──────────────────────────────────────────────
+    private LiquidGlassSlider stretchHorizontalSlider;
+    private LiquidGlassSlider stretchVerticalSlider;
+
+    private void initVisualsStretchTab(float x, float y) {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 230, 80, 22, Text.literal("Back"), b -> {
+            currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsStretchWidgets.add(backBtn);
+
+        LiquidGlassSwitch enableToggle = new LiquidGlassSwitch((int)x + 330, (int)y + 45, 40, 20, GlassMenuClient.CONFIG.enableStretch());
+        enableToggle.setOnToggle(enabled -> { GlassMenuClient.CONFIG.enableStretch(enabled); GlassMenuClient.CONFIG.save(); });
+        visualsStretchWidgets.add(enableToggle);
+
+        stretchHorizontalSlider = new LiquidGlassSlider((int)x + 30, (int)y + 110, 140, 16, (GlassMenuClient.CONFIG.stretchHorizontal() - 0.1) / 2.9);
+        stretchVerticalSlider = new LiquidGlassSlider((int)x + 30, (int)y + 150, 140, 16, (GlassMenuClient.CONFIG.stretchVertical() - 0.1) / 2.9);
+
+        Runnable updateStretch = () -> {
+            float h = (float)(stretchHorizontalSlider.getValue() * 2.9 + 0.1);
+            float v = (float)(stretchVerticalSlider.getValue() * 2.9 + 0.1);
+            GlassMenuClient.CONFIG.stretchHorizontal(h);
+            GlassMenuClient.CONFIG.stretchVertical(v);
+            GlassMenuClient.CONFIG.save();
+        };
+
+        stretchHorizontalSlider.setOnValueChange(v -> updateStretch.run());
+        stretchVerticalSlider.setOnValueChange(v -> updateStretch.run());
+
+        visualsStretchWidgets.add(stretchHorizontalSlider);
+        visualsStretchWidgets.add(stretchVerticalSlider);
+
+        LiquidGlassButton resetBtn = new LiquidGlassButton((int)x + 230, (int)y + 110, 140, 22, Text.literal("Reset"), b -> {
+            GlassMenuClient.CONFIG.stretchHorizontal(1.0f);
+            GlassMenuClient.CONFIG.stretchVertical(1.0f);
+            GlassMenuClient.CONFIG.save();
+            stretchHorizontalSlider.setValue((1.0 - 0.1) / 2.9);
+            stretchVerticalSlider.setValue((1.0 - 0.1) / 2.9);
+        });
+        visualsStretchWidgets.add(resetBtn);
+    }
+
     // ─── AFTERIMAGE (Ghost Trail) ──────────────────────────────────────────────
     private void initVisualsGhostTab(float x, float y) {
         LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 215, 80, 22, Text.literal("Back"), b -> {
@@ -3378,6 +3427,26 @@ public class LiquidGlassScreen extends Screen {
                 }
             } catch (NumberFormatException ignored) {}
         });
+    }
+
+    private void renderVisualsStretchTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
+        context.getMatrices().push();
+        float alpha = MathHelper.clamp(contentAlpha, 0f, 1f);
+        RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
+        net.minecraft.client.font.TextRenderer tr = MinecraftClient.getInstance().textRenderer;
+        
+        context.drawText(tr, "Stretch Resolution", x + 30, y + 25, 0xFFFFFF, true);
+        context.drawText(tr, "Enable Stretch", x + 30, y + 50, 0xAAAAAA, true);
+        context.drawText(tr, "Stretches the 3D world (CS:GO style).", x + 30, y + 62, 0x777777, true);
+        
+        context.drawText(tr, "Horizontal Stretch", x + 30, y + 95, 0xCCCCCC, true);
+        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.stretchHorizontal()), x + 180, y + 95, 0xFFFFFF, true);
+        
+        context.drawText(tr, "Vertical Stretch", x + 30, y + 135, 0xCCCCCC, true);
+        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.stretchVertical()), x + 180, y + 135, 0xFFFFFF, true);
+        
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+        context.getMatrices().pop();
     }
 
     private void renderVisualsGhostTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {

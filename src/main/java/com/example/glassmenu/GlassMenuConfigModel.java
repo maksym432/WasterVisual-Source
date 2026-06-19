@@ -198,4 +198,9 @@ public class GlassMenuConfigModel {
     public boolean enableGhostTrail = false;
     public boolean ghostTrailRgb = false;
     public int ghostTrailColor = 0xFF88CCFF; // Default light-blue
+
+    // --- STRETCH RESOLUTION ---
+    public boolean enableStretch = false;
+    public float stretchHorizontal = 1.0f;
+    public float stretchVertical = 1.0f;
 }

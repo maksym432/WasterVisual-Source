@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.24.76] - 2026-06-19
+
+### Added
+- **Stretch Resolution**: Added "Stretch" configuration to the Visuals menu.
+  - Allows players to stretch the 3D world horizontally and vertically, simulating a 4:3 stretched aspect ratio.
+  - Features an enable/disable toggle, horizontal/vertical scaling sliders, and a reset button.
+  - Implemented via a Mixin into `GameRenderer#getBasicProjectionMatrix`, scaling the `Matrix4f` projection matrix mathematically.
+
+### Files Modified
+- [GlassMenuConfigModel.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/GlassMenuConfigModel.java)
+- [LiquidGlassScreen.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/screen/LiquidGlassScreen.java)
+- [GameRendererMixin.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/mixin/GameRendererMixin.java)
+- [glassmenu.mixins.json](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/resources/glassmenu.mixins.json)
+- [gradle.properties](file:///home/waster/vibecoding/minecraft/wastervisual/gradle.properties)
 ## [2.24.70] - 2026-06-12
 
 ### Added
