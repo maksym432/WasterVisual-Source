@@ -169,7 +169,7 @@ public class RenderUtils {
     }
 
     public static void drawCustomCrosshair(MatrixStack matrices, float x, float y, float size, float thickness, float gap, int mode, int color, boolean rainbow, float time) {
-        ShaderProgram shader = getCustomCrosshairProgram();
+        ShaderProgram shader = !com.example.glassmenu.GlassMenuClient.CONFIG.enableShaders() ? null : ModShaders.getCustomCrosshair();
         if (shader == null) return;
 
         float quadSize = gap * 2.0f + size * 4.0f + thickness * 2.0f;
@@ -247,7 +247,6 @@ public class RenderUtils {
 
     private static boolean registeredWhite = false;
     private static final net.minecraft.util.Identifier WHITE_TEX = net.minecraft.util.Identifier.of("glassmenu", "white_texture");
-    private static ShaderProgram customCrosshairProgram;
 
     public static net.minecraft.util.Identifier getWhiteTexture() {
         if (!registeredWhite) {
@@ -276,10 +275,6 @@ public class RenderUtils {
         int textureId = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_TEXTURE_BINDING_2D);
         com.mojang.blaze3d.platform.GlStateManager._activeTexture(originalActive);
         return textureId;
-    }
-
-    public static ShaderProgram getCustomCrosshairProgram() {
-        return customCrosshairProgram;
     }
 
     public static class TintedVertexConsumer implements VertexConsumer {

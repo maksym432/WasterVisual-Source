@@ -19,6 +19,7 @@ public class ModShaders {
     private static ShaderProgram jumpGlow;
     private static ShaderProgram hitStar;
     private static ShaderProgram colorGrading;
+    private static ShaderProgram customCrosshair;
 
     public static void init() {
         CoreShaderRegistrationCallback.EVENT.register(context -> {
@@ -46,6 +47,9 @@ public class ModShaders {
                 });
                 context.register(Identifier.of("glassmenu", "color_grading"), VertexFormats.POSITION_TEXTURE, shader -> {
                     colorGrading = shader;
+                });
+                context.register(Identifier.of("glassmenu", "custom_crosshair"), VertexFormats.POSITION_TEXTURE, shader -> {
+                    customCrosshair = shader;
                 });
             } catch (Exception e) {
                 System.err.println("Failed to register glassmenu shaders!");
@@ -83,5 +87,9 @@ public class ModShaders {
 
     public static ShaderProgram getColorGrading() {
         return colorGrading;
+    }
+
+    public static ShaderProgram getCustomCrosshair() {
+        return customCrosshair;
     }
 }
