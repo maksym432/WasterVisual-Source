@@ -182,8 +182,8 @@ public class LiquidGlassScreen extends Screen {
             int r = (int)(bridgeSliderR.getValue() * 255), g = (int)(bridgeSliderG.getValue() * 255), b = (int)(bridgeSliderB.getValue() * 255);
             int color = 0xFF000000 | (r << 16) | (g << 8) | b;
             GlassMenuClient.CONFIG.bridgeVortexColor(color); GlassMenuClient.CONFIG.save();
-            if (bridgeHexInput != null) bridgeHexInput.setText(String.format("#%06X", color & 0xFFFFFF));
-            if (bridgeRgbInput != null) bridgeRgbInput.setText(String.format("%d, %d, %d", r, g, b));
+            if (bridgeHexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!bridgeHexInput.getText().equals(s)) bridgeHexInput.setText(s); }
+            if (bridgeRgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!bridgeRgbInput.getText().equals(s)) bridgeRgbInput.setText(s); }
             isUpdating = false;
         };
 
@@ -212,7 +212,7 @@ public class LiquidGlassScreen extends Screen {
                     bridgeSliderB.setValue(b / 255.0f);
                     GlassMenuClient.CONFIG.bridgeVortexColor(0xFF000000 | color);
                     GlassMenuClient.CONFIG.save();
-                    if (bridgeRgbInput != null) bridgeRgbInput.setText(String.format("%d, %d, %d", r, g, b));
+                    if (bridgeRgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!bridgeRgbInput.getText().equals(s)) bridgeRgbInput.setText(s); }
                     isUpdating = false;
                 }
             } catch (NumberFormatException ignored) {}
@@ -238,7 +238,7 @@ public class LiquidGlassScreen extends Screen {
                         int color = 0xFF000000 | (r << 16) | (g << 8) | b;
                         GlassMenuClient.CONFIG.bridgeVortexColor(color);
                         GlassMenuClient.CONFIG.save();
-                        if (bridgeHexInput != null) bridgeHexInput.setText(String.format("#%06X", color & 0xFFFFFF));
+                        if (bridgeHexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!bridgeHexInput.getText().equals(s)) bridgeHexInput.setText(s); }
                         isUpdating = false;
                     }
                 }
@@ -360,8 +360,8 @@ public class LiquidGlassScreen extends Screen {
             int r = (int)(visSliderR.getValue() * 255), g = (int)(visSliderG.getValue() * 255), b = (int)(visSliderB.getValue() * 255);
             int color = 0xFF000000 | (r << 16) | (g << 8) | b;
             GlassMenuClient.CONFIG.jumpRingsColor(color); GlassMenuClient.CONFIG.save();
-            if (visHexInput != null) visHexInput.setText(String.format("#%06X", color & 0xFFFFFF));
-            if (visRgbInput != null) visRgbInput.setText(String.format("%d, %d, %d", r, g, b));
+            if (visHexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!visHexInput.getText().equals(s)) visHexInput.setText(s); }
+            if (visRgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!visRgbInput.getText().equals(s)) visRgbInput.setText(s); }
             isUpdating = false;
         };
 
@@ -389,7 +389,7 @@ public class LiquidGlassScreen extends Screen {
                     visSliderB.setValue(b / 255.0f);
                     GlassMenuClient.CONFIG.jumpRingsColor(0xFF000000 | color);
                     GlassMenuClient.CONFIG.save();
-                    if (visRgbInput != null) visRgbInput.setText(String.format("%d, %d, %d", r, g, b));
+                    if (visRgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!visRgbInput.getText().equals(s)) visRgbInput.setText(s); }
                     isUpdating = false;
                 }
             } catch (NumberFormatException ignored) {}
@@ -414,7 +414,7 @@ public class LiquidGlassScreen extends Screen {
                         int color = 0xFF000000 | (r << 16) | (g << 8) | b;
                         GlassMenuClient.CONFIG.jumpRingsColor(color);
                         GlassMenuClient.CONFIG.save();
-                        if (visHexInput != null) visHexInput.setText(String.format("#%06X", color & 0xFFFFFF));
+                        if (visHexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!visHexInput.getText().equals(s)) visHexInput.setText(s); }
                         isUpdating = false;
                     }
                 }
@@ -957,8 +957,8 @@ public class LiquidGlassScreen extends Screen {
             int r = (int)(sliderR.getValue() * 255), g = (int)(sliderG.getValue() * 255), b = (int)(sliderB.getValue() * 255);
             int color = 0xFF000000 | (r << 16) | (g << 8) | b;
             GlassMenuClient.CONFIG.targetEspColor(color); GlassMenuClient.CONFIG.save();
-            if (hexInput != null) hexInput.setText(String.format("#%06X", color & 0xFFFFFF));
-            if (rgbInput != null) rgbInput.setText(String.format("%d, %d, %d", r, g, b));
+            if (hexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!hexInput.getText().equals(s)) hexInput.setText(s); }
+            if (rgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!rgbInput.getText().equals(s)) rgbInput.setText(s); }
             isUpdating = false;
         };
 
@@ -987,7 +987,7 @@ public class LiquidGlassScreen extends Screen {
                     sliderB.setValue(b / 255.0f);
                     GlassMenuClient.CONFIG.targetEspColor(0xFF000000 | color);
                     GlassMenuClient.CONFIG.save();
-                    if (rgbInput != null) rgbInput.setText(String.format("%d, %d, %d", r, g, b));
+                    if (rgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!rgbInput.getText().equals(s)) rgbInput.setText(s); }
                     isUpdating = false;
                 }
             } catch (NumberFormatException ignored) {}
@@ -1013,7 +1013,7 @@ public class LiquidGlassScreen extends Screen {
                         int color = 0xFF000000 | (r << 16) | (g << 8) | b;
                         GlassMenuClient.CONFIG.targetEspColor(color);
                         GlassMenuClient.CONFIG.save();
-                        if (hexInput != null) hexInput.setText(String.format("#%06X", color & 0xFFFFFF));
+                        if (hexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!hexInput.getText().equals(s)) hexInput.setText(s); }
                         isUpdating = false;
                     }
                 }
@@ -3199,8 +3199,8 @@ public class LiquidGlassScreen extends Screen {
             int r = (int)(hitSliderR.getValue() * 255), g = (int)(hitSliderG.getValue() * 255), b = (int)(hitSliderB.getValue() * 255);
             int color = 0xFF000000 | (r << 16) | (g << 8) | b;
             GlassMenuClient.CONFIG.customHitColor(color); GlassMenuClient.CONFIG.save();
-            if (hitHexInput != null) hitHexInput.setText(String.format("#%06X", color & 0xFFFFFF));
-            if (hitRgbInput != null) hitRgbInput.setText(String.format("%d, %d, %d", r, g, b));
+            if (hitHexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!hitHexInput.getText().equals(s)) hitHexInput.setText(s); }
+            if (hitRgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!hitRgbInput.getText().equals(s)) hitRgbInput.setText(s); }
             isUpdating = false;
         };
 
@@ -3231,7 +3231,7 @@ public class LiquidGlassScreen extends Screen {
                     hitSliderB.setValue(b / 255.0f);
                     GlassMenuClient.CONFIG.customHitColor(0xFF000000 | color);
                     GlassMenuClient.CONFIG.save();
-                    if (hitRgbInput != null) hitRgbInput.setText(String.format("%d, %d, %d", r, g, b));
+                    if (hitRgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!hitRgbInput.getText().equals(s)) hitRgbInput.setText(s); }
                     isUpdating = false;
                 }
             } catch (NumberFormatException ignored) {}
@@ -3256,7 +3256,7 @@ public class LiquidGlassScreen extends Screen {
                         int color = 0xFF000000 | (r << 16) | (g << 8) | b;
                         GlassMenuClient.CONFIG.customHitColor(color);
                         GlassMenuClient.CONFIG.save();
-                        if (hitHexInput != null) hitHexInput.setText(String.format("#%06X", color & 0xFFFFFF));
+                        if (hitHexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!hitHexInput.getText().equals(s)) hitHexInput.setText(s); }
                         isUpdating = false;
                     }
                 }
@@ -3630,8 +3630,8 @@ public class LiquidGlassScreen extends Screen {
             int b = (int)(ghostSliderB.getValue() * 255);
             int color = 0xFF000000 | (r << 16) | (g << 8) | b;
             GlassMenuClient.CONFIG.ghostTrailColor(color); GlassMenuClient.CONFIG.save();
-            if (ghostHexInput != null) ghostHexInput.setText(String.format("#%06X", color & 0xFFFFFF));
-            if (ghostRgbInput != null) ghostRgbInput.setText(String.format("%d, %d, %d", r, g, b));
+            if (ghostHexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!ghostHexInput.getText().equals(s)) ghostHexInput.setText(s); }
+            if (ghostRgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!ghostRgbInput.getText().equals(s)) ghostRgbInput.setText(s); }
             isUpdating = false;
         };
         ghostSliderR.setOnValueChange(v -> updateColor.run());
@@ -3652,7 +3652,7 @@ public class LiquidGlassScreen extends Screen {
                     int r = (color >> 16) & 0xFF, g = (color >> 8) & 0xFF, b = color & 0xFF;
                     ghostSliderR.setValue(r / 255f); ghostSliderG.setValue(g / 255f); ghostSliderB.setValue(b / 255f);
                     GlassMenuClient.CONFIG.ghostTrailColor(0xFF000000 | color); GlassMenuClient.CONFIG.save();
-                    if (ghostRgbInput != null) ghostRgbInput.setText(String.format("%d, %d, %d", r, g, b));
+                    if (ghostRgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!ghostRgbInput.getText().equals(s)) ghostRgbInput.setText(s); }
                     isUpdating = false;
                 }
             } catch (NumberFormatException ignored) {}
@@ -3671,7 +3671,7 @@ public class LiquidGlassScreen extends Screen {
                         ghostSliderR.setValue(r/255f); ghostSliderG.setValue(g/255f); ghostSliderB.setValue(b/255f);
                         int color = 0xFF000000|(r<<16)|(g<<8)|b;
                         GlassMenuClient.CONFIG.ghostTrailColor(color); GlassMenuClient.CONFIG.save();
-                        if (ghostHexInput!=null) ghostHexInput.setText(String.format("#%06X",color&0xFFFFFF));
+                        if (ghostHexInput!=null) { String s = String.format("#%06X", color&0xFFFFFF); if (!ghostHexInput.getText().equals(s)) ghostHexInput.setText(s); }
                         isUpdating = false;
                     }
                 }
