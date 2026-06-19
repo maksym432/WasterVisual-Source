@@ -69,6 +69,17 @@ public abstract class EntityRendererMixin<T extends Entity> {
     )
     private void glassmenu$hideVanillaBackground(org.spongepowered.asm.mixin.injection.invoke.arg.Args args) {
         if (!GlassMenuClient.CONFIG.enableCustomNametags()) return;
-        args.set(8, 0); // Hide vanilla sharp background for all text draw calls
+        
+        // Hide vanilla sharp background for all text draw calls
+        args.set(8, 0); 
+        
+        // The color parameter (arg 3) controls the alpha of the text.
+        // For the SEE_THROUGH call, vanilla passes 0x20FFFFFF (very faint).
+        // The user wants it to be perfectly visible through walls, maybe slightly darkened.
+        int colorArg = args.get(3);
+        if (colorArg == 553648127) { // 0x20FFFFFF
+            // Change to 80% opacity (0xCC) so it's clearly visible through walls
+            args.set(3, 0xCCFFFFFF);
+        }
     }
 }
