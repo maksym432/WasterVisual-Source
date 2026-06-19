@@ -14,6 +14,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+import com.example.glassmenu.GlassMenuClient;
+
 @Mixin(EntityRenderer.class)
 public abstract class EntityRendererMixin<T extends Entity> {
 
@@ -27,8 +29,12 @@ public abstract class EntityRendererMixin<T extends Entity> {
         )
     )
     private int glassmenu$redirectNametagDraw(TextRenderer instance, Text text, float x, float y, int color, boolean shadow, Matrix4f matrix, VertexConsumerProvider vertexConsumers, TextRenderer.TextLayerType layerType, int backgroundColor, int light) {
-        // Force the text to be fully opaque white for max visibility
-        int newTextColor = 0xFFFFFFFF;
+        if (!GlassMenuClient.CONFIG.enableCustomNametags()) {
+            return instance.draw(text, x, y, color, shadow, matrix, vertexConsumers, layerType, backgroundColor, light);
+        }
+
+        // Apply custom RGB text color but ensure it's fully opaque (0xFF alpha)
+        int newTextColor = 0xFF000000 | GlassMenuClient.CONFIG.customNametagColor();
         
         // Use a softer, custom glass-like background
         int newBgColor = 0x55000000;

@@ -48,7 +48,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassEffectView effectView;
     private LiquidLensView lensView;
     
-    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_GLASS_HOTBAR, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, VISUALS_ISLAND, VISUALS_HIT, VISUALS_GHOST, VISUALS_STRETCH, VISUALS_COLOR, VISUALS_CROSSHAIR, POSITION, BRIDGE }
+    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_GLASS_HOTBAR, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, VISUALS_ISLAND, VISUALS_HIT, VISUALS_GHOST, VISUALS_STRETCH, VISUALS_COLOR, VISUALS_CROSSHAIR, VISUALS_NAMETAGS, POSITION, BRIDGE }
     private Tab currentTab = Tab.GENERAL;
     
     private final List<ClickableWidget> generalWidgets = new ArrayList<>();
@@ -72,6 +72,7 @@ public class LiquidGlassScreen extends Screen {
     private final List<ClickableWidget> visualsStretchWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsColorWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsCrosshairWidgets = new ArrayList<>();
+    private final List<ClickableWidget> visualsNametagsWidgets = new ArrayList<>();
     private final List<ClickableWidget> positionWidgets = new ArrayList<>();
     private final List<ClickableWidget> bridgeWidgets = new ArrayList<>();
 
@@ -81,8 +82,8 @@ public class LiquidGlassScreen extends Screen {
     private static final float PANEL_H_NORMAL = 220f;
     private static final float PANEL_H_EXPANDED = 280f;
 
-    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
-    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
+    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
+    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
 
     // State
     private TextFieldWidget hexInput, rgbInput, visHexInput, visRgbInput, invHexInput, invRgbInput, bridgeHexInput, bridgeRgbInput, hitHexInput, hitRgbInput, ghostHexInput, ghostRgbInput;
@@ -129,7 +130,7 @@ public class LiquidGlassScreen extends Screen {
         this.lensView = new LiquidLensView(x, y, getPanelW(), getPanelH());
 
         // 1. Initialize Lists once per screen init (resize/open)
-        generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsGlassHotbarWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); visualsLeftHandItemWidgets.clear(); visualsIslandWidgets.clear(); visualsHitWidgets.clear(); visualsGhostWidgets.clear(); visualsStretchWidgets.clear(); visualsColorWidgets.clear(); visualsCrosshairWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
+        generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsGlassHotbarWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); visualsLeftHandItemWidgets.clear(); visualsIslandWidgets.clear(); visualsHitWidgets.clear(); visualsGhostWidgets.clear(); visualsStretchWidgets.clear(); visualsColorWidgets.clear(); visualsCrosshairWidgets.clear(); visualsNametagsWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
         
         initGeneralTab(x, y);
         initCombatTab(x, y);
@@ -152,6 +153,7 @@ public class LiquidGlassScreen extends Screen {
         initVisualsStretchTab(x, y);
         initVisualsColorTab(x, y);
         initVisualsCrosshairTab(x, y);
+        initVisualsNametagsTab(x, y);
         initPositionTab();
         initBridgeTab(x, y);
 
@@ -317,6 +319,10 @@ public class LiquidGlassScreen extends Screen {
             currentTab = Tab.VISUALS_CROSSHAIR; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsWidgets.add(crosshairBtn);
+        LiquidGlassButton nametagsBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Custom Nametags"), b -> {
+            currentTab = Tab.VISUALS_NAMETAGS; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsWidgets.add(nametagsBtn);
 
         // Right Column: World & Interaction
         visualsWidgets.add(jumpEffectsBtn);
@@ -1101,6 +1107,7 @@ public class LiquidGlassScreen extends Screen {
                 case VISUALS_STRETCH -> visualsStretchWidgets;
                 case VISUALS_COLOR -> visualsColorWidgets;
                 case VISUALS_CROSSHAIR -> visualsCrosshairWidgets;
+                case VISUALS_NAMETAGS -> visualsNametagsWidgets;
                 case POSITION -> positionWidgets;
                 case MOVEMENT -> movementWidgets; case BRIDGE -> bridgeWidgets;
             };
@@ -1129,8 +1136,8 @@ public class LiquidGlassScreen extends Screen {
         if (dt < 0f) dt = 0f;
         dt = Math.min(dt, 0.1f);
         
-        float targetW = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
-        float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        float targetW = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
         float targetXOff = (currentTab == Tab.COMBAT) ? 40f : 0f;
 
         panelWidthProgress = MathHelper.lerp(MathHelper.clamp(dt * 10.0f, 0f, 1f), panelWidthProgress, targetW);
@@ -1161,7 +1168,7 @@ public class LiquidGlassScreen extends Screen {
                 
                 boolean isActive = (topTabs[i] == currentTab) 
                     || (topTabs[i] == Tab.GENERAL && currentTab == Tab.BRIDGE)
-                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.POSITION));
+                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.POSITION));
                 
                 float swell = 1.0f + tabHoverProgress[i] * 0.04f; // Subtle scale swell on hover
 
@@ -1243,6 +1250,7 @@ public class LiquidGlassScreen extends Screen {
         else if (currentTab == Tab.VISUALS_STRETCH) renderVisualsStretchTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_COLOR) renderVisualsColorTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_CROSSHAIR) renderVisualsCrosshairTab(context, x, y, mouseX, mouseY, delta);
+        else if (currentTab == Tab.VISUALS_NAMETAGS) renderVisualsNametagsTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.POSITION) renderPositionTab(context, mouseX, mouseY, delta);
 
         super.render(context, mouseX, mouseY, delta);
@@ -3493,6 +3501,92 @@ public class LiquidGlassScreen extends Screen {
         });
         visualsCrosshairWidgets.add(resetBtn);
     }
+
+    private TextFieldWidget nametagsHexInput;
+    private TextFieldWidget nametagsRgbInput;
+
+    private void initVisualsNametagsTab(float x, float y) {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 240, 80, 22, Text.literal("Back"), b -> {
+            currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsNametagsWidgets.add(backBtn);
+
+        String toggleText = GlassMenuClient.CONFIG.enableCustomNametags() ? "Custom Nametags: ON" : "Custom Nametags: OFF";
+        LiquidGlassButton enableToggle = new LiquidGlassButton((int)x + 130, (int)y + 50, 140, 22, Text.literal(toggleText), b -> {
+            boolean current = GlassMenuClient.CONFIG.enableCustomNametags();
+            GlassMenuClient.CONFIG.enableCustomNametags(!current);
+            GlassMenuClient.CONFIG.save();
+            b.setMessage(Text.literal(GlassMenuClient.CONFIG.enableCustomNametags() ? "Custom Nametags: ON" : "Custom Nametags: OFF"));
+        });
+        visualsNametagsWidgets.add(enableToggle);
+
+        int currentColor = GlassMenuClient.CONFIG.customNametagColor();
+        LiquidGlassSlider rSlider = new LiquidGlassSlider((int)x + 50, (int)y + 90, 140, 16, ((currentColor >> 16) & 0xFF) / 255.0);
+        LiquidGlassSlider gSlider = new LiquidGlassSlider((int)x + 210, (int)y + 90, 140, 16, ((currentColor >> 8) & 0xFF) / 255.0);
+        LiquidGlassSlider bSlider = new LiquidGlassSlider((int)x + 130, (int)y + 120, 140, 16, (currentColor & 0xFF) / 255.0);
+
+        rSlider.setOnValueChange(val -> updateNametagColor(val.floatValue(), (float)gSlider.getValue(), (float)bSlider.getValue()));
+        gSlider.setOnValueChange(val -> updateNametagColor((float)rSlider.getValue(), val.floatValue(), (float)bSlider.getValue()));
+        bSlider.setOnValueChange(val -> updateNametagColor((float)rSlider.getValue(), (float)gSlider.getValue(), val.floatValue()));
+
+        visualsNametagsWidgets.add(rSlider); visualsNametagsWidgets.add(gSlider); visualsNametagsWidgets.add(bSlider);
+
+        nametagsHexInput = createColorTextField((int)x + 130, (int)y + 160, 60);
+        nametagsHexInput.setText(String.format("#%06X", currentColor & 0xFFFFFF));
+        nametagsHexInput.setChangedListener(text -> {
+            try {
+                String clean = text.trim();
+                if (clean.startsWith("#")) clean = clean.substring(1);
+                if (clean.length() == 6) {
+                    int color = Integer.parseInt(clean, 16);
+                    int r = (color >> 16) & 0xFF; int g = (color >> 8) & 0xFF; int b = color & 0xFF;
+                    rSlider.setValue(r / 255.0f); gSlider.setValue(g / 255.0f); bSlider.setValue(b / 255.0f);
+                    GlassMenuClient.CONFIG.customNametagColor(color & 0xFFFFFF); GlassMenuClient.CONFIG.save();
+                    if (nametagsRgbInput != null) nametagsRgbInput.setText(String.format("%d, %d, %d", r, g, b));
+                }
+            } catch (NumberFormatException ignored) {}
+        });
+        
+        nametagsRgbInput = createColorTextField((int)x + 200, (int)y + 160, 100);
+        nametagsRgbInput.setText(String.format("%d, %d, %d", (currentColor >> 16) & 0xFF, (currentColor >> 8) & 0xFF, currentColor & 0xFF));
+        nametagsRgbInput.setChangedListener(text -> {
+            try {
+                String[] parts = text.split(",");
+                if (parts.length == 3) {
+                    int r = Integer.parseInt(parts[0].trim()); int g = Integer.parseInt(parts[1].trim()); int b = Integer.parseInt(parts[2].trim());
+                    if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
+                        rSlider.setValue(r / 255.0f); gSlider.setValue(g / 255.0f); bSlider.setValue(b / 255.0f);
+                        int color = (r << 16) | (g << 8) | b;
+                        GlassMenuClient.CONFIG.customNametagColor(color); GlassMenuClient.CONFIG.save();
+                        if (nametagsHexInput != null) nametagsHexInput.setText(String.format("#%06X", color));
+                    }
+                }
+            } catch (NumberFormatException ignored) {}
+        });
+    }
+
+    private void updateNametagColor(float r, float g, float b) {
+        int rInt = (int)(r * 255); int gInt = (int)(g * 255); int bInt = (int)(b * 255);
+        int color = (rInt << 16) | (gInt << 8) | bInt;
+        GlassMenuClient.CONFIG.customNametagColor(color);
+        GlassMenuClient.CONFIG.save();
+        if (nametagsHexInput != null) nametagsHexInput.setText(String.format("#%06X", color));
+        if (nametagsRgbInput != null) nametagsRgbInput.setText(String.format("%d, %d, %d", rInt, gInt, bInt));
+    }
+
+    private void renderVisualsNametagsTab(DrawContext context, float x, float y, int mouseX, int mouseY, float delta) {
+        context.getMatrices().push();
+        context.getMatrices().translate(0, 0, 50);
+        context.drawCenteredTextWithShadow(textRenderer, "Custom Nametags Settings", (int)x + 200, (int)y + 20, 0xFFFFFFFF);
+        context.drawTextWithShadow(textRenderer, "Red", (int)x + 50, (int)y + 80, 0xFFFF5555);
+        context.drawTextWithShadow(textRenderer, "Green", (int)x + 210, (int)y + 80, 0xFF55FF55);
+        context.drawTextWithShadow(textRenderer, "Blue", (int)x + 130, (int)y + 110, 0xFF5555FF);
+        context.drawTextWithShadow(textRenderer, "Hex:", (int)x + 100, (int)y + 165, 0xFFDDDDDD);
+        nametagsHexInput.render(context, mouseX, mouseY, delta);
+        nametagsRgbInput.render(context, mouseX, mouseY, delta);
+        context.getMatrices().pop();
+    }
+
 
     // ─── AFTERIMAGE (Ghost Trail) ──────────────────────────────────────────────
     private void initVisualsGhostTab(float x, float y) {

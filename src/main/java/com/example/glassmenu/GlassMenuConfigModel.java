@@ -219,4 +219,8 @@ public class GlassMenuConfigModel {
     public float crosshairGap = 2.0f;
     public boolean crosshairRainbow = false;
     public float crosshairRainbowSpeed = 1.0f;
+
+    // Custom Nametags
+    public boolean enableCustomNametags = true;
+    public int customNametagColor = 0xFFFFFF;
 }
