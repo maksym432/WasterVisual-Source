@@ -143,7 +143,21 @@ public class GlassHotbarRenderer {
                 float nx = rx - (vertical ? 6f : 4f);
                 float ny = ry - (vertical ? 4f : 6f);
                 String num = String.valueOf(i + 1);
+                
+                context.getMatrices().push();
+                if (i == selectedSlot) {
+                    float textWidth = client.textRenderer.getWidth(num);
+                    float textHeight = client.textRenderer.fontHeight;
+                    // Translate to the center of the text, scale, then translate back
+                    float centerX = nx + textWidth / 2.0f;
+                    float centerY = ny + textHeight / 2.0f;
+                    context.getMatrices().translate(centerX, centerY, 0);
+                    context.getMatrices().scale(1.25f, 1.25f, 1.0f);
+                    context.getMatrices().translate(-centerX, -centerY, 0);
+                }
+                
                 context.drawText(client.textRenderer, num, (int)nx, (int)ny, 0xFFFFFFFF, true);
+                context.getMatrices().pop();
             }
             RenderSystem.disableDepthTest();
             context.draw();
