@@ -3542,7 +3542,10 @@ public class LiquidGlassScreen extends Screen {
                     int r = (color >> 16) & 0xFF; int g = (color >> 8) & 0xFF; int b = color & 0xFF;
                     rSlider.setValue(r / 255.0f); gSlider.setValue(g / 255.0f); bSlider.setValue(b / 255.0f);
                     GlassMenuClient.CONFIG.customNametagColor(color & 0xFFFFFF); GlassMenuClient.CONFIG.save();
-                    if (nametagsRgbInput != null) nametagsRgbInput.setText(String.format("%d, %d, %d", r, g, b));
+                    if (nametagsRgbInput != null) {
+                        String rgb = String.format("%d, %d, %d", r, g, b);
+                        if (!nametagsRgbInput.getText().equals(rgb)) nametagsRgbInput.setText(rgb);
+                    }
                 }
             } catch (NumberFormatException ignored) {}
         });
@@ -3558,7 +3561,10 @@ public class LiquidGlassScreen extends Screen {
                         rSlider.setValue(r / 255.0f); gSlider.setValue(g / 255.0f); bSlider.setValue(b / 255.0f);
                         int color = (r << 16) | (g << 8) | b;
                         GlassMenuClient.CONFIG.customNametagColor(color); GlassMenuClient.CONFIG.save();
-                        if (nametagsHexInput != null) nametagsHexInput.setText(String.format("#%06X", color));
+                        if (nametagsHexInput != null) {
+                            String hex = String.format("#%06X", color);
+                            if (!nametagsHexInput.getText().equals(hex)) nametagsHexInput.setText(hex);
+                        }
                     }
                 }
             } catch (NumberFormatException ignored) {}
@@ -3570,8 +3576,14 @@ public class LiquidGlassScreen extends Screen {
         int color = (rInt << 16) | (gInt << 8) | bInt;
         GlassMenuClient.CONFIG.customNametagColor(color);
         GlassMenuClient.CONFIG.save();
-        if (nametagsHexInput != null) nametagsHexInput.setText(String.format("#%06X", color));
-        if (nametagsRgbInput != null) nametagsRgbInput.setText(String.format("%d, %d, %d", rInt, gInt, bInt));
+        if (nametagsHexInput != null) {
+            String hex = String.format("#%06X", color);
+            if (!nametagsHexInput.getText().equals(hex)) nametagsHexInput.setText(hex);
+        }
+        if (nametagsRgbInput != null) {
+            String rgb = String.format("%d, %d, %d", rInt, gInt, bInt);
+            if (!nametagsRgbInput.getText().equals(rgb)) nametagsRgbInput.setText(rgb);
+        }
     }
 
     private void renderVisualsNametagsTab(DrawContext context, float x, float y, int mouseX, int mouseY, float delta) {
