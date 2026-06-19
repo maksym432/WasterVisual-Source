@@ -43,15 +43,10 @@ void main() {
     } else if (modeInt == 2) { // Circle
         d = abs(length(p) - Gap) - r;
     } else if (modeInt == 3) { // 4-Corners
-        // Top-Left
-        float dTL = min(sdSegment(p, vec2(-c-l, -c), vec2(-c, -c)), sdSegment(p, vec2(-c, -c-l), vec2(-c, -c))) - r;
-        // Top-Right
-        float dTR = min(sdSegment(p, vec2(c, -c), vec2(c+l, -c)), sdSegment(p, vec2(c, -c-l), vec2(c, -c))) - r;
-        // Bottom-Left
-        float dBL = min(sdSegment(p, vec2(-c-l, c), vec2(-c, c)), sdSegment(p, vec2(-c, c+l), vec2(-c, c))) - r;
-        // Bottom-Right
-        float dBR = min(sdSegment(p, vec2(c, c), vec2(c+l, c)), sdSegment(p, vec2(c, c+l), vec2(c, c))) - r;
-        d = min(min(dTL, dTR), min(dBL, dBR));
+        vec2 q = abs(p) - vec2(c);
+        if (q.x > q.y) q.xy = q.yx;
+        vec2 cl = vec2(0.0, clamp(q.y, 0.0, l));
+        d = length(q - cl) - r;
     }
     
     vec4 finalColor = Color;
