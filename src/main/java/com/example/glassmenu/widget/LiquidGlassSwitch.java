@@ -30,6 +30,14 @@ public class LiquidGlassSwitch extends ClickableWidget {
         this.lastTime = System.currentTimeMillis();
     }
 
+    public boolean isToggled() {
+        return this.enabled;
+    }
+
+    public void setToggled(boolean toggled) {
+        this.enabled = toggled;
+    }
+
     public void setOnToggle(java.util.function.Consumer<Boolean> onToggle) {
         this.onToggle = onToggle;
     }

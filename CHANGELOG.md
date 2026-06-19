@@ -1,6 +1,12 @@
 # Changelog
 
-## [2.24.78] - 2026-06-19
+## [2.24.79] - 2026-06-19
+
+### Changed
+- **Custom Crosshair Shader**: Added dedicated `custom_crosshair` shader.
+- Added RGB Rainbow effect with toggle and speed controls.
+- Improved `4-Corners` mode to render smooth L-shapes for a proper square outline.
+- Fixed panel sizing issue when switching to the Custom Crosshair menu tab.## [2.24.78] - 2026-06-19
 
 ### Added
 - **Custom Crosshair**: Added highly customizable SDF-based crosshair module to the Visuals menu.

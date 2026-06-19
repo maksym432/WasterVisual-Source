@@ -168,6 +168,46 @@ public class RenderUtils {
         matrices.pop();
     }
 
+    public static void drawCustomCrosshair(MatrixStack matrices, float x, float y, float size, float thickness, float gap, int mode, int color, boolean rainbow, float time) {
+        ShaderProgram shader = getCustomCrosshairProgram();
+        if (shader == null) return;
+
+        float quadSize = gap * 2.0f + size * 4.0f + thickness * 2.0f;
+        if (mode == 3) quadSize = gap * 2.0f + size * 3.0f + thickness * 4.0f;
+        quadSize = Math.max(quadSize, 50.0f);
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(() -> shader);
+
+        if (shader.getUniform("Size") != null) shader.getUniform("Size").set(quadSize, quadSize);
+        if (shader.getUniform("Thickness") != null) shader.getUniform("Thickness").set(thickness);
+        if (shader.getUniform("Gap") != null) shader.getUniform("Gap").set(gap);
+        if (shader.getUniform("Mode") != null) shader.getUniform("Mode").set((float)mode);
+        if (shader.getUniform("Rainbow") != null) shader.getUniform("Rainbow").set(rainbow ? 1.0f : 0.0f);
+        if (shader.getUniform("Time") != null) shader.getUniform("Time").set(time);
+
+        float r = ((color >> 16) & 0xFF) / 255f;
+        float g = ((color >> 8) & 0xFF) / 255f;
+        float b = (color & 0xFF) / 255f;
+        float a = ((color >> 24) & 0xFF) / 255f;
+        if (shader.getUniform("Color") != null) shader.getUniform("Color").set(r, g, b, a);
+
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+        
+        float drawX = x - quadSize / 2.0f;
+        float drawY = y - quadSize / 2.0f;
+
+        bufferBuilder.vertex(matrix, drawX, drawY, 0).texture(0.0f, 0.0f);
+        bufferBuilder.vertex(matrix, drawX, drawY + quadSize, 0).texture(0.0f, 1.0f);
+        bufferBuilder.vertex(matrix, drawX + quadSize, drawY + quadSize, 0).texture(1.0f, 1.0f);
+        bufferBuilder.vertex(matrix, drawX + quadSize, drawY, 0).texture(1.0f, 0.0f);
+
+        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+        RenderSystem.disableBlend();
+    }
+
     public static void drawLine(MatrixStack matrices, float x, float y, float x2, float y2, float thickness, int color) {
         float a = (float) (color >> 24 & 255) / 255.0F;
         float r = (float) (color >> 16 & 255) / 255.0F;
@@ -207,6 +247,7 @@ public class RenderUtils {
 
     private static boolean registeredWhite = false;
     private static final net.minecraft.util.Identifier WHITE_TEX = net.minecraft.util.Identifier.of("glassmenu", "white_texture");
+    private static ShaderProgram customCrosshairProgram;
 
     public static net.minecraft.util.Identifier getWhiteTexture() {
         if (!registeredWhite) {
@@ -235,6 +276,10 @@ public class RenderUtils {
         int textureId = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_TEXTURE_BINDING_2D);
         com.mojang.blaze3d.platform.GlStateManager._activeTexture(originalActive);
         return textureId;
+    }
+
+    public static ShaderProgram getCustomCrosshairProgram() {
+        return customCrosshairProgram;
     }
 
     public static class TintedVertexConsumer implements VertexConsumer {

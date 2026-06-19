@@ -217,4 +217,6 @@ public class GlassMenuConfigModel {
     public float crosshairSize = 1.0f;
     public float crosshairThickness = 1.5f;
     public float crosshairGap = 2.0f;
+    public boolean crosshairRainbow = false;
+    public float crosshairRainbowSpeed = 1.0f;
 }
