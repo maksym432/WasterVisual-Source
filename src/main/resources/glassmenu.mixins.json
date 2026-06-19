@@ -14,7 +14,8 @@
     "AbstractInventoryScreenMixin",
     "PotionLayerMixin",
     "InvConfigMixin",
-    "ParticleManagerMixin"
+    "ParticleManagerMixin",
+    "EntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
