@@ -49,28 +49,17 @@ public abstract class EntityRendererMixin<T extends Entity> {
         float halfW = textWidth / 2.0F;
         float paddingX = 4.0F;
         float paddingY = 2.0F;
-        float width = textWidth + paddingX * 2.0F;
         float height = textRenderer.fontHeight + paddingY * 2.0F;
         
         float drawX = -halfW - paddingX;
         float drawY = (float)yOffset - paddingY;
 
-        boolean wasDepthEnabled = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_DEPTH_TEST);
-        RenderSystem.disableDepthTest();
-
-        // Draw translucent dark background (soft glass outline)
-        com.example.glassmenu.render.RenderUtils.drawSdfRoundedRect(matrices, drawX, drawY, width, height, 4.0F, 0x55000000, 0);
-        com.example.glassmenu.render.RenderUtils.drawSdfRoundedOutline(matrices, drawX, drawY, width, height, 4.0F, 0.8F, 0x33FFFFFF);
-
-        if (wasDepthEnabled) {
-            RenderSystem.enableDepthTest();
-        }
+        int bgColor = 0x55000000; // Translucent dark background (glass-like)
 
         // Draw whiter text, ignore stealth fading (always full white) for better visibility
         int textColor = 0xFFFFFFFF; // Full white, fully opaque
         // To be visible through walls, we must use the vertexConsumers with seeThrough
-        // Actually, for it to be visible through walls, we just use the TEXT_SEE_THROUGH layer
-        textRenderer.draw(text, -halfW, (float)yOffset, textColor, false, matrix4f, vertexConsumers, TextRenderer.TextLayerType.SEE_THROUGH, 0, light);
+        textRenderer.draw(text, -halfW, (float)yOffset, textColor, false, matrix4f, vertexConsumers, TextRenderer.TextLayerType.SEE_THROUGH, bgColor, light);
 
         matrices.pop();
         ci.cancel();
