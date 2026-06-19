@@ -42,6 +42,9 @@ public abstract class EntityRendererMixin<T extends Entity> {
         // Force SEE_THROUGH so it renders through walls
         TextRenderer.TextLayerType newLayerType = TextRenderer.TextLayerType.SEE_THROUGH;
 
-        return instance.draw(text, x, y, newTextColor, shadow, matrix, vertexConsumers, newLayerType, newBgColor, light);
+        // Strip existing formatting (like team colors) to force our custom color
+        Text unformattedText = Text.literal(text.getString());
+
+        return instance.draw(unformattedText, x, y, newTextColor, shadow, matrix, vertexConsumers, newLayerType, newBgColor, light);
     }
 }
