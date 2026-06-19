@@ -294,7 +294,7 @@ public class LiquidGlassScreen extends Screen {
         LiquidGlassButton positionBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Position Editor"), b -> {
             currentTab = Tab.POSITION; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton glassHotbarBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Better HUD"), b -> {
+        LiquidGlassButton glassHotbarBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Better Inv HUD"), b -> {
             currentTab = Tab.VISUALS_GLASS_HOTBAR; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         // Left Column: HUD & Overlays
@@ -1530,8 +1530,8 @@ public class LiquidGlassScreen extends Screen {
         boolean isEnabled = GlassMenuClient.CONFIG.glassHotbar();
         boolean isTransparent = GlassMenuClient.CONFIG.glassHotbarTransparent();
 
-        context.drawTextWithShadow(textRenderer, "Better HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Better HUD", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, "Better Inv HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Better Inv HUD", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsGlassHotbarWidgets) {
             w.setAlpha(contentAlpha);

@@ -79,6 +79,13 @@ public class GlassHotbarRenderer {
                 float ry = vertical ? 4f + i * 24f : 7f;
                 float slotSize = 20f;
 
+                if (i == selectedSlot) {
+                    float expand = 4f;
+                    rx -= expand / 2f;
+                    ry -= expand / 2f;
+                    slotSize += expand;
+                }
+
                 RenderUtils.drawSdfRoundedOutline(context.getMatrices(), rx, ry, slotSize, slotSize, 4f, 0.6f, slotOutlineColor);
                 RenderUtils.drawSdfRoundedRect(context.getMatrices(), rx, ry, slotSize, slotSize, 4f, slotFillColor, 0);
 
