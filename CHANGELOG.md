@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.24.78] - 2026-06-19
+
+### Added
+- **Custom Crosshair**: Added highly customizable SDF-based crosshair module to the Visuals menu.
+  - Toggles on/off, automatically replacing the vanilla crosshair.
+  - Support for 4 modes: Rounded Cross, Dot, Circle, and 4-Corners.
+  - All modes use hardware-accelerated SDF rendering for perfectly rounded shapes with zero pixelation.
+  - Fully customizable size, thickness, gap, and RGB color.
+
+### Files Modified
+- [GlassMenuConfigModel.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/GlassMenuConfigModel.java)
+- [LiquidGlassScreen.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/screen/LiquidGlassScreen.java)
+- [InGameHudMixin.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/mixin/InGameHudMixin.java)
+- [CustomCrosshairEngine.java](file:///home/waster/vibecoding/minecraft/wastervisual/src/main/java/com/example/glassmenu/render/CustomCrosshairEngine.java)
 ## [2.24.77] - 2026-06-19
 
 ### Added

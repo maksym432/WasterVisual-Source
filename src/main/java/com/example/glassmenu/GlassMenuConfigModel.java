@@ -209,4 +209,12 @@ public class GlassMenuConfigModel {
     public float cgSaturation = 1.0f;
     public float cgContrast = 1.0f;
     public int cgTint = 0xFFFFFF; // default white
+
+    // --- CUSTOM CROSSHAIR ---
+    public boolean enableCustomCrosshair = false;
+    public int crosshairMode = 0; // 0 = Rounded Cross, 1 = Dot, 2 = Circle, 3 = 4-Corners
+    public int crosshairColor = 0xFF00FF00; // default green
+    public float crosshairSize = 1.0f;
+    public float crosshairThickness = 1.5f;
+    public float crosshairGap = 2.0f;
 }

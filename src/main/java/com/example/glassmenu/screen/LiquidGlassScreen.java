@@ -48,7 +48,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassEffectView effectView;
     private LiquidLensView lensView;
     
-    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_GLASS_HOTBAR, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, VISUALS_ISLAND, VISUALS_HIT, VISUALS_GHOST, VISUALS_STRETCH, VISUALS_COLOR, POSITION, BRIDGE }
+    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_GLASS_HOTBAR, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, VISUALS_ISLAND, VISUALS_HIT, VISUALS_GHOST, VISUALS_STRETCH, VISUALS_COLOR, VISUALS_CROSSHAIR, POSITION, BRIDGE }
     private Tab currentTab = Tab.GENERAL;
     
     private final List<ClickableWidget> generalWidgets = new ArrayList<>();
@@ -71,6 +71,7 @@ public class LiquidGlassScreen extends Screen {
     private final List<ClickableWidget> visualsGhostWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsStretchWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsColorWidgets = new ArrayList<>();
+    private final List<ClickableWidget> visualsCrosshairWidgets = new ArrayList<>();
     private final List<ClickableWidget> positionWidgets = new ArrayList<>();
     private final List<ClickableWidget> bridgeWidgets = new ArrayList<>();
 
@@ -80,8 +81,8 @@ public class LiquidGlassScreen extends Screen {
     private static final float PANEL_H_NORMAL = 220f;
     private static final float PANEL_H_EXPANDED = 280f;
 
-    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
-    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
+    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
+    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
 
     // State
     private TextFieldWidget hexInput, rgbInput, visHexInput, visRgbInput, invHexInput, invRgbInput, bridgeHexInput, bridgeRgbInput, hitHexInput, hitRgbInput, ghostHexInput, ghostRgbInput;
@@ -128,7 +129,7 @@ public class LiquidGlassScreen extends Screen {
         this.lensView = new LiquidLensView(x, y, getPanelW(), getPanelH());
 
         // 1. Initialize Lists once per screen init (resize/open)
-        generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsGlassHotbarWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); visualsLeftHandItemWidgets.clear(); visualsIslandWidgets.clear(); visualsHitWidgets.clear(); visualsGhostWidgets.clear(); visualsStretchWidgets.clear(); visualsColorWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
+        generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsGlassHotbarWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); visualsLeftHandItemWidgets.clear(); visualsIslandWidgets.clear(); visualsHitWidgets.clear(); visualsGhostWidgets.clear(); visualsStretchWidgets.clear(); visualsColorWidgets.clear(); visualsCrosshairWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
         
         initGeneralTab(x, y);
         initCombatTab(x, y);
@@ -150,6 +151,7 @@ public class LiquidGlassScreen extends Screen {
         initVisualsGhostTab(x, y);
         initVisualsStretchTab(x, y);
         initVisualsColorTab(x, y);
+        initVisualsCrosshairTab(x, y);
         initPositionTab();
         initBridgeTab(x, y);
 
@@ -311,6 +313,10 @@ public class LiquidGlassScreen extends Screen {
             currentTab = Tab.VISUALS_COLOR; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsWidgets.add(colorBtn);
+        LiquidGlassButton crosshairBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Custom Crosshair"), b -> {
+            currentTab = Tab.VISUALS_CROSSHAIR; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsWidgets.add(crosshairBtn);
 
         // Right Column: World & Interaction
         visualsWidgets.add(jumpEffectsBtn);
@@ -1094,6 +1100,7 @@ public class LiquidGlassScreen extends Screen {
                 case VISUALS_GHOST -> visualsGhostWidgets;
                 case VISUALS_STRETCH -> visualsStretchWidgets;
                 case VISUALS_COLOR -> visualsColorWidgets;
+                case VISUALS_CROSSHAIR -> visualsCrosshairWidgets;
                 case POSITION -> positionWidgets;
                 case MOVEMENT -> movementWidgets; case BRIDGE -> bridgeWidgets;
             };
@@ -1154,7 +1161,7 @@ public class LiquidGlassScreen extends Screen {
                 
                 boolean isActive = (topTabs[i] == currentTab) 
                     || (topTabs[i] == Tab.GENERAL && currentTab == Tab.BRIDGE)
-                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.POSITION));
+                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.POSITION));
                 
                 float swell = 1.0f + tabHoverProgress[i] * 0.04f; // Subtle scale swell on hover
 
@@ -1235,6 +1242,7 @@ public class LiquidGlassScreen extends Screen {
         else if (currentTab == Tab.VISUALS_GHOST)  renderVisualsGhostTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_STRETCH) renderVisualsStretchTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_COLOR) renderVisualsColorTab(context, x, y, mouseX, mouseY, delta);
+        else if (currentTab == Tab.VISUALS_CROSSHAIR) renderVisualsCrosshairTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.POSITION) renderPositionTab(context, mouseX, mouseY, delta);
 
         super.render(context, mouseX, mouseY, delta);
@@ -3411,6 +3419,68 @@ public class LiquidGlassScreen extends Screen {
         visualsColorWidgets.add(resetBtn);
     }
 
+    // ─── CUSTOM CROSSHAIR ──────────────────────────────────────────────
+    private LiquidGlassSlider chModeSlider;
+    private LiquidGlassSlider chSizeSlider;
+    private LiquidGlassSlider chThickSlider;
+    private LiquidGlassSlider chGapSlider;
+    private LiquidGlassSlider chRedSlider;
+    private LiquidGlassSlider chGreenSlider;
+    private LiquidGlassSlider chBlueSlider;
+
+    private void initVisualsCrosshairTab(float x, float y) {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 250, 80, 22, Text.literal("Back"), b -> {
+            currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsCrosshairWidgets.add(backBtn);
+
+        LiquidGlassSwitch enableToggle = new LiquidGlassSwitch((int)x + 330, (int)y + 25, 40, 20, GlassMenuClient.CONFIG.enableCustomCrosshair());
+        enableToggle.setOnToggle(enabled -> { GlassMenuClient.CONFIG.enableCustomCrosshair(enabled); GlassMenuClient.CONFIG.save(); });
+        visualsCrosshairWidgets.add(enableToggle);
+
+        chModeSlider = new LiquidGlassSlider((int)x + 30, (int)y + 70, 140, 16, GlassMenuClient.CONFIG.crosshairMode() / 3.0f);
+        chSizeSlider = new LiquidGlassSlider((int)x + 30, (int)y + 110, 140, 16, GlassMenuClient.CONFIG.crosshairSize() / 5.0f);
+        chThickSlider = new LiquidGlassSlider((int)x + 30, (int)y + 150, 140, 16, GlassMenuClient.CONFIG.crosshairThickness() / 5.0f);
+        chGapSlider = new LiquidGlassSlider((int)x + 30, (int)y + 190, 140, 16, GlassMenuClient.CONFIG.crosshairGap() / 5.0f);
+        
+        int color = GlassMenuClient.CONFIG.crosshairColor();
+        chRedSlider = new LiquidGlassSlider((int)x + 230, (int)y + 70, 140, 16, ((color >> 16) & 0xFF) / 255f);
+        chGreenSlider = new LiquidGlassSlider((int)x + 230, (int)y + 110, 140, 16, ((color >> 8) & 0xFF) / 255f);
+        chBlueSlider = new LiquidGlassSlider((int)x + 230, (int)y + 150, 140, 16, (color & 0xFF) / 255f);
+
+        Runnable updateCH = () -> {
+            GlassMenuClient.CONFIG.crosshairMode(Math.round((float)(chModeSlider.getValue() * 3.0)));
+            GlassMenuClient.CONFIG.crosshairSize((float)(chSizeSlider.getValue() * 5.0));
+            GlassMenuClient.CONFIG.crosshairThickness((float)(chThickSlider.getValue() * 5.0));
+            GlassMenuClient.CONFIG.crosshairGap((float)(chGapSlider.getValue() * 5.0));
+            int r = (int)(chRedSlider.getValue() * 255);
+            int g = (int)(chGreenSlider.getValue() * 255);
+            int b = (int)(chBlueSlider.getValue() * 255);
+            GlassMenuClient.CONFIG.crosshairColor((0xFF << 24) | (r << 16) | (g << 8) | b);
+            GlassMenuClient.CONFIG.save();
+        };
+
+        chModeSlider.setOnValueChange(v -> updateCH.run());
+        chSizeSlider.setOnValueChange(v -> updateCH.run());
+        chThickSlider.setOnValueChange(v -> updateCH.run());
+        chGapSlider.setOnValueChange(v -> updateCH.run());
+        chRedSlider.setOnValueChange(v -> updateCH.run());
+        chGreenSlider.setOnValueChange(v -> updateCH.run());
+        chBlueSlider.setOnValueChange(v -> updateCH.run());
+
+        visualsCrosshairWidgets.add(chModeSlider); visualsCrosshairWidgets.add(chSizeSlider); visualsCrosshairWidgets.add(chThickSlider); visualsCrosshairWidgets.add(chGapSlider);
+        visualsCrosshairWidgets.add(chRedSlider); visualsCrosshairWidgets.add(chGreenSlider); visualsCrosshairWidgets.add(chBlueSlider);
+
+        LiquidGlassButton resetBtn = new LiquidGlassButton((int)x + 230, (int)y + 190, 140, 22, Text.literal("Reset"), b -> {
+            GlassMenuClient.CONFIG.crosshairMode(0); GlassMenuClient.CONFIG.crosshairSize(1.0f); GlassMenuClient.CONFIG.crosshairThickness(1.5f); GlassMenuClient.CONFIG.crosshairGap(2.0f);
+            GlassMenuClient.CONFIG.crosshairColor(0xFF00FF00);
+            GlassMenuClient.CONFIG.save();
+            chModeSlider.setValue(0.0); chSizeSlider.setValue(1.0 / 5.0); chThickSlider.setValue(1.5 / 5.0); chGapSlider.setValue(2.0 / 5.0);
+            chRedSlider.setValue(0.0); chGreenSlider.setValue(1.0); chBlueSlider.setValue(0.0);
+        });
+        visualsCrosshairWidgets.add(resetBtn);
+    }
+
     // ─── AFTERIMAGE (Ghost Trail) ──────────────────────────────────────────────
     private void initVisualsGhostTab(float x, float y) {
         LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 215, 80, 22, Text.literal("Back"), b -> {
@@ -3528,6 +3598,41 @@ public class LiquidGlassScreen extends Screen {
         context.drawText(tr, "Tint R", x + 230, y + 55, 0xCCCCCC, true);
         context.drawText(tr, "Tint G", x + 230, y + 95, 0xCCCCCC, true);
         context.drawText(tr, "Tint B", x + 230, y + 135, 0xCCCCCC, true);
+        
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+        context.getMatrices().pop();
+    }
+
+    private void renderVisualsCrosshairTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
+        context.getMatrices().push();
+        float alpha = MathHelper.clamp(contentAlpha, 0f, 1f);
+        RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
+        net.minecraft.client.font.TextRenderer tr = MinecraftClient.getInstance().textRenderer;
+        
+        context.drawText(tr, "Custom Crosshair", x + 30, y + 25, 0xFFFFFF, true);
+        context.drawText(tr, "Enable", x + 230, y + 30, 0xAAAAAA, true);
+        
+        String modeName = switch (GlassMenuClient.CONFIG.crosshairMode()) {
+            case 0 -> "Rounded Cross";
+            case 1 -> "Dot";
+            case 2 -> "Circle";
+            case 3 -> "4-Corners";
+            default -> "Unknown";
+        };
+        context.drawText(tr, "Mode: " + modeName, x + 30, y + 55, 0xCCCCCC, true);
+        
+        context.drawText(tr, "Size", x + 30, y + 95, 0xCCCCCC, true);
+        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairSize()), x + 180, y + 95, 0xFFFFFF, true);
+
+        context.drawText(tr, "Thickness", x + 30, y + 135, 0xCCCCCC, true);
+        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairThickness()), x + 180, y + 135, 0xFFFFFF, true);
+
+        context.drawText(tr, "Gap", x + 30, y + 175, 0xCCCCCC, true);
+        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairGap()), x + 180, y + 175, 0xFFFFFF, true);
+
+        context.drawText(tr, "Color R", x + 230, y + 55, 0xCCCCCC, true);
+        context.drawText(tr, "Color G", x + 230, y + 95, 0xCCCCCC, true);
+        context.drawText(tr, "Color B", x + 230, y + 135, 0xCCCCCC, true);
         
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         context.getMatrices().pop();

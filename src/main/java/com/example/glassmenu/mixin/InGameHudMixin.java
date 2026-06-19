@@ -86,4 +86,15 @@ public abstract class InGameHudMixin {
             ci.cancel();
         }
     }
+
+    /**
+     * Cancel vanilla crosshair when custom Crosshair is active.
+     */
+    @Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
+    private void glassmenu$onRenderCrosshair(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        if (GlassMenuClient.CONFIG.enableCustomCrosshair()) {
+            ci.cancel();
+            com.example.glassmenu.render.CustomCrosshairEngine.render(context, tickCounter.getTickDelta(true));
+        }
+    }
 }
