@@ -3474,27 +3474,22 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassSlider rainbowSpeedSlider;
 
     private void initVisualsCrosshairTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 220, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
-            currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
-        });
-        visualsCrosshairWidgets.add(backBtn);
-
         LiquidGlassSwitch enableToggle = new LiquidGlassSwitch((int)x + 330, (int)y + 25, 40, 20, GlassMenuClient.CONFIG.enableCustomCrosshair());
         enableToggle.setOnToggle(enabled -> { GlassMenuClient.CONFIG.enableCustomCrosshair(enabled); GlassMenuClient.CONFIG.save(); });
         visualsCrosshairWidgets.add(enableToggle);
 
-        chModeSlider = new LiquidGlassSlider((int)x + 30, (int)y + 70, 140, 16, GlassMenuClient.CONFIG.crosshairMode() / 3.0f);
-        chSizeSlider = new LiquidGlassSlider((int)x + 30, (int)y + 110, 140, 16, GlassMenuClient.CONFIG.crosshairSize() / 5.0f);
-        chThickSlider = new LiquidGlassSlider((int)x + 30, (int)y + 150, 140, 16, GlassMenuClient.CONFIG.crosshairThickness() / 5.0f);
-        chGapSlider = new LiquidGlassSlider((int)x + 30, (int)y + 190, 140, 16, GlassMenuClient.CONFIG.crosshairGap() / 5.0f);
+        chModeSlider = new LiquidGlassSlider((int)x + 30, (int)y + 62, 140, 16, GlassMenuClient.CONFIG.crosshairMode() / 3.0f);
+        chSizeSlider = new LiquidGlassSlider((int)x + 30, (int)y + 92, 140, 16, GlassMenuClient.CONFIG.crosshairSize() / 5.0f);
+        chThickSlider = new LiquidGlassSlider((int)x + 30, (int)y + 122, 140, 16, GlassMenuClient.CONFIG.crosshairThickness() / 5.0f);
+        chGapSlider = new LiquidGlassSlider((int)x + 30, (int)y + 152, 140, 16, GlassMenuClient.CONFIG.crosshairGap() / 5.0f);
         
         int color = GlassMenuClient.CONFIG.crosshairColor();
-        chRedSlider = new LiquidGlassSlider((int)x + 230, (int)y + 70, 140, 16, ((color >> 16) & 0xFF) / 255f);
-        chGreenSlider = new LiquidGlassSlider((int)x + 230, (int)y + 110, 140, 16, ((color >> 8) & 0xFF) / 255f);
-        chBlueSlider = new LiquidGlassSlider((int)x + 230, (int)y + 150, 140, 16, (color & 0xFF) / 255f);
+        chRedSlider = new LiquidGlassSlider((int)x + 230, (int)y + 62, 140, 16, ((color >> 16) & 0xFF) / 255f);
+        chGreenSlider = new LiquidGlassSlider((int)x + 230, (int)y + 92, 140, 16, ((color >> 8) & 0xFF) / 255f);
+        chBlueSlider = new LiquidGlassSlider((int)x + 230, (int)y + 122, 140, 16, (color & 0xFF) / 255f);
 
-        rainbowToggle = new LiquidGlassSwitch((int)x + 330, (int)y + 190, 40, 20, GlassMenuClient.CONFIG.crosshairRainbow());
-        rainbowSpeedSlider = new LiquidGlassSlider((int)x + 30, (int)y + 230, 140, 16, GlassMenuClient.CONFIG.crosshairRainbowSpeed() / 5.0f);
+        rainbowToggle = new LiquidGlassSwitch((int)x + 330, (int)y + 135, 40, 20, GlassMenuClient.CONFIG.crosshairRainbow());
+        rainbowSpeedSlider = new LiquidGlassSlider((int)x + 230, (int)y + 172, 140, 16, GlassMenuClient.CONFIG.crosshairRainbowSpeed() / 5.0f);
 
         Runnable updateCH = () -> {
             GlassMenuClient.CONFIG.crosshairMode(Math.round((float)(chModeSlider.getValue() * 3.0)));
@@ -3525,7 +3520,7 @@ public class LiquidGlassScreen extends Screen {
         visualsCrosshairWidgets.add(chRedSlider); visualsCrosshairWidgets.add(chGreenSlider); visualsCrosshairWidgets.add(chBlueSlider);
         visualsCrosshairWidgets.add(rainbowToggle); visualsCrosshairWidgets.add(rainbowSpeedSlider);
 
-        LiquidGlassButton resetBtn = new LiquidGlassButton((int)x + 230, (int)y + 230, 140, 22, Text.literal(MenuTranslator.tr("Reset")), b -> {
+        LiquidGlassButton resetBtn = new LiquidGlassButton((int)x + 230, (int)y + 195, 140, 22, Text.literal(MenuTranslator.tr("Reset")), b -> {
             GlassMenuClient.CONFIG.crosshairMode(0); GlassMenuClient.CONFIG.crosshairSize(1.0f); GlassMenuClient.CONFIG.crosshairThickness(1.5f); GlassMenuClient.CONFIG.crosshairGap(2.0f);
             GlassMenuClient.CONFIG.crosshairRainbow(false); GlassMenuClient.CONFIG.crosshairRainbowSpeed(1.0f);
             GlassMenuClient.CONFIG.crosshairColor(0xFF00FF00);
@@ -3535,6 +3530,11 @@ public class LiquidGlassScreen extends Screen {
             chRedSlider.setValue(0.0); chGreenSlider.setValue(1.0); chBlueSlider.setValue(0.0);
         });
         visualsCrosshairWidgets.add(resetBtn);
+
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 230, (int)y + 225, 140, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
+            currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsCrosshairWidgets.add(backBtn);
     }
 
     private TextFieldWidget nametagsHexInput;
@@ -3951,25 +3951,25 @@ public class LiquidGlassScreen extends Screen {
             case 3 -> "4-Corners";
             default -> "Unknown";
         };
-        context.drawText(client.textRenderer, MenuTranslator.tr("Mode: ") + modeName, x + 30, y + 55, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Mode: ") + modeName, x + 30, y + 50, 0xCCCCCC, true);
         
-        context.drawText(client.textRenderer, MenuTranslator.tr("Size"), x + 30, y + 95, 0xCCCCCC, true);
-        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairSize()), x + 180, y + 95, 0xFFFFFF, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Size"), x + 30, y + 80, 0xCCCCCC, true);
+        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairSize()), x + 180, y + 80, 0xFFFFFF, true);
 
-        context.drawText(client.textRenderer, MenuTranslator.tr("Thickness"), x + 30, y + 135, 0xCCCCCC, true);
-        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairThickness()), x + 180, y + 135, 0xFFFFFF, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Thickness"), x + 30, y + 110, 0xCCCCCC, true);
+        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairThickness()), x + 180, y + 110, 0xFFFFFF, true);
 
-        context.drawText(client.textRenderer, MenuTranslator.tr("Gap"), x + 30, y + 175, 0xCCCCCC, true);
-        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairGap()), x + 180, y + 175, 0xFFFFFF, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Gap"), x + 30, y + 140, 0xCCCCCC, true);
+        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairGap()), x + 180, y + 140, 0xFFFFFF, true);
 
-        context.drawText(client.textRenderer, MenuTranslator.tr("Rainbow Speed"), x + 30, y + 215, 0xCCCCCC, true);
-        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairRainbowSpeed()), x + 180, y + 215, 0xFFFFFF, true);
-
-        context.drawText(client.textRenderer, MenuTranslator.tr("Color R"), x + 230, y + 55, 0xCCCCCC, true);
-        context.drawText(client.textRenderer, MenuTranslator.tr("Color G"), x + 230, y + 95, 0xCCCCCC, true);
-        context.drawText(client.textRenderer, MenuTranslator.tr("Color B"), x + 230, y + 135, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Color R"), x + 230, y + 50, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Color G"), x + 230, y + 80, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Color B"), x + 230, y + 110, 0xCCCCCC, true);
         
-        context.drawText(client.textRenderer, MenuTranslator.tr("Rainbow RGB"), x + 230, y + 195, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Rainbow RGB"), x + 230, y + 140, 0xCCCCCC, true);
+
+        context.drawText(client.textRenderer, MenuTranslator.tr("Rainbow Speed"), x + 230, y + 160, 0xCCCCCC, true);
+        context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairRainbowSpeed()), x + 340, y + 160, 0xFFFFFF, true);
         
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         context.getMatrices().pop();
