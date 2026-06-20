@@ -183,12 +183,7 @@ public class LinuxMediaController {
             ALL_PLAYERS_INFO.clear();
             ALL_PLAYERS_INFO.addAll(playerInfos);
 
-            // 2. Poll metadata of the default/selected player
-            String output = exec("playerctl metadata --format {{title}};;;{{artist}};;;{{status}};;;{{volume}};;;{{mpris:artUrl}};;;{{position}};;;{{mpris:length}}");
-            
-            MediaState oldState = CURRENT_STATE.get();
-            MediaState newState = new MediaState();
-            
+            // Auto-detect the playing player
             PlayerInfo active = null;
             if (!selectedPlayer.isEmpty()) {
                 for (PlayerInfo p : playerInfos) {
@@ -198,6 +193,26 @@ public class LinuxMediaController {
                     }
                 }
             }
+            if (active == null) {
+                for (PlayerInfo p : playerInfos) {
+                    if (p.isPlaying) {
+                        active = p;
+                        break;
+                    }
+                }
+            }
+            if (active == null && !playerInfos.isEmpty()) {
+                active = playerInfos.get(0);
+            }
+
+            // Poll metadata of the specific player we identified as active
+            String output = "";
+            if (active != null && !active.name.startsWith("browser_tab_")) {
+                output = exec("playerctl -p " + active.name + " metadata --format {{title}};;;{{artist}};;;{{status}};;;{{volume}};;;{{mpris:artUrl}};;;{{position}};;;{{mpris:length}}");
+            }
+            
+            MediaState oldState = CURRENT_STATE.get();
+            MediaState newState = new MediaState();
 
             if (handleActiveBrowserTab(active, newState, oldState)) {
                 // Handled!
@@ -243,10 +258,17 @@ public class LinuxMediaController {
                     }
                     
                     // Query shuffle and loop status
-                    String shuffleOut = exec("playerctl shuffle");
+                    String shuffleOut = "";
+                    String loopOut = "";
+                    if (active != null) {
+                        shuffleOut = exec("playerctl -p " + active.name + " shuffle");
+                        loopOut = exec("playerctl -p " + active.name + " loop");
+                    } else {
+                        shuffleOut = exec("playerctl shuffle");
+                        loopOut = exec("playerctl loop");
+                    }
                     newState.shuffle = "On".equalsIgnoreCase(shuffleOut.trim());
 
-                    String loopOut = exec("playerctl loop");
                     newState.loopStatus = loopOut.trim().isEmpty() ? "None" : loopOut.trim();
 
                     // Handle image loading if URL changed
