@@ -35,28 +35,28 @@ public class GlassMenuConfigModel {
         AUTO, ENGLISH, RUSSIAN
     }
 
-    public boolean enableDynamicIsland = true;
+    public boolean enableDynamicIsland = false;
 
     public boolean transparentIsland = false;
 
     @RestartRequired
-    public boolean enableShaders = true;
+    public boolean enableShaders = false;
 
-    public boolean glassEffect = true;
+    public boolean glassEffect = false;
 
     // --- HAND ITEM EFFECTS ---
-    public boolean enableItemEffects = true;
+    public boolean enableItemEffects = false;
     public ItemEffect itemEffect = ItemEffect.NONE;
 
     public enum ItemEffect {
         NONE, RAINBOW, PARTICLES, RGB_PARTICLES
     }
 
-    public boolean enableTargetEsp = true;
+    public boolean enableTargetEsp = false;
     public int targetEspColor = 0xBF00FF; // Default Purple
 
     // --- HAND SWING SETTINGS ---
-    public boolean enableCustomSwing = true;
+    public boolean enableCustomSwing = false;
     public SwingType swingType = SwingType.SWING_DOWN;
     public float swingSpeed = 1.0f;
 
@@ -81,7 +81,7 @@ public class GlassMenuConfigModel {
     }
 
     // --- VISUALS ---
-    public boolean enableJumpRings = true;
+    public boolean enableJumpRings = false;
     public int jumpRingsColor = 0xFFFFFF; // Default White
     public JumpRingMode jumpRingMode = JumpRingMode.CIRCLE;
 
@@ -90,7 +90,7 @@ public class GlassMenuConfigModel {
     }
 
     // --- INVENTORY HUD ---
-    public boolean enableInventoryHud = true;
+    public boolean enableInventoryHud = false;
     public int inventoryHudColor = 0xEE1C1C24; // Premium dark glassmorphic panel color
     public boolean transparentBackground = false;
     public int inventoryHudWidth = 260;
@@ -107,19 +107,19 @@ public class GlassMenuConfigModel {
     public int playerCardHeight = 54;
 
     // --- BRIDGE ---
-    public boolean enableBridgeVortex = true;
+    public boolean enableBridgeVortex = false;
     public int bridgeVortexColor = 0x00BFFF; // Default Cyan
     public boolean transparentBridge = false;
 
     // --- PLAYER CARD ---
-    public boolean enablePlayerCard = true;
+    public boolean enablePlayerCard = false;
     public int playerCardColor = 0xEE1C1C24;
     public boolean transparentPlayerCard = false;
 
     // --- BEDWARS ---
     public boolean enableBedWarsEsp = false;
     public boolean enableBedWarsNames = false;
-    public boolean enableBedWarsHearts = true;
+    public boolean enableBedWarsHearts = false;
     public BedWarsEspMode bedWarsEspMode = BedWarsEspMode.ALERT;
 
     public enum BedWarsEspMode {
@@ -156,7 +156,7 @@ public class GlassMenuConfigModel {
     public int fastItemY = -1;
 
     // --- GLASS HOTBAR (Standard Hotbar replacement) ---
-    public boolean glassHotbar = true;
+    public boolean glassHotbar = false;
     public int glassHotbarColor = 0xEE1C1C24;
     public boolean glassHotbarTransparent = true;
     public boolean glassHotbarSlots = true;
@@ -228,7 +228,7 @@ public class GlassMenuConfigModel {
     public float crosshairRainbowSpeed = 1.0f;
 
     // Custom Nametags
-    public boolean enableCustomNametags = true;
+    public boolean enableCustomNametags = false;
     public int customNametagColor = 0xFFFFFFFF;
 
     // Fall Prediction

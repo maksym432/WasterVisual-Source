@@ -632,7 +632,7 @@ public class MusicModule implements IslandModule {
         if (shader == null) {
             RenderSystem.enableBlend();
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, alpha);
-            context.drawTexture(texture, (int) x, (int) y, 0, 0, (int) size, (int) size, (int) size, (int) size);
+            context.drawTexture(texture, (int) x, (int) y, (int) size, (int) size, 0.0f, 0.0f, tw, th, tw, th);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
             RenderSystem.setShader(() -> originalShader);
             RenderSystem.setShaderTexture(0, originalTex);
