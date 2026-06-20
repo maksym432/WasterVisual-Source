@@ -14,7 +14,16 @@ import java.awt.Color;
 
 public class CrosshairRadarRenderer {
 
+    private static final java.util.Map<String, Float> smoothedRadiusMap = new java.util.HashMap<>();
+    private static long lastTime = System.currentTimeMillis();
+
     public static void render(DrawContext context, float tickDelta) {
+        long now = System.currentTimeMillis();
+        float dt = (now - lastTime) / 1000f;
+        lastTime = now;
+        if (dt < 0f) dt = 0f;
+        dt = Math.min(dt, 0.1f);
+
         if (!GlassMenuClient.CONFIG.enableCrosshairRadar()) return;
 
         MinecraftClient client = MinecraftClient.getInstance();
@@ -154,8 +163,19 @@ public class CrosshairRadarRenderer {
                 }
             }
 
-            // Draw dark background square
-            context.fill((int)drawX - 2, (int)drawY - 2, (int)drawX + totalWidth + 2, (int)drawY + totalHeight + 2, 0x80000000);
+            // Smooth the radius
+            float prevSmoothRad = smoothedRadiusMap.getOrDefault(target.name, currentRad);
+            float smoothRad = MathHelper.lerp(MathHelper.clamp(dt * 15f, 0f, 1f), prevSmoothRad, currentRad);
+            smoothedRadiusMap.put(target.name, smoothRad);
+            
+            // Recalculate drawX and drawY with smoothRad
+            float smoothOffsetX = (float) Math.sin(target.angleRad) * smoothRad;
+            float smoothOffsetY = -(float) Math.cos(target.angleRad) * smoothRad;
+            drawX = target.x + smoothOffsetX - totalWidth / 2f;
+            drawY = target.y + smoothOffsetY - totalHeight / 2f;
+
+            // Draw glass background instead of fill
+            GlassRefractionEngine.drawRefractedPanel(context, (int)drawX - 3, (int)drawY - 3, totalWidth + 6, totalHeight + 6, 0.8f, 0x22FFFFFF, 4f);
             
             // Draw Player Head using SDF
             if (target.skin != null) {
