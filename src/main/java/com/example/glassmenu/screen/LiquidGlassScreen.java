@@ -1380,7 +1380,7 @@ public class LiquidGlassScreen extends Screen {
             if (w == visSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
             else if (w == visSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
             else if (w == visSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton) {
                 w.setX(x + 40); w.setY((int)y + 130 + (btnIdx++) * 28 - (int)slideOffset);
@@ -1420,7 +1420,7 @@ public class LiquidGlassScreen extends Screen {
                 else if (w == invSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
                 else if (w == invSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
                 else if (w == invSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 50 - (int)slideOffset);
@@ -1450,7 +1450,7 @@ public class LiquidGlassScreen extends Screen {
                 else if (w == cardSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
                 else if (w == cardSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
                 else if (w == cardSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -1480,7 +1480,7 @@ public class LiquidGlassScreen extends Screen {
                 else if (w == indSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
                 else if (w == indSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
                 else if (w == indSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -1510,7 +1510,7 @@ public class LiquidGlassScreen extends Screen {
                 else if (w == armSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
                 else if (w == armSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
                 else if (w == armSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -1547,7 +1547,7 @@ public class LiquidGlassScreen extends Screen {
                 else if (w == fastItemSliderR) { w.setX(x + 230); w.setY((int)y + 85 - (int)slideOffset); }
                 else if (w == fastItemSliderG) { w.setX(x + 230); w.setY((int)y + 118 - (int)slideOffset); }
                 else if (w == fastItemSliderB) { w.setX(x + 230); w.setY((int)y + 151 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 if (!isEnabled) { w.setX(-9999); w.setY(-9999); }
@@ -1583,7 +1583,7 @@ public class LiquidGlassScreen extends Screen {
                 else if (w == glassHotbarSliderR) { w.setX(x + 230); w.setY((int)y + 85 - (int)slideOffset); }
                 else if (w == glassHotbarSliderG) { w.setX(x + 230); w.setY((int)y + 118 - (int)slideOffset); }
                 else if (w == glassHotbarSliderB) { w.setX(x + 230); w.setY((int)y + 151 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 220 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 if (!isEnabled) { w.setX(-9999); w.setY(-9999); }
@@ -1627,7 +1627,7 @@ public class LiquidGlassScreen extends Screen {
                 else if (w == userHudSliderR) { w.setX(x + 230); w.setY((int)y + 85 - (int)slideOffset); }
                 else if (w == userHudSliderG) { w.setX(x + 230); w.setY((int)y + 118 - (int)slideOffset); }
                 else if (w == userHudSliderB) { w.setX(x + 230); w.setY((int)y + 151 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -1662,7 +1662,7 @@ public class LiquidGlassScreen extends Screen {
                 else if (w == effectsSliderR) { w.setX(x + 230); w.setY((int)y + 85 - (int)slideOffset); }
                 else if (w == effectsSliderG) { w.setX(x + 230); w.setY((int)y + 118 - (int)slideOffset); }
                 else if (w == effectsSliderB) { w.setX(x + 230); w.setY((int)y + 151 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -1739,7 +1739,7 @@ public class LiquidGlassScreen extends Screen {
                 else if (w == leftHandSliderR) { w.setX(x + 230); w.setY((int)y + 85 - (int)slideOffset); }
                 else if (w == leftHandSliderG) { w.setX(x + 230); w.setY((int)y + 118 - (int)slideOffset); }
                 else if (w == leftHandSliderB) { w.setX(x + 230); w.setY((int)y + 151 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -2553,7 +2553,7 @@ public class LiquidGlassScreen extends Screen {
             for (int i = 0; i < generalWidgets.size(); i++) {
                 ClickableWidget w = generalWidgets.get(i);
                 w.setAlpha(contentAlpha);
-                if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Bridge")) {
+                if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Bridge"))) {
                     w.setX(x + 280); w.setY(y + 60 - (int)slideOffset);
                 } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().contains("Glass Effect")) {
                     w.setX(x + 280); w.setY(y + 90 - (int)slideOffset);
@@ -2572,7 +2572,7 @@ public class LiquidGlassScreen extends Screen {
                 if (w == bridgeSliderR) { w.setX(x + 30); w.setY((int)y + 90 - (int)slideOffset); }
                 else if (w == bridgeSliderG) { w.setX(x + 30); w.setY((int)y + 125 - (int)slideOffset); }
                 else if (w == bridgeSliderB) { w.setX(x + 30); w.setY((int)y + 160 - (int)slideOffset); }
-                else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+                else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                     w.setX(x + 230); w.setY((int)y + 50 - (int)slideOffset);
                 } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().contains("Glass Effect")) {
                     w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset);
@@ -3196,7 +3196,7 @@ public class LiquidGlassScreen extends Screen {
 
         for (ClickableWidget w : visualsIslandWidgets) {
             w.setAlpha(contentAlpha);
-            if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -3331,7 +3331,7 @@ public class LiquidGlassScreen extends Screen {
 
         for (ClickableWidget w : visualsHitWidgets) {
             w.setAlpha(contentAlpha);
-            if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals("Back")) {
+            if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 215 - (int)slideOffset);
             } else if (w == visualsHitWidgets.get(1)) {
                 w.setX(x + 330); w.setY((int)y + 45 - (int)slideOffset);
