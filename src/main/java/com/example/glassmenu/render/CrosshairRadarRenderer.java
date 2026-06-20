@@ -111,8 +111,9 @@ public class CrosshairRadarRenderer {
 
         for (PlayerTarget target : targets) {
             String text = target.name + " " + target.distance + "m";
-            int textWidth = client.textRenderer.getWidth(text);
-            int textHeight = client.textRenderer.fontHeight;
+            float scale = 0.65f;
+            int textWidth = (int)(client.textRenderer.getWidth(text) * scale);
+            int textHeight = (int)(client.textRenderer.fontHeight * scale);
             
             float currentRad = 12.0f;
             float drawX = 0;
@@ -152,7 +153,10 @@ public class CrosshairRadarRenderer {
             context.fill((int)drawX - 2, (int)drawY - 2, (int)drawX + textWidth + 2, (int)drawY + textHeight + 1, 0x80000000);
             
             // Draw text
-            context.drawTextWithShadow(client.textRenderer, text, (int)drawX, (int)drawY, 0xFFFFFFFF);
+            context.getMatrices().push();
+            context.getMatrices().scale(scale, scale, 1.0f);
+            context.drawTextWithShadow(client.textRenderer, text, (int)(drawX / scale), (int)(drawY / scale), 0xFFFFFFFF);
+            context.getMatrices().pop();
         }
     }
 
