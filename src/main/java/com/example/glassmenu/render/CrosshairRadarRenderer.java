@@ -71,7 +71,7 @@ public class CrosshairRadarRenderer {
             float targetX = centerX + (float) Math.sin(angleRad) * radius;
             float targetY = centerY - (float) Math.cos(angleRad) * radius;
 
-            targets.add(new PlayerTarget(player.getName().getString(), (int)distance, targetX, targetY, angleRad));
+            targets.add(new PlayerTarget(player.getName().getString(), (int)distance, targetX, targetY, angleRad, player.getSkinTextures().texture()));
         }
 
         if (targets.isEmpty()) {
@@ -110,10 +110,16 @@ public class CrosshairRadarRenderer {
         targets.sort(java.util.Comparator.comparingInt(t -> t.distance));
 
         for (PlayerTarget target : targets) {
-            String text = target.name + " " + target.distance + "m";
+            String text = target.distance + "m";
             float scale = 0.65f;
             int textWidth = (int)(client.textRenderer.getWidth(text) * scale);
             int textHeight = (int)(client.textRenderer.fontHeight * scale);
+            
+            int headSize = 10;
+            int padding = 3;
+            
+            int totalWidth = headSize + padding + textWidth;
+            int totalHeight = Math.max(headSize, textHeight);
             
             float currentRad = 12.0f;
             float drawX = 0;
@@ -125,14 +131,13 @@ public class CrosshairRadarRenderer {
                 float textOffsetX = (float) Math.sin(target.angleRad) * currentRad;
                 float textOffsetY = -(float) Math.cos(target.angleRad) * currentRad;
                 
-                drawX = target.x + textOffsetX - textWidth / 2f;
-                drawY = target.y + textOffsetY - textHeight / 2f;
+                drawX = target.x + textOffsetX - totalWidth / 2f;
+                drawY = target.y + textOffsetY - totalHeight / 2f;
                 
                 overlapping = false;
-                net.minecraft.client.util.math.Rect2i currentRect = new net.minecraft.client.util.math.Rect2i((int)drawX - 2, (int)drawY - 2, textWidth + 4, textHeight + 4);
+                net.minecraft.client.util.math.Rect2i currentRect = new net.minecraft.client.util.math.Rect2i((int)drawX - 2, (int)drawY - 2, totalWidth + 4, totalHeight + 4);
                 
                 for (net.minecraft.client.util.math.Rect2i rect : drawnRects) {
-                    // Check intersection
                     if (currentRect.getX() < rect.getX() + rect.getWidth() && 
                         currentRect.getX() + currentRect.getWidth() > rect.getX() &&
                         currentRect.getY() < rect.getY() + rect.getHeight() && 
@@ -150,12 +155,21 @@ public class CrosshairRadarRenderer {
             }
 
             // Draw dark background square
-            context.fill((int)drawX - 2, (int)drawY - 2, (int)drawX + textWidth + 2, (int)drawY + textHeight + 1, 0x80000000);
+            context.fill((int)drawX - 2, (int)drawY - 2, (int)drawX + totalWidth + 2, (int)drawY + totalHeight + 2, 0x80000000);
+            
+            // Draw Player Head using SDF
+            if (target.skin != null) {
+                RenderSystem.enableBlend();
+                RenderUtils.drawSdfRoundedTexture(context.getMatrices(), drawX, drawY, headSize, headSize, 2.0f, target.skin, 0xFFFFFFFF, 0.125f, 0.125f, 0.25f, 0.25f);
+                RenderUtils.drawSdfRoundedTexture(context.getMatrices(), drawX, drawY, headSize, headSize, 2.0f, target.skin, 0xFFFFFFFF, 0.625f, 0.125f, 0.75f, 0.25f);
+            }
             
             // Draw text
             context.getMatrices().push();
             context.getMatrices().scale(scale, scale, 1.0f);
-            context.drawTextWithShadow(client.textRenderer, text, (int)(drawX / scale), (int)(drawY / scale), 0xFFFFFFFF);
+            float textDrawX = drawX + headSize + padding;
+            float textDrawY = drawY + (totalHeight - textHeight) / 2f + 1f; // Center vertically
+            context.drawTextWithShadow(client.textRenderer, text, (int)(textDrawX / scale), (int)(textDrawY / scale), 0xFFFFFFFF);
             context.getMatrices().pop();
         }
     }
@@ -164,8 +178,9 @@ public class CrosshairRadarRenderer {
         String name;
         int distance;
         float x, y, angleRad;
-        PlayerTarget(String name, int distance, float x, float y, float angleRad) {
-            this.name = name; this.distance = distance; this.x = x; this.y = y; this.angleRad = angleRad;
+        net.minecraft.util.Identifier skin;
+        PlayerTarget(String name, int distance, float x, float y, float angleRad, net.minecraft.util.Identifier skin) {
+            this.name = name; this.distance = distance; this.x = x; this.y = y; this.angleRad = angleRad; this.skin = skin;
         }
     }
 }
