@@ -67,8 +67,6 @@ public class PlayerCardRenderer {
             targetPlayer = lookedPlayer;
             lastTargetUuid = lookedPlayer.getUuid();
             targetName = lookedPlayer.getGameProfile().getName();
-            targetHealth = lookedPlayer.getHealth();
-            targetMaxHealth = lookedPlayer.getMaxHealth();
             
             if (lookedPlayer instanceof AbstractClientPlayerEntity clientPlayer) {
                 skinTexture = clientPlayer.getSkinTextures().texture();
@@ -90,6 +88,11 @@ public class PlayerCardRenderer {
                     stateStartTime = now;
                 }
             }
+        }
+
+        if (targetPlayer != null && !targetPlayer.isRemoved()) {
+            targetHealth = targetPlayer.getHealth();
+            targetMaxHealth = targetPlayer.getMaxHealth();
         }
 
         // Handle animation state boundaries
