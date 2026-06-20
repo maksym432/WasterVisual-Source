@@ -3372,7 +3372,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassSlider stretchVerticalSlider;
 
     private void initVisualsStretchTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 230, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 220, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsStretchWidgets.add(backBtn);
@@ -3416,7 +3416,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassSlider cgBlueSlider;
 
     private void initVisualsColorTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 250, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 220, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsColorWidgets.add(backBtn);
@@ -3473,7 +3473,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassSlider rainbowSpeedSlider;
 
     private void initVisualsCrosshairTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 250, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 220, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsCrosshairWidgets.add(backBtn);
@@ -3540,7 +3540,7 @@ public class LiquidGlassScreen extends Screen {
     private TextFieldWidget nametagsRgbInput;
 
     private void initVisualsNametagsTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 240, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 220, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsNametagsWidgets.add(backBtn);
