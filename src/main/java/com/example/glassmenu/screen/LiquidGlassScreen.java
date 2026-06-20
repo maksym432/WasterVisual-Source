@@ -110,6 +110,16 @@ public class LiquidGlassScreen extends Screen {
     private final float[] tabHoverProgress = new float[Tab.values().length];
     private long lastAnimTime;
 
+
+    private float getMenuScale() {
+        if (currentTab == Tab.POSITION) return 1.0f;
+        float maxW = this.width - 20f;
+        float maxH = this.height - 20f;
+        float scaleW = maxW / PANEL_W_EXPANDED;
+        float scaleH = maxH / PANEL_H_EXPANDED;
+        return Math.min(1.0f, Math.min(scaleW, scaleH));
+    }
+
     public LiquidGlassScreen() {
         super(Text.literal(MenuTranslator.tr("WasterVisual")));
         this.effectView = new LiquidGlassEffectView();
@@ -1162,7 +1172,18 @@ public class LiquidGlassScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(DrawContext context, int origMouseX, int origMouseY, float delta) {
+        float scale = getMenuScale();
+        int mouseX = origMouseX;
+        int mouseY = origMouseY;
+        if (scale < 1.0f && currentTab != Tab.POSITION) {
+            mouseX = (int)((origMouseX - this.width / 2f) / scale + this.width / 2f);
+            mouseY = (int)((origMouseY - this.height / 2f) / scale + this.height / 2f);
+            context.getMatrices().push();
+            context.getMatrices().translate(this.width / 2f, this.height / 2f, 0);
+            context.getMatrices().scale(scale, scale, 1.0f);
+            context.getMatrices().translate(-this.width / 2f, -this.height / 2f, 0);
+        }
         long now = System.currentTimeMillis();
         float dt = (now - lastAnimTime) / 1000f;
         lastAnimTime = now;
@@ -1289,6 +1310,9 @@ public class LiquidGlassScreen extends Screen {
         else if (currentTab == Tab.POSITION) renderPositionTab(context, mouseX, mouseY, delta);
 
         super.render(context, mouseX, mouseY, delta);
+        if (scale < 1.0f && currentTab != Tab.POSITION) {
+            context.getMatrices().pop();
+        }
     }
 
     private void renderVisualsTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta, int currentW, int currentH) {
@@ -2787,7 +2811,13 @@ public class LiquidGlassScreen extends Screen {
         RenderUtils.drawSdfRoundedRect(c.getMatrices(), x, y, w, h, 5, 0x1F222226, 0);
     }
 
-    @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    @Override public boolean mouseClicked(double origMouseX, double origMouseY, int button) {
+        double mouseX = origMouseX; double mouseY = origMouseY;
+        float scale = getMenuScale();
+        if (scale < 1.0f && currentTab != Tab.POSITION) {
+            mouseX = (origMouseX - this.width / 2f) / scale + this.width / 2f;
+            mouseY = (origMouseY - this.height / 2f) / scale + this.height / 2f;
+        }
         if (currentTab == Tab.POSITION) {
             if (super.mouseClicked(mouseX, mouseY, button)) {
                 return true;
@@ -2893,7 +2923,15 @@ public class LiquidGlassScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+    public boolean mouseDragged(double origMouseX, double origMouseY, int button, double origDeltaX, double origDeltaY) {
+        double mouseX = origMouseX; double mouseY = origMouseY; double deltaX = origDeltaX; double deltaY = origDeltaY;
+        float scale = getMenuScale();
+        if (scale < 1.0f && currentTab != Tab.POSITION) {
+            mouseX = (origMouseX - this.width / 2f) / scale + this.width / 2f;
+            mouseY = (origMouseY - this.height / 2f) / scale + this.height / 2f;
+            deltaX = origDeltaX / scale;
+            deltaY = origDeltaY / scale;
+        }
         if (currentTab == Tab.POSITION && selectedObject != PositionObject.NONE) {
             if (isResizing) {
                 int diffX = (int) (mouseX - dragOffsetX);
@@ -3132,7 +3170,13 @@ public class LiquidGlassScreen extends Screen {
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
     }
 
-    @Override public boolean mouseReleased(double mX, double mY, int b) { 
+    @Override public boolean mouseReleased(double origMX, double origMY, int b) {
+        double mX = origMX; double mY = origMY;
+        float scale = getMenuScale();
+        if (scale < 1.0f && currentTab != Tab.POSITION) {
+            mX = (origMX - this.width / 2f) / scale + this.width / 2f;
+            mY = (origMY - this.height / 2f) / scale + this.height / 2f;
+        } 
         draggingPreview = false; 
         if (currentTab == Tab.POSITION) {
             isDraggingObject = false;
@@ -3140,7 +3184,13 @@ public class LiquidGlassScreen extends Screen {
         }
         return super.mouseReleased(mX, mY, b); 
     }
-    @Override public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    @Override public boolean mouseScrolled(double origMouseX, double origMouseY, double horizontalAmount, double verticalAmount) {
+        double mouseX = origMouseX; double mouseY = origMouseY;
+        float scale = getMenuScale();
+        if (scale < 1.0f && currentTab != Tab.POSITION) {
+            mouseX = (origMouseX - this.width / 2f) / scale + this.width / 2f;
+            mouseY = (origMouseY - this.height / 2f) / scale + this.height / 2f;
+        }
         if (currentTab == Tab.MOVEMENT || currentTab == Tab.VISUALS) {
             scrollY = MathHelper.clamp(scrollY - verticalAmount * 20, 0, maxScroll);
             return true;
