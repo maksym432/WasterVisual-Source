@@ -353,6 +353,11 @@ public class LiquidGlassScreen extends Screen {
             currentTab = Tab.VISUALS_ATTACK_RANGE; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsWidgets.add(attackRangeBtn);
+        
+        LiquidGlassButton radarBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Player Radar")), b -> {
+            currentTab = Tab.VISUALS_RADAR; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsWidgets.add(radarBtn);
 
         // Right Column: World & Interaction
         visualsWidgets.add(jumpEffectsBtn);

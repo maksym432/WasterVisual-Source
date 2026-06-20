@@ -12,6 +12,13 @@ public class MenuTranslator {
         ru.put("Left Hand Item", "Левая рука");
         ru.put("Player Card", "Карточка игрока");
         ru.put("Red", "Красный");
+        ru.put("Player Radar", "Радар Игроков");
+        ru.put("Player Radar Settings", "Настройки Радара Игроков");
+        ru.put("RGB Arrows", "RGB Стрелки");
+        ru.put("Arrow Color", "Цвет Стрелки");
+        ru.put("Radius: ", "Радиус: ");
+        ru.put("Radius", "Радиус");
+
         ru.put("Green", "Зеленый");
         ru.put("Blue", "Синий");
         ru.put("Armor HUD", "Броня (HUD)");
