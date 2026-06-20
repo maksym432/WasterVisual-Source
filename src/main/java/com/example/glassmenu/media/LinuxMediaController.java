@@ -34,6 +34,7 @@ public class LinuxMediaController {
 
     public static final java.util.List<PlayerInfo> ALL_PLAYERS_INFO = new java.util.concurrent.CopyOnWriteArrayList<>();
     public static String selectedPlayer = "";
+    private static String lastActivePlayerName = "";
     
     public static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
 
@@ -118,121 +119,111 @@ public class LinuxMediaController {
                 return;
             }
 
-            // 1. Query running players list
-            String listOutput = exec("playerctl -l");
-            java.util.List<String> players = new java.util.ArrayList<>();
-            if (!listOutput.isEmpty()) {
-                for (String p : listOutput.split("\n")) {
-                    p = p.trim();
-                    if (!p.isEmpty()) {
-                        players.add(p);
-                    }
-                }
-            }
+            // Get all players at once
+            String output = exec("playerctl --all-players metadata --format {{playerName}};;;{{title}};;;{{artist}};;;{{status}};;;{{volume}};;;{{mpris:artUrl}};;;{{position}};;;{{mpris:length}}");
 
-            boolean foundSelected = false;
-            for (String p : players) {
-                if (p.equals(selectedPlayer)) { foundSelected = true; break; }
-            }
-            for (BrowserTabInfo tab : BROWSER_TABS) {
-                if (("browser_tab_" + tab.id).equals(selectedPlayer)) { foundSelected = true; break; }
-            }
-            if (!selectedPlayer.isEmpty() && !foundSelected) {
-                selectedPlayer = "";
-            }
-
-            java.util.List<PlayerInfo> playerInfos = new java.util.ArrayList<>();
-            for (String pName : players) {
-                PlayerInfo pi = new PlayerInfo();
-                pi.name = pName;
-                String metaOut = exec("playerctl -p " + pName + " metadata --format {{title}};;;{{artist}};;;{{status}};;;{{position}};;;{{mpris:length}};;;{{mpris:artUrl}}");
-                if (!metaOut.isEmpty() && metaOut.contains(";;;")) {
-                    String[] parts = metaOut.split(";;;", -1);
-                    if (parts.length >= 3) {
-                        pi.title = parts[0].trim();
-                        pi.artist = parts[1].trim();
-                        pi.isPlaying = "Playing".equalsIgnoreCase(parts[2].trim());
-                        if (parts.length >= 5) {
-                            try {
-                                pi.position = Double.parseDouble(parts[3].trim()) / 1_000_000.0;
-                            } catch (Exception ignored) {}
-                            try {
-                                pi.length = Double.parseDouble(parts[4].trim()) / 1_000_000.0;
-                            } catch (Exception ignored) {}
-                        }
-                        if (parts.length >= 6) {
-                            String artUrl = parts[5].trim();
-                            pi.artUrl = artUrl;
-                            if (!artUrl.isEmpty()) {
-                                String lastUrlForPlayer = LOADED_ART_URLS.get(pName);
-                                if (!artUrl.equals(lastUrlForPlayer)) {
-                                    LOADED_ART_URLS.put(pName, artUrl);
-                                    loadArtForPlayer(pName, artUrl);
-                                }
-                                pi.artTexture = PLAYER_ART_TEXTURES.get(pName);
-                                pi.artWidth = PLAYER_ART_WIDTHS.getOrDefault(pName, 0);
-                                pi.artHeight = PLAYER_ART_HEIGHTS.getOrDefault(pName, 0);
-                            }
-                        }
-                    }
-                }
-                playerInfos.add(pi);
-            }
-            addBrowserTabsToPlayerInfos(playerInfos);
-
-            ALL_PLAYERS_INFO.clear();
-            ALL_PLAYERS_INFO.addAll(playerInfos);
-
-            // Auto-detect the playing player
-            PlayerInfo active = null;
-            if (!selectedPlayer.isEmpty()) {
-                for (PlayerInfo p : playerInfos) {
-                    if (p.name.equals(selectedPlayer)) {
-                        active = p;
-                        break;
-                    }
-                }
-            }
-            if (active == null) {
-                for (PlayerInfo p : playerInfos) {
-                    if (p.isPlaying) {
-                        active = p;
-                        break;
-                    }
-                }
-            }
-            if (active == null && !playerInfos.isEmpty()) {
-                active = playerInfos.get(0);
-            }
-
-            // Poll metadata of the specific player we identified as active
-            String output = "";
-            if (active != null && !active.name.startsWith("browser_tab_")) {
-                output = exec("playerctl -p " + active.name + " metadata --format {{title}};;;{{artist}};;;{{status}};;;{{volume}};;;{{mpris:artUrl}};;;{{position}};;;{{mpris:length}}");
-            }
-            
             MediaState oldState = CURRENT_STATE.get();
             MediaState newState = new MediaState();
 
-            if (handleActiveBrowserTab(active, newState, oldState)) {
-                // Handled!
-            } else if (!output.isEmpty() && output.contains(";;;")) {
-                String[] parts = output.split(";;;", -1);
-                if (parts.length >= 5) {
-                    String title = parts[0].trim();
-                    String artist = parts[1].trim();
-                    String status = parts[2].trim();
+            // Check if there is an active browser tab (Chrome Extension)
+            BrowserTabInfo activeTab = null;
+            for (BrowserTabInfo tab : BROWSER_TABS) {
+                if (tab.audible) {
+                    activeTab = tab;
+                    break;
+                }
+            }
+
+            if (activeTab != null) {
+                newState.title = activeTab.title;
+                newState.artist = "Web";
+                try {
+                    String host = new java.net.URI(activeTab.url).getHost();
+                    if (host != null) {
+                        if (host.startsWith("www.")) host = host.substring(4);
+                        if (host.contains("youtube.com")) newState.artist = "YouTube";
+                        else if (host.contains("spotify.com")) newState.artist = "Spotify Web";
+                        else if (host.contains("soundcloud.com")) newState.artist = "SoundCloud";
+                        else {
+                            String[] parts = host.split("\\.");
+                            if (parts.length >= 2) {
+                                String d = parts[parts.length - 2];
+                                newState.artist = d.substring(0, 1).toUpperCase() + d.substring(1);
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+                
+                newState.isPlaying = activeTab.audible;
+                if (System.currentTimeMillis() < isPlayingLockUntil) {
+                    newState.isPlaying = lockedIsPlaying;
+                }
+                newState.volume = oldState.volume;
+                newState.artUrl = activeTab.favIconUrl != null ? activeTab.favIconUrl : "";
+                newState.position = 0;
+                newState.length = 0;
+                newState.shuffle = oldState.shuffle;
+                newState.loopStatus = oldState.loopStatus;
+
+                // Handle image loading if URL changed
+                if (!newState.artUrl.isEmpty() && !newState.artUrl.equals(lastArtUrl)) {
+                    lastArtUrl = newState.artUrl;
+                    loadArt(newState.artUrl);
+                } else {
+                    newState.artTexture = oldState.artTexture;
+                    newState.artWidth = oldState.artWidth;
+                    newState.artHeight = oldState.artHeight;
+                    newState.avgColor = oldState.avgColor;
+                    newState.visualizerGradients = oldState.visualizerGradients;
+                }
+            } else if (!output.isEmpty()) {
+                String bestLine = null;
+                int bestScore = -1;
+
+                String[] lines = output.split("\\n");
+                for (String line : lines) {
+                    if (!line.contains(";;;")) continue;
+                    String[] parts = line.split(";;;", -1);
+                    if (parts.length < 8) continue;
+                    
+                    String status = parts[3].trim();
+                    String artUrl = parts[5].trim();
+                    
+                    boolean isPlaying = "Playing".equalsIgnoreCase(status);
+                    boolean hasArt = !artUrl.isEmpty();
+                    
+                    int score = 0;
+                    if (isPlaying) score += 10;
+                    if (hasArt) score += 5;
+                    
+                    // Prefer plasma-browser-integration over chromium if they have same play state
+                    String pName = parts[0].trim();
+                    if (pName.contains("plasma")) score += 2;
+                    else if (pName.contains("chromium")) score -= 1;
+                    
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestLine = line;
+                    }
+                }
+                
+                if (bestLine != null) {
+                    String[] parts = bestLine.split(";;;", -1);
+                    String playerName = parts[0].trim();
+                    String title = parts[1].trim();
+                    String artist = parts[2].trim();
+                    String status = parts[3].trim();
                     
                     float volume = 1.0f;
                     try {
-                        volume = Float.parseFloat(parts[3].trim());
+                        volume = Float.parseFloat(parts[4].trim());
                     } catch (Exception ignored) {}
                     boolean isPlaying = "Playing".equalsIgnoreCase(status);
                     if (System.currentTimeMillis() < isPlayingLockUntil) {
                         isPlaying = lockedIsPlaying;
                     }
                     
-                    String artUrl = parts[4].trim();
+                    String artUrl = parts[5].trim();
                     
                     newState.title = title.isEmpty() ? oldState.title : title;
                     newState.artist = artist.isEmpty() ? oldState.artist : artist;
@@ -240,45 +231,37 @@ public class LinuxMediaController {
                     newState.volume = volume;
                     newState.artUrl = artUrl;
                     
-                    // Inherit texture info, average color and gradients
                     newState.artTexture = oldState.artTexture;
                     newState.artWidth = oldState.artWidth;
                     newState.artHeight = oldState.artHeight;
                     newState.avgColor = oldState.avgColor;
                     newState.visualizerGradients = oldState.visualizerGradients;
                     
-                    // Parse position and length (microseconds to seconds)
-                    if (parts.length >= 7) {
+                    if (parts.length >= 8) {
                         try {
-                            newState.position = Double.parseDouble(parts[5].trim()) / 1_000_000.0;
+                            newState.position = Double.parseDouble(parts[6].trim()) / 1_000_000.0;
                         } catch (Exception ignored) {}
                         try {
-                            newState.length = Double.parseDouble(parts[6].trim()) / 1_000_000.0;
+                            newState.length = Double.parseDouble(parts[7].trim()) / 1_000_000.0;
                         } catch (Exception ignored) {}
                     }
                     
-                    // Query shuffle and loop status
-                    String shuffleOut = "";
-                    String loopOut = "";
-                    if (active != null) {
-                        shuffleOut = exec("playerctl -p " + active.name + " shuffle");
-                        loopOut = exec("playerctl -p " + active.name + " loop");
-                    } else {
-                        shuffleOut = exec("playerctl shuffle");
-                        loopOut = exec("playerctl loop");
-                    }
-                    newState.shuffle = "On".equalsIgnoreCase(shuffleOut.trim());
-
-                    newState.loopStatus = loopOut.trim().isEmpty() ? "None" : loopOut.trim();
-
-                    // Handle image loading if URL changed
+                    // Instead of blocking with exec("playerctl shuffle"), we just use old state to prevent lag
+                    newState.shuffle = oldState.shuffle;
+                    newState.loopStatus = oldState.loopStatus;
+                    
                     if (!artUrl.isEmpty() && !artUrl.equals(lastArtUrl)) {
                         lastArtUrl = artUrl;
                         loadArt(artUrl);
                     }
+                } else {
+                    newState.title = "";
+                    newState.artist = "";
+                    newState.isPlaying = false;
+                    newState.volume = 1.0f;
+                    newState.artUrl = "";
                 }
             } else {
-                // No media players active or playerctl returned empty
                 newState.title = "";
                 newState.artist = "";
                 newState.isPlaying = false;
@@ -288,10 +271,8 @@ public class LinuxMediaController {
 
             CURRENT_STATE.set(newState);
         } catch (Exception e) {
-            // Keep previous state on error to avoid flicker
         }
     }
-
     private static void loadArt(String url) {
         IMAGE_LOADER.execute(() -> {
             try {
@@ -301,11 +282,36 @@ public class LinuxMediaController {
                     if (finalUrl.startsWith("/") && finalUrl.length() > 2 && finalUrl.charAt(2) == ':') {
                         finalUrl = finalUrl.substring(1);
                     }
+                    try {
+                        finalUrl = java.net.URLDecoder.decode(finalUrl, "UTF-8");
+                    } catch (Exception ignored) {}
                 }
                 
                 boolean isLocal = finalUrl.startsWith("/") || finalUrl.contains(":\\") || finalUrl.contains(":/") || new java.io.File(finalUrl).exists();
-                try (InputStream is = isLocal ? new java.io.FileInputStream(finalUrl) : new URL(finalUrl).openStream()) {
-                    NativeImage image = NativeImage.read(is);
+                InputStream is;
+                if (isLocal) {
+                    is = new java.io.FileInputStream(finalUrl);
+                } else {
+                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URL(finalUrl).openConnection();
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+                    conn.setConnectTimeout(3000);
+                    conn.setReadTimeout(3000);
+                    is = conn.getInputStream();
+                }
+                try (InputStream finalIs = is) {
+                    java.awt.image.BufferedImage bImg = javax.imageio.ImageIO.read(finalIs);
+                    if (bImg == null) throw new Exception("ImageIO returned null");
+                    NativeImage image = new NativeImage(NativeImage.Format.RGBA, bImg.getWidth(), bImg.getHeight(), false);
+                    for (int y = 0; y < bImg.getHeight(); y++) {
+                        for (int x = 0; x < bImg.getWidth(); x++) {
+                            int argb = bImg.getRGB(x, y);
+                            int a = (argb >> 24) & 0xff;
+                            int r = (argb >> 16) & 0xff;
+                            int g = (argb >> 8) & 0xff;
+                            int b = argb & 0xff;
+                            image.setColor(x, y, (a << 24) | (b << 16) | (g << 8) | r);
+                        }
+                    }
                     int width = image.getWidth();
                     int height = image.getHeight();
 
@@ -391,10 +397,36 @@ public class LinuxMediaController {
                     if (finalUrl.startsWith("/") && finalUrl.length() > 2 && finalUrl.charAt(2) == ':') {
                         finalUrl = finalUrl.substring(1);
                     }
+                    try {
+                        finalUrl = java.net.URLDecoder.decode(finalUrl, "UTF-8");
+                    } catch (Exception ignored) {}
                 }
+                
                 boolean isLocal = finalUrl.startsWith("/") || finalUrl.contains(":\\") || finalUrl.contains(":/") || new java.io.File(finalUrl).exists();
-                try (InputStream is = isLocal ? new java.io.FileInputStream(finalUrl) : new URL(finalUrl).openStream()) {
-                    NativeImage image = NativeImage.read(is);
+                InputStream is;
+                if (isLocal) {
+                    is = new java.io.FileInputStream(finalUrl);
+                } else {
+                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URL(finalUrl).openConnection();
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+                    conn.setConnectTimeout(3000);
+                    conn.setReadTimeout(3000);
+                    is = conn.getInputStream();
+                }
+                try (InputStream finalIs = is) {
+                    java.awt.image.BufferedImage bImg = javax.imageio.ImageIO.read(finalIs);
+                    if (bImg == null) throw new Exception("ImageIO returned null");
+                    NativeImage image = new NativeImage(NativeImage.Format.RGBA, bImg.getWidth(), bImg.getHeight(), false);
+                    for (int y = 0; y < bImg.getHeight(); y++) {
+                        for (int x = 0; x < bImg.getWidth(); x++) {
+                            int argb = bImg.getRGB(x, y);
+                            int a = (argb >> 24) & 0xff;
+                            int r = (argb >> 16) & 0xff;
+                            int g = (argb >> 8) & 0xff;
+                            int b = argb & 0xff;
+                            image.setColor(x, y, (a << 24) | (b << 16) | (g << 8) | r);
+                        }
+                    }
                     int width = image.getWidth();
                     int height = image.getHeight();
                     
@@ -623,7 +655,9 @@ public class LinuxMediaController {
 
         Process p = null;
         try {
-            p = Runtime.getRuntime().exec(cmd.split(" "));
+            ProcessBuilder pb = new ProcessBuilder(cmd.split(" "));
+            pb.redirectErrorStream(true);
+            p = pb.start();
             StringBuilder sb = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                 String line;
@@ -632,12 +666,6 @@ public class LinuxMediaController {
                         sb.append("\n");
                     }
                     sb.append(line.trim());
-                }
-            }
-            try (InputStream err = p.getErrorStream()) {
-                byte[] buffer = new byte[1024];
-                while (err.read(buffer) != -1) {
-                    // Drain error stream
                 }
             }
             p.waitFor(100, TimeUnit.MILLISECONDS);
@@ -814,7 +842,9 @@ public class LinuxMediaController {
                 scriptFile.getAbsolutePath(), action, target, value
             };
             
-            p = Runtime.getRuntime().exec(cmd);
+            ProcessBuilder pb = new ProcessBuilder(cmd);
+            pb.redirectErrorStream(true);
+            p = pb.start();
             StringBuilder sb = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"))) {
                 String line;
@@ -825,13 +855,7 @@ public class LinuxMediaController {
                     sb.append(line.trim());
                 }
             }
-            try (InputStream err = p.getErrorStream()) {
-                byte[] buffer = new byte[1024];
-                while (err.read(buffer) != -1) {
-                    // Drain error stream
-                }
-            }
-            p.waitFor(400, TimeUnit.MILLISECONDS);
+            p.waitFor(100, TimeUnit.MILLISECONDS);
             return sb.toString();
         } catch (Exception e) {
             return "";
