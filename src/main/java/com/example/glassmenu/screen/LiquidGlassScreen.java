@@ -1262,7 +1262,7 @@ public class LiquidGlassScreen extends Screen {
             }
         }
 
-        if (currentTab == Tab.GENERAL || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.BRIDGE) renderGeneralTab(context, x, y, mouseX, mouseY, delta);
+        if (currentTab == Tab.GENERAL || currentTab == Tab.BRIDGE) renderGeneralTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.COMBAT) renderCombatTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.MOVEMENT) renderMovementTab(context, x, y, mouseX, mouseY, delta, currentW, currentH);
         else if (currentTab == Tab.VISUALS) renderVisualsTab(context, x, y, mouseX, mouseY, delta, currentW, currentH);
