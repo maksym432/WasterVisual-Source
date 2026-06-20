@@ -250,4 +250,5 @@ public class GlassMenuConfigModel {
     public int crosshairRadarColor = 0xFF00FF00; // Default green
     public boolean crosshairRadarRgb = false;
     public float crosshairRadarRadius = 60.0f;
+    public float crosshairRadarIconSize = 6.0f;
 }

@@ -3761,6 +3761,13 @@ public class LiquidGlassScreen extends Screen {
             GlassMenuClient.CONFIG.crosshairRadarRadius(rad); GlassMenuClient.CONFIG.save();
         });
         visualsRadarWidgets.add(radiusSlider);
+        
+        LiquidGlassSlider sizeSlider = new LiquidGlassSlider((int)x + 195, (int)y + 235, 140, 16, (GlassMenuClient.CONFIG.crosshairRadarIconSize() - 2f) / 18f);
+        sizeSlider.setOnValueChange(v -> {
+            float size = 2f + (float)(double)v * 18f;
+            GlassMenuClient.CONFIG.crosshairRadarIconSize(size); GlassMenuClient.CONFIG.save();
+        });
+        visualsRadarWidgets.add(sizeSlider);
     }
 
     private void renderVisualsRadarTab(DrawContext context, float x, float y, int mouseX, int mouseY, float delta) {
@@ -3788,8 +3795,11 @@ public class LiquidGlassScreen extends Screen {
             radarSliderB.render(context, mouseX, mouseY, delta);
         }
         
-        context.drawTextWithShadow(textRenderer, "Radius", (int)x + 180, (int)y + 209, 0xFFFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Radius"), (int)x + 130, (int)y + 209, 0xFFFFFFFF);
         visualsRadarWidgets.get(7).render(context, mouseX, mouseY, delta); // Radius slider
+        
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Icon Size"), (int)x + 130, (int)y + 239, 0xFFFFFFFF);
+        visualsRadarWidgets.get(8).render(context, mouseX, mouseY, delta); // Icon size slider
         visualsRadarWidgets.get(0).render(context, mouseX, mouseY, delta); // Back Button
         visualsRadarWidgets.get(1).render(context, mouseX, mouseY, delta); // Toggle 1
         visualsRadarWidgets.get(2).render(context, mouseX, mouseY, delta); // Toggle 2
