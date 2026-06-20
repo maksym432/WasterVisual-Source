@@ -28,6 +28,13 @@ public class GlassMenuConfigModel {
 
     public int capsuleColor = 0xEE1C1C1E;
 
+    
+    public MenuLanguage menuLanguage = MenuLanguage.AUTO;
+
+    public enum MenuLanguage {
+        AUTO, ENGLISH, RUSSIAN
+    }
+
     public boolean enableDynamicIsland = true;
 
     public boolean transparentIsland = false;
@@ -222,5 +229,19 @@ public class GlassMenuConfigModel {
 
     // Custom Nametags
     public boolean enableCustomNametags = true;
-    public int customNametagColor = 0xFFFFFF;
+    public int customNametagColor = 0xFFFFFFFF;
+
+    // Fall Prediction
+    public boolean enableFallPrediction = false;
+    public int fallPredictionColor = 0x8800BFFF;
+
+    // --- ATTACK RANGE ---
+    public boolean enableAttackRange = false;
+    public int attackRangeColor = 0xFF00BFFF; // Default Cyan
+    public AttackRangeMode attackRangeMode = AttackRangeMode.GLOW_OUTLINE;
+    public boolean attackRangeGear = false;
+
+    public enum AttackRangeMode {
+        SOLID_OUTLINE, GLOW_OUTLINE, FILLED
+    }
 }

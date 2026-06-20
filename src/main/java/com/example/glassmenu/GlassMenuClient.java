@@ -68,6 +68,12 @@ public class GlassMenuClient implements ClientModInitializer {
 
             // Ghost Trail / Afterimage (Rendering)
             com.example.glassmenu.render.GhostTrailManager.render(context);
+
+            // Fall Prediction ESP (Rendering)
+            com.example.glassmenu.render.FallPredictionRenderer.render(context);
+
+            // Attack Range ESP (Rendering)
+            com.example.glassmenu.render.AttackRangeRenderer.render(context);
         });
 
         // Cancel vanilla outline if Vortex is enabled

@@ -18,6 +18,7 @@
 package com.example.glassmenu.screen;
 
 import com.example.glassmenu.GlassMenuClient;
+import com.example.glassmenu.util.MenuTranslator;
 import com.example.glassmenu.GlassMenuConfigModel;
 import com.example.glassmenu.render.HandParticleRenderer;
 import com.example.glassmenu.render.RenderUtils;
@@ -48,7 +49,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassEffectView effectView;
     private LiquidLensView lensView;
     
-    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_GLASS_HOTBAR, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, VISUALS_ISLAND, VISUALS_HIT, VISUALS_GHOST, VISUALS_STRETCH, VISUALS_COLOR, VISUALS_CROSSHAIR, VISUALS_NAMETAGS, POSITION, BRIDGE }
+    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_GLASS_HOTBAR, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, VISUALS_ISLAND, VISUALS_HIT, VISUALS_GHOST, VISUALS_FALL, VISUALS_STRETCH, VISUALS_COLOR, VISUALS_CROSSHAIR, VISUALS_NAMETAGS, VISUALS_ATTACK_RANGE, POSITION, BRIDGE }
     private Tab currentTab = Tab.GENERAL;
     
     private final List<ClickableWidget> generalWidgets = new ArrayList<>();
@@ -69,10 +70,12 @@ public class LiquidGlassScreen extends Screen {
     private final List<ClickableWidget> visualsIslandWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsHitWidgets  = new ArrayList<>();
     private final List<ClickableWidget> visualsGhostWidgets = new ArrayList<>();
+    private final List<ClickableWidget> visualsFallWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsStretchWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsColorWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsCrosshairWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsNametagsWidgets = new ArrayList<>();
+    private final List<ClickableWidget> visualsAttackRangeWidgets = new ArrayList<>();
     private final List<ClickableWidget> positionWidgets = new ArrayList<>();
     private final List<ClickableWidget> bridgeWidgets = new ArrayList<>();
 
@@ -82,8 +85,8 @@ public class LiquidGlassScreen extends Screen {
     private static final float PANEL_H_NORMAL = 220f;
     private static final float PANEL_H_EXPANDED = 280f;
 
-    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
-    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
+    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
+    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
 
     // State
     private TextFieldWidget hexInput, rgbInput, visHexInput, visRgbInput, invHexInput, invRgbInput, bridgeHexInput, bridgeRgbInput, hitHexInput, hitRgbInput, ghostHexInput, ghostRgbInput;
@@ -108,7 +111,7 @@ public class LiquidGlassScreen extends Screen {
     private long lastAnimTime;
 
     public LiquidGlassScreen() {
-        super(Text.literal("WasterVisual"));
+        super(Text.literal(MenuTranslator.tr("WasterVisual")));
         this.effectView = new LiquidGlassEffectView();
         this.lastAnimTime = System.currentTimeMillis();
         for (int i = 0; i < tabHoverProgress.length; i++) tabHoverProgress[i] = 0f;
@@ -121,8 +124,8 @@ public class LiquidGlassScreen extends Screen {
         } else {
             this.effectView.disableBlur();
         }
-        panelWidthProgress = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
-        panelHeightProgress = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        panelWidthProgress = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        panelHeightProgress = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
         contentAlpha = 1.0f;
 
         float x = (this.width - getPanelW()) / 2f;
@@ -130,7 +133,7 @@ public class LiquidGlassScreen extends Screen {
         this.lensView = new LiquidLensView(x, y, getPanelW(), getPanelH());
 
         // 1. Initialize Lists once per screen init (resize/open)
-        generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsGlassHotbarWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); visualsLeftHandItemWidgets.clear(); visualsIslandWidgets.clear(); visualsHitWidgets.clear(); visualsGhostWidgets.clear(); visualsStretchWidgets.clear(); visualsColorWidgets.clear(); visualsCrosshairWidgets.clear(); visualsNametagsWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
+        generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsGlassHotbarWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); visualsLeftHandItemWidgets.clear(); visualsIslandWidgets.clear(); visualsHitWidgets.clear(); visualsGhostWidgets.clear(); visualsFallWidgets.clear(); visualsStretchWidgets.clear(); visualsColorWidgets.clear(); visualsCrosshairWidgets.clear(); visualsNametagsWidgets.clear(); visualsAttackRangeWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
         
         initGeneralTab(x, y);
         initCombatTab(x, y);
@@ -150,10 +153,12 @@ public class LiquidGlassScreen extends Screen {
         initVisualsIslandTab(x, y);
         initVisualsHitTab(x, y);
         initVisualsGhostTab(x, y);
+        initVisualsFallTab(x, y);
         initVisualsStretchTab(x, y);
         initVisualsColorTab(x, y);
         initVisualsCrosshairTab(x, y);
         initVisualsNametagsTab(x, y);
+        initVisualsAttackRangeTab(x, y);
         initPositionTab();
         initBridgeTab(x, y);
 
@@ -161,7 +166,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initBridgeTab(float x, float y) {
-        LiquidGlassButton exitBtn = new LiquidGlassButton((int)x + 230, (int)y + 50, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton exitBtn = new LiquidGlassButton((int)x + 230, (int)y + 50, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.GENERAL; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         bridgeWidgets.add(exitBtn);
@@ -257,49 +262,53 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsTab(float x, float y) {
-        LiquidGlassButton jumpEffectsBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Jump Effects"), b -> {
+        LiquidGlassButton jumpEffectsBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Jump Effects")), b -> {
             currentTab = Tab.VISUALS_JUMP; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton invHudBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Inventory HUD"), b -> {
+        LiquidGlassButton invHudBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Inventory HUD")), b -> {
             currentTab = Tab.VISUALS_INV_HUD; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton playerCardBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Player Card"), b -> {
+        LiquidGlassButton playerCardBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Player Card")), b -> {
             currentTab = Tab.VISUALS_PLAYER_CARD; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton bedwarsBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("BedWars ESP"), b -> {
+        LiquidGlassButton bedwarsBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("BedWars ESP")), b -> {
             currentTab = Tab.VISUALS_BEDWARS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton indicatorBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("User Indicator"), b -> {
+        LiquidGlassButton indicatorBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("User Indicator")), b -> {
             currentTab = Tab.VISUALS_INDICATOR; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton armorHudBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Armor HUD"), b -> {
+        LiquidGlassButton armorHudBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Armor HUD")), b -> {
             currentTab = Tab.VISUALS_ARMOR_HUD; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton fastItemBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Circle Hotbar"), b -> {
+        LiquidGlassButton fastItemBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Circle Hotbar")), b -> {
             currentTab = Tab.VISUALS_FAST_ITEM; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton userHudBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("User HUD"), b -> {
+        LiquidGlassButton userHudBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("User HUD")), b -> {
             currentTab = Tab.VISUALS_USER_HUD; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton effectsBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Potion Effects"), b -> {
+        LiquidGlassButton effectsBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Potion Effects")), b -> {
             currentTab = Tab.VISUALS_EFFECTS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton leftHandItemBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Left Hand Item"), b -> {
+        LiquidGlassButton leftHandItemBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Left Hand Item")), b -> {
             currentTab = Tab.VISUALS_LEFT_HAND_ITEM; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton islandBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Dynamic Island"), b -> {
+        LiquidGlassButton islandBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Dynamic Island")), b -> {
             currentTab = Tab.VISUALS_ISLAND; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton hitBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Hit Effects"), b -> {
+        LiquidGlassButton hitBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Hit Effects")), b -> {
             currentTab = Tab.VISUALS_HIT; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton positionBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Position Editor"), b -> {
+        LiquidGlassButton positionBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Position Editor")), b -> {
             currentTab = Tab.POSITION; contentAlpha = 0.0f; updateVisibleWidgets();
         });
-        LiquidGlassButton glassHotbarBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Better Inv HUD"), b -> {
+        LiquidGlassButton glassHotbarBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Better Inv HUD")), b -> {
             currentTab = Tab.VISUALS_GLASS_HOTBAR; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         // Left Column: HUD & Overlays
+        LiquidGlassButton fallBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Drop Predictor")), b -> {
+            currentTab = Tab.VISUALS_FALL; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+
         visualsWidgets.add(effectsBtn);
         visualsWidgets.add(armorHudBtn);
         visualsWidgets.add(userHudBtn);
@@ -307,22 +316,27 @@ public class LiquidGlassScreen extends Screen {
         visualsWidgets.add(leftHandItemBtn);
         visualsWidgets.add(invHudBtn);
         visualsWidgets.add(glassHotbarBtn);
-        LiquidGlassButton stretchBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Stretch"), b -> {
+        LiquidGlassButton stretchBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Stretch")), b -> {
             currentTab = Tab.VISUALS_STRETCH; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsWidgets.add(stretchBtn);
-        LiquidGlassButton colorBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Color Grading"), b -> {
+        LiquidGlassButton colorBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Color Grading")), b -> {
             currentTab = Tab.VISUALS_COLOR; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsWidgets.add(colorBtn);
-        LiquidGlassButton crosshairBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Custom Crosshair"), b -> {
+        LiquidGlassButton crosshairBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Custom Crosshair")), b -> {
             currentTab = Tab.VISUALS_CROSSHAIR; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsWidgets.add(crosshairBtn);
-        LiquidGlassButton nametagsBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Custom Nametags"), b -> {
+        LiquidGlassButton nametagsBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Custom Nametags")), b -> {
             currentTab = Tab.VISUALS_NAMETAGS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsWidgets.add(nametagsBtn);
+
+        LiquidGlassButton attackRangeBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Attack Range ESP")), b -> {
+            currentTab = Tab.VISUALS_ATTACK_RANGE; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsWidgets.add(attackRangeBtn);
 
         // Right Column: World & Interaction
         visualsWidgets.add(jumpEffectsBtn);
@@ -331,15 +345,16 @@ public class LiquidGlassScreen extends Screen {
         visualsWidgets.add(playerCardBtn);
         visualsWidgets.add(islandBtn);
         visualsWidgets.add(hitBtn);
-        LiquidGlassButton ghostBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal("Afterimage"), b -> {
+        LiquidGlassButton ghostBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Afterimage")), b -> {
             currentTab = Tab.VISUALS_GHOST; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsWidgets.add(ghostBtn);
+        visualsWidgets.add(fallBtn);
         visualsWidgets.add(positionBtn);
     }
 
     private void initVisualsJumpTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsJumpWidgets.add(backBtn);
@@ -433,7 +448,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsInvHudTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsInvHudWidgets.add(backBtn);
@@ -476,7 +491,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsPlayerCardTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsPlayerCardWidgets.add(backBtn);
@@ -519,7 +534,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsBedWarsTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 223, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 223, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsBedWarsWidgets.add(backBtn);
@@ -556,7 +571,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsIndicatorTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsIndicatorWidgets.add(backBtn);
@@ -599,7 +614,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsArmorHudTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsArmorHudWidgets.add(backBtn);
@@ -655,7 +670,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsFastItemTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsFastItemWidgets.add(backBtn);
@@ -711,7 +726,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsGlassHotbarTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 220, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 220, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsGlassHotbarWidgets.add(backBtn);
@@ -791,7 +806,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsUserHudTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsUserHudWidgets.add(backBtn);
@@ -834,7 +849,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsEffectsTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsEffectsWidgets.add(backBtn);
@@ -890,7 +905,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initPositionTab() {
-        LiquidGlassButton posBackBtn = new LiquidGlassButton((this.width - 100) / 2, this.height - 40, 100, 22, Text.literal("Save & Back"), b -> {
+        LiquidGlassButton posBackBtn = new LiquidGlassButton((this.width - 100) / 2, this.height - 40, 100, 22, Text.literal(MenuTranslator.tr("Save & Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         positionWidgets.add(posBackBtn);
@@ -909,7 +924,7 @@ public class LiquidGlassScreen extends Screen {
         }
 
         // Add Bridge button on the right
-        LiquidGlassButton bridgeBtn = new LiquidGlassButton((int)x + 280, (int)y + 60, 80, 22, Text.literal("Bridge"), b -> {
+        LiquidGlassButton bridgeBtn = new LiquidGlassButton((int)x + 280, (int)y + 60, 80, 22, Text.literal(MenuTranslator.tr("Bridge")), b -> {
             currentTab = Tab.BRIDGE; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         generalWidgets.add(bridgeBtn);
@@ -938,6 +953,21 @@ public class LiquidGlassScreen extends Screen {
             }
         });
         generalWidgets.add(menuGlassBtn);
+
+        // Language Toggle
+        String langText = "Language / Язык: " + GlassMenuClient.CONFIG.menuLanguage().name();
+        LiquidGlassButton langBtn = new LiquidGlassButton((int)x + 280, (int)y + 150, 150, 22, Text.literal(langText), b -> {
+            com.example.glassmenu.GlassMenuConfigModel.MenuLanguage currentLang = GlassMenuClient.CONFIG.menuLanguage();
+            com.example.glassmenu.GlassMenuConfigModel.MenuLanguage nextLang;
+            if (currentLang == com.example.glassmenu.GlassMenuConfigModel.MenuLanguage.AUTO) nextLang = com.example.glassmenu.GlassMenuConfigModel.MenuLanguage.ENGLISH;
+            else if (currentLang == com.example.glassmenu.GlassMenuConfigModel.MenuLanguage.ENGLISH) nextLang = com.example.glassmenu.GlassMenuConfigModel.MenuLanguage.RUSSIAN;
+            else nextLang = com.example.glassmenu.GlassMenuConfigModel.MenuLanguage.AUTO;
+            
+            GlassMenuClient.CONFIG.menuLanguage(nextLang);
+            GlassMenuClient.CONFIG.save();
+            b.setMessage(Text.literal("Language / Язык: " + nextLang.name()));
+        });
+        generalWidgets.add(langBtn);
     }
 
     private void initCombatTab(float x, float y) {
@@ -1104,10 +1134,12 @@ public class LiquidGlassScreen extends Screen {
                 case VISUALS_ISLAND -> visualsIslandWidgets;
                 case VISUALS_HIT   -> visualsHitWidgets;
                 case VISUALS_GHOST -> visualsGhostWidgets;
+                case VISUALS_FALL -> visualsFallWidgets;
                 case VISUALS_STRETCH -> visualsStretchWidgets;
                 case VISUALS_COLOR -> visualsColorWidgets;
                 case VISUALS_CROSSHAIR -> visualsCrosshairWidgets;
                 case VISUALS_NAMETAGS -> visualsNametagsWidgets;
+                case VISUALS_ATTACK_RANGE -> visualsAttackRangeWidgets;
                 case POSITION -> positionWidgets;
                 case MOVEMENT -> movementWidgets; case BRIDGE -> bridgeWidgets;
             };
@@ -1136,8 +1168,8 @@ public class LiquidGlassScreen extends Screen {
         if (dt < 0f) dt = 0f;
         dt = Math.min(dt, 0.1f);
         
-        float targetW = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
-        float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        float targetW = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
         float targetXOff = (currentTab == Tab.COMBAT) ? 40f : 0f;
 
         panelWidthProgress = MathHelper.lerp(MathHelper.clamp(dt * 10.0f, 0f, 1f), panelWidthProgress, targetW);
@@ -1168,7 +1200,7 @@ public class LiquidGlassScreen extends Screen {
                 
                 boolean isActive = (topTabs[i] == currentTab) 
                     || (topTabs[i] == Tab.GENERAL && currentTab == Tab.BRIDGE)
-                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.POSITION));
+                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.POSITION));
                 
                 float swell = 1.0f + tabHoverProgress[i] * 0.04f; // Subtle scale swell on hover
 
@@ -1222,14 +1254,14 @@ public class LiquidGlassScreen extends Screen {
                 if (GlassMenuClient.CONFIG.glassEffect()) {
                     context.drawCenteredTextWithShadow(textRenderer, topTabs[i].name(), (int)(boxX + boxW / 2f), (int)(boxY + (boxH - 8) / 2f), textColor);
                 } else {
-                    context.drawText(textRenderer, topTabs[i].name(), (int)(boxX + (boxW - textRenderer.getWidth(topTabs[i].name())) / 2f), (int)(boxY + (boxH - 8) / 2f), textColor, false);
+                    context.drawText(textRenderer, MenuTranslator.tr(topTabs[i].name()), (int)(boxX + (boxW - textRenderer.getWidth(MenuTranslator.tr(topTabs[i].name()))) / 2f), (int)(boxY + (boxH - 8) / 2f), textColor, false);
                 }
 
                 context.getMatrices().pop();
             }
         }
 
-        if (currentTab == Tab.GENERAL || currentTab == Tab.BRIDGE) renderGeneralTab(context, x, y, mouseX, mouseY, delta);
+        if (currentTab == Tab.GENERAL || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.BRIDGE) renderGeneralTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.COMBAT) renderCombatTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.MOVEMENT) renderMovementTab(context, x, y, mouseX, mouseY, delta, currentW, currentH);
         else if (currentTab == Tab.VISUALS) renderVisualsTab(context, x, y, mouseX, mouseY, delta, currentW, currentH);
@@ -1247,10 +1279,12 @@ public class LiquidGlassScreen extends Screen {
         else if (currentTab == Tab.VISUALS_ISLAND) renderVisualsIslandTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_HIT)   renderVisualsHitTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_GHOST)  renderVisualsGhostTab(context, x, y, mouseX, mouseY, delta);
+        else if (currentTab == Tab.VISUALS_FALL)   renderVisualsFallTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_STRETCH) renderVisualsStretchTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_COLOR) renderVisualsColorTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_CROSSHAIR) renderVisualsCrosshairTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.VISUALS_NAMETAGS) renderVisualsNametagsTab(context, x, y, mouseX, mouseY, delta);
+        else if (currentTab == Tab.VISUALS_ATTACK_RANGE) renderVisualsAttackRangeTab(context, x, y, mouseX, mouseY, delta);
         else if (currentTab == Tab.POSITION) renderPositionTab(context, mouseX, mouseY, delta);
 
         super.render(context, mouseX, mouseY, delta);
@@ -1260,7 +1294,7 @@ public class LiquidGlassScreen extends Screen {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
 
-        context.drawTextWithShadow(textRenderer, "Visuals Settings", x + 30, y + 25 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Visuals Settings"), x + 30, y + 25 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         double sc = MinecraftClient.getInstance().getWindow().getScaleFactor();
         // Clip exactly between the top separator line (y + 25) and bottom separator line (y + currentH - 25)
@@ -1275,8 +1309,8 @@ public class LiquidGlassScreen extends Screen {
         int startY = y + 70 - (int)scrollY - (int)slideOffset;
 
         // Draw Column Headers
-        context.drawTextWithShadow(textRenderer, "HUD & OVERLAYS", startX + 5, y + 54 - (int)scrollY - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "WORLD & RENDER", startX + colW + colGap + 5, y + 54 - (int)scrollY - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("HUD & OVERLAYS"), startX + 5, y + 54 - (int)scrollY - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("WORLD & RENDER"), startX + colW + colGap + 5, y + 54 - (int)scrollY - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (int i = 0; i < visualsWidgets.size(); i++) {
             ClickableWidget w = visualsWidgets.get(i);
@@ -1311,11 +1345,11 @@ public class LiquidGlassScreen extends Screen {
     private void renderVisualsBedWarsTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
-        context.drawTextWithShadow(textRenderer, "BedWars ESP Settings", x + 30, y + 45 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("BedWars ESP Settings"), x + 30, y + 45 - (int)slideOffset, colorAlpha | 0xFFFFFF);
         
-        context.drawTextWithShadow(textRenderer, "Enable ESP (Hitbox/Alert)", x + 40, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Show Teammate Hearts", x + 40, y + 120 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Enable Nametags through walls", x + 40, y + 160 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable ESP (Hitbox/Alert)"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Show Teammate Hearts"), x + 40, y + 120 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable Nametags through walls"), x + 40, y + 160 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (ClickableWidget w : visualsBedWarsWidgets) {
             w.setAlpha(contentAlpha);
@@ -1336,8 +1370,8 @@ public class LiquidGlassScreen extends Screen {
     private void renderVisualsJumpTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
-        context.drawTextWithShadow(textRenderer, "Jump Pulse Rings", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
-        context.drawTextWithShadow(textRenderer, "Mode", x + 40, y + 110 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Jump Pulse Rings"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Mode"), x + 40, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         int btnIdx = 0;
         for (ClickableWidget w : visualsJumpWidgets) {
@@ -1366,9 +1400,9 @@ public class LiquidGlassScreen extends Screen {
         }
 
         drawInputBox(context, x + 35, y + 35 - (int)slideOffset, 70, 18); drawInputBox(context, x + 35, y + 60 - (int)slideOffset, 110, 18);
-        context.drawTextWithShadow(textRenderer, "Red", x + 230, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Blue", x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"), x + 230, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"), x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
     }
 
     private void renderVisualsInvHudTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
@@ -1376,7 +1410,7 @@ public class LiquidGlassScreen extends Screen {
         float slideOffset = (1.0f - contentAlpha) * 12f;
         boolean isTransparent = GlassMenuClient.CONFIG.transparentBackground();
 
-        context.drawTextWithShadow(textRenderer, "Inventory HUD", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Inventory HUD"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsInvHudWidgets) {
             w.setAlpha(contentAlpha);
@@ -1395,9 +1429,9 @@ public class LiquidGlassScreen extends Screen {
         }
 
         if (!isTransparent) {
-            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
     }
 
@@ -1405,8 +1439,8 @@ public class LiquidGlassScreen extends Screen {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
         boolean isTransparent = GlassMenuClient.CONFIG.transparentPlayerCard();
-        context.drawTextWithShadow(textRenderer, "Player Card", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
-        context.drawTextWithShadow(textRenderer, "Enable Card", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Player Card"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable Card"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (ClickableWidget w : visualsPlayerCardWidgets) {
             w.setAlpha(contentAlpha);
@@ -1425,9 +1459,9 @@ public class LiquidGlassScreen extends Screen {
         }
 
         if (!isTransparent) {
-            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
     }
 
@@ -1435,8 +1469,8 @@ public class LiquidGlassScreen extends Screen {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
         boolean isTransparent = GlassMenuClient.CONFIG.transparentUserIndicator();
-        context.drawTextWithShadow(textRenderer, "User Indicator", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
-        context.drawTextWithShadow(textRenderer, "Enable Indicator", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("User Indicator"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable Indicator"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (ClickableWidget w : visualsIndicatorWidgets) {
             w.setAlpha(contentAlpha);
@@ -1455,9 +1489,9 @@ public class LiquidGlassScreen extends Screen {
         }
 
         if (!isTransparent) {
-            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
     }
 
@@ -1465,8 +1499,8 @@ public class LiquidGlassScreen extends Screen {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
         boolean isTransparent = GlassMenuClient.CONFIG.transparentArmorHud();
-        context.drawTextWithShadow(textRenderer, "Armor HUD", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
-        context.drawTextWithShadow(textRenderer, "Enable Armor HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Armor HUD"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable Armor HUD"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (ClickableWidget w : visualsArmorHudWidgets) {
             w.setAlpha(contentAlpha);
@@ -1487,9 +1521,9 @@ public class LiquidGlassScreen extends Screen {
         }
 
         if (!isTransparent) {
-            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 80  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
     }
 
@@ -1500,10 +1534,10 @@ public class LiquidGlassScreen extends Screen {
         boolean isTransparent = GlassMenuClient.CONFIG.transparentFastItem();
 
         // Left column: labels + buttons
-        context.drawTextWithShadow(textRenderer, "Circle Hotbar", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Circle Hotbar"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         // Right column title
-        context.drawTextWithShadow(textRenderer, "Circle Hotbar", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Circle Hotbar"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsFastItemWidgets) {
             w.setAlpha(contentAlpha);
@@ -1526,9 +1560,9 @@ public class LiquidGlassScreen extends Screen {
         }
 
         if (isEnabled && !isTransparent) {
-            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
     }
 
@@ -1538,8 +1572,8 @@ public class LiquidGlassScreen extends Screen {
         boolean isEnabled = GlassMenuClient.CONFIG.glassHotbar();
         boolean isTransparent = GlassMenuClient.CONFIG.glassHotbarTransparent();
 
-        context.drawTextWithShadow(textRenderer, "Better Inv HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Better Inv HUD", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Better Inv HUD"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Better Inv HUD"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsGlassHotbarWidgets) {
             w.setAlpha(contentAlpha);
@@ -1568,9 +1602,9 @@ public class LiquidGlassScreen extends Screen {
         }
 
         if (isEnabled && !isTransparent) {
-            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
     }
 
@@ -1580,10 +1614,10 @@ public class LiquidGlassScreen extends Screen {
         boolean isTransparent = GlassMenuClient.CONFIG.transparentUserHud();
 
         // Left column: labels + buttons
-        context.drawTextWithShadow(textRenderer, "Enable User HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable User HUD"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         // Right column title
-        context.drawTextWithShadow(textRenderer, "User HUD Color", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("User HUD Color"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsUserHudWidgets) {
             w.setAlpha(contentAlpha);
@@ -1603,9 +1637,9 @@ public class LiquidGlassScreen extends Screen {
         }
 
         if (!isTransparent) {
-            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
     }
 
@@ -1615,10 +1649,10 @@ public class LiquidGlassScreen extends Screen {
         boolean isTransparent = GlassMenuClient.CONFIG.transparentEffectsHud();
 
         // Left column: labels + buttons
-        context.drawTextWithShadow(textRenderer, "Enable Effects HUD", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable Effects HUD"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         // Right column title
-        context.drawTextWithShadow(textRenderer, "Effects HUD Color", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Effects HUD Color"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsEffectsWidgets) {
             w.setAlpha(contentAlpha);
@@ -1640,14 +1674,14 @@ public class LiquidGlassScreen extends Screen {
         }
 
         if (!isTransparent) {
-            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
     }
 
     private void initVisualsLeftHandItemTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsLeftHandItemWidgets.add(backBtn);
@@ -1694,8 +1728,8 @@ public class LiquidGlassScreen extends Screen {
         float slideOffset = (1.0f - contentAlpha) * 12f;
         boolean isTransparent = GlassMenuClient.CONFIG.transparentLeftHandItem();
 
-        context.drawTextWithShadow(textRenderer, "Left Hand Item", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Overlay Color", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Left Hand Item"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Overlay Color"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         for (ClickableWidget w : visualsLeftHandItemWidgets) {
             w.setAlpha(contentAlpha);
@@ -1714,9 +1748,9 @@ public class LiquidGlassScreen extends Screen {
         }
 
         if (!isTransparent) {
-            context.drawTextWithShadow(textRenderer, "Red",   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue",  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
 
         // Draw a live HUD preview on the left side under the button
@@ -2025,7 +2059,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void renderPositionTab(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.drawCenteredTextWithShadow(textRenderer, "DRAG ELEMENTS TO POSITION / EDGES TO RESIZE", this.width / 2, 20, 0xFFFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, MenuTranslator.tr("DRAG ELEMENTS TO POSITION / EDGES TO RESIZE"), this.width / 2, 20, 0xFFFFFFFF);
 
         // 1. Dynamic Island
         int islandW = GlassMenuClient.CONFIG.capsuleWidth();
@@ -2034,7 +2068,7 @@ public class LiquidGlassScreen extends Screen {
         int islandY = GlassMenuClient.CONFIG.islandY();
         RenderUtils.drawSdfRoundedRect(context.getMatrices(), islandX, islandY, islandW, islandH, 8f, 0xEE1C1C1E, 0);
         context.draw(); // Flush
-        context.drawCenteredTextWithShadow(textRenderer, "Dynamic Island", islandX + islandW / 2, islandY + (islandH - 8) / 2, 0xFFFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, MenuTranslator.tr("Dynamic Island"), islandX + islandW / 2, islandY + (islandH - 8) / 2, 0xFFFFFFFF);
         
         boolean islandHovered = mouseX >= islandX && mouseX <= islandX + islandW && mouseY >= islandY && mouseY <= islandY + islandH;
         if (islandHovered || selectedObject == PositionObject.ISLAND) {
@@ -2513,7 +2547,7 @@ public class LiquidGlassScreen extends Screen {
         float slideOffset = (1.0f - contentAlpha) * 12f;
         
         if (currentTab == Tab.GENERAL) {
-            context.drawTextWithShadow(textRenderer, "Item Effects", x + 30, y + 45 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Item Effects"), x + 30, y + 45 - (int)slideOffset, colorAlpha | 0xFFFFFF);
             int leftBtnIndex = 0;
             for (int i = 0; i < generalWidgets.size(); i++) {
                 ClickableWidget w = generalWidgets.get(i);
@@ -2531,7 +2565,7 @@ public class LiquidGlassScreen extends Screen {
             }
             drawItemPreview(context, x + 225, y + 140 - (int)slideOffset, 60);
         } else if (currentTab == Tab.BRIDGE) {
-            context.drawTextWithShadow(textRenderer, "Bridge Box", x + 30, y + 45 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Bridge Box"), x + 30, y + 45 - (int)slideOffset, colorAlpha | 0xFFFFFF);
             for (ClickableWidget w : bridgeWidgets) {
                 w.setAlpha(contentAlpha);
                 if (w == bridgeSliderR) { w.setX(x + 30); w.setY((int)y + 90 - (int)slideOffset); }
@@ -2556,12 +2590,12 @@ public class LiquidGlassScreen extends Screen {
             drawInputBox(context, x + 230, y + 127 - (int)slideOffset, 110, 18);
             
             // Hex and RGB labels
-            context.drawTextWithShadow(textRenderer, "Hex", x + 230, y + 85 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "RGB", x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Hex"), x + 230, y + 85 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("RGB"), x + 230, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
-            context.drawTextWithShadow(textRenderer, "Red", x + 180, y + 95 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 180, y + 130 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue", x + 180, y + 165 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"), x + 180, y + 95 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 180, y + 130 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"), x + 180, y + 165 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
     }
 
@@ -2612,12 +2646,12 @@ public class LiquidGlassScreen extends Screen {
         // Preview Background Fill
         RenderUtils.drawSdfRoundedRect(context.getMatrices(), subX, subY, subW, subH, 15, 0x2C1C1C24, 0);
         RenderUtils.drawLine(context.getMatrices(), subX + 15, subY + 20, subX + subW - 15, subY + 20, 0.8f, 0x33FFFFFF);
-        context.drawTextWithShadow(textRenderer, "PREVIEW", (int)(subX + 45), (int)(subY + 8), colorAlpha | 0x88FFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("PREVIEW"), (int)(subX + 45), (int)(subY + 8), colorAlpha | 0x88FFFFFF);
 
         drawPlayerPreview(context, (int)(subX + subW/2), (int)(subY + subH - 35), 55, mouseX, mouseY);
         // ----------------------------
 
-        context.drawTextWithShadow(textRenderer, "Target ESP", x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Target ESP"), x + 230, y + 50 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         
         for (ClickableWidget w : combatWidgets) {
@@ -2640,15 +2674,15 @@ public class LiquidGlassScreen extends Screen {
         }
 
         drawInputBox(context, x + 25, y + 35 - (int)slideOffset, 70, 18); drawInputBox(context, x + 25, y + 60 - (int)slideOffset, 110, 18);
-        context.drawTextWithShadow(textRenderer, "Red", x + 110, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Green", x + 110, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Blue", x + 110, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"), x + 110, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 110, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"), x + 110, y + 150 - (int)slideOffset, colorAlpha | 0xAAAAAA);
     }
 
     private void renderMovementTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta, int currentW, int currentH) {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
-        context.drawTextWithShadow(textRenderer, "Hand Customization", x + 30, y + 40 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Hand Customization"), x + 30, y + 40 - (int)slideOffset, colorAlpha | 0xFFFFFF);
         
         double sc = MinecraftClient.getInstance().getWindow().getScaleFactor();
         int scissorY = (int)((this.height - y - currentH + 25) * sc);
@@ -2689,9 +2723,9 @@ public class LiquidGlassScreen extends Screen {
                     context.drawTextWithShadow(textRenderer, labels[lIdx], x + 20, labelY, colorAlpha | 0xFFFFFF);
                     if (lIdx >= 2) {
                         // Position labels above sliders to avoid overlap with vertical slider Y
-                        context.drawTextWithShadow(textRenderer, "X", x + 117, yPos - 28, colorAlpha | 0x88FFFFFF);
-                        context.drawTextWithShadow(textRenderer, "Y", x + 167, yPos - 28, colorAlpha | 0x88FFFFFF);
-                        context.drawTextWithShadow(textRenderer, "Z", x + 217, yPos - 28, colorAlpha | 0x88FFFFFF);
+                        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("X"), x + 117, yPos - 28, colorAlpha | 0x88FFFFFF);
+                        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Y"), x + 167, yPos - 28, colorAlpha | 0x88FFFFFF);
+                        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Z"), x + 217, yPos - 28, colorAlpha | 0x88FFFFFF);
                     }
                 }
                 lIdx++;
@@ -3132,7 +3166,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsIslandTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 210, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsIslandWidgets.add(backBtn);
@@ -3157,7 +3191,7 @@ public class LiquidGlassScreen extends Screen {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
 
-        context.drawTextWithShadow(textRenderer, "Enable Dynamic Island", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable Dynamic Island"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         for (ClickableWidget w : visualsIslandWidgets) {
             w.setAlpha(contentAlpha);
@@ -3172,7 +3206,7 @@ public class LiquidGlassScreen extends Screen {
     }
 
     private void initVisualsHitTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 215, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 215, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsHitWidgets.add(backBtn);
@@ -3278,20 +3312,20 @@ public class LiquidGlassScreen extends Screen {
         int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
         float slideOffset = (1.0f - contentAlpha) * 12f;
 
-        context.drawTextWithShadow(textRenderer, "Hit Star Settings", x + 30, y + 25 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Hit Star Settings"), x + 30, y + 25 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
-        context.drawTextWithShadow(textRenderer, "Enable Custom Hit Stars", x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "RGB / Rainbow Effect", x + 40, y + 85 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable Custom Hit Stars"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("RGB / Rainbow Effect"), x + 40, y + 85 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         boolean showColorPicker = !GlassMenuClient.CONFIG.customHitRgb();
 
         if (showColorPicker) {
-            context.drawTextWithShadow(textRenderer, "HEX Color", x + 40, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "RGB Value", x + 40, y + 145 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("HEX Color"), x + 40, y + 115 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("RGB Value"), x + 40, y + 145 - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
-            context.drawTextWithShadow(textRenderer, "Red", x + 230, y + 105 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green", x + 230, y + 135 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue", x + 230, y + 165 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"), x + 230, y + 105 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 135 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"), x + 230, y + 165 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
 
         for (ClickableWidget w : visualsHitWidgets) {
@@ -3330,7 +3364,7 @@ public class LiquidGlassScreen extends Screen {
 
         // Count slider label (always visible)
         int countNow = GlassMenuClient.CONFIG.customHitCount();
-        context.drawTextWithShadow(textRenderer, "Stars", x + 230, y + 200 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Stars"), x + 230, y + 200 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         context.drawTextWithShadow(textRenderer, String.valueOf(countNow), x + 382, y + 200 - (int)slideOffset, colorAlpha | 0xFFFFFF);
     }
     // ─── STRETCH (Растяг) ──────────────────────────────────────────────
@@ -3338,7 +3372,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassSlider stretchVerticalSlider;
 
     private void initVisualsStretchTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 230, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 230, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsStretchWidgets.add(backBtn);
@@ -3364,7 +3398,7 @@ public class LiquidGlassScreen extends Screen {
         visualsStretchWidgets.add(stretchHorizontalSlider);
         visualsStretchWidgets.add(stretchVerticalSlider);
 
-        LiquidGlassButton resetBtn = new LiquidGlassButton((int)x + 230, (int)y + 110, 140, 22, Text.literal("Reset"), b -> {
+        LiquidGlassButton resetBtn = new LiquidGlassButton((int)x + 230, (int)y + 110, 140, 22, Text.literal(MenuTranslator.tr("Reset")), b -> {
             GlassMenuClient.CONFIG.stretchHorizontal(1.0f);
             GlassMenuClient.CONFIG.stretchVertical(1.0f);
             GlassMenuClient.CONFIG.save();
@@ -3382,7 +3416,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassSlider cgBlueSlider;
 
     private void initVisualsColorTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 250, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 250, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsColorWidgets.add(backBtn);
@@ -3418,7 +3452,7 @@ public class LiquidGlassScreen extends Screen {
         visualsColorWidgets.add(cgSatSlider); visualsColorWidgets.add(cgContSlider);
         visualsColorWidgets.add(cgRedSlider); visualsColorWidgets.add(cgGreenSlider); visualsColorWidgets.add(cgBlueSlider);
 
-        LiquidGlassButton resetBtn = new LiquidGlassButton((int)x + 230, (int)y + 190, 140, 22, Text.literal("Reset"), b -> {
+        LiquidGlassButton resetBtn = new LiquidGlassButton((int)x + 230, (int)y + 190, 140, 22, Text.literal(MenuTranslator.tr("Reset")), b -> {
             GlassMenuClient.CONFIG.cgSaturation(1.0f); GlassMenuClient.CONFIG.cgContrast(1.0f); GlassMenuClient.CONFIG.cgTint(0xFFFFFF);
             GlassMenuClient.CONFIG.save();
             cgSatSlider.setValue(1.0 / 3.0); cgContSlider.setValue(1.0 / 3.0);
@@ -3439,7 +3473,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassSlider rainbowSpeedSlider;
 
     private void initVisualsCrosshairTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 250, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 250, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsCrosshairWidgets.add(backBtn);
@@ -3490,7 +3524,7 @@ public class LiquidGlassScreen extends Screen {
         visualsCrosshairWidgets.add(chRedSlider); visualsCrosshairWidgets.add(chGreenSlider); visualsCrosshairWidgets.add(chBlueSlider);
         visualsCrosshairWidgets.add(rainbowToggle); visualsCrosshairWidgets.add(rainbowSpeedSlider);
 
-        LiquidGlassButton resetBtn = new LiquidGlassButton((int)x + 230, (int)y + 230, 140, 22, Text.literal("Reset"), b -> {
+        LiquidGlassButton resetBtn = new LiquidGlassButton((int)x + 230, (int)y + 230, 140, 22, Text.literal(MenuTranslator.tr("Reset")), b -> {
             GlassMenuClient.CONFIG.crosshairMode(0); GlassMenuClient.CONFIG.crosshairSize(1.0f); GlassMenuClient.CONFIG.crosshairThickness(1.5f); GlassMenuClient.CONFIG.crosshairGap(2.0f);
             GlassMenuClient.CONFIG.crosshairRainbow(false); GlassMenuClient.CONFIG.crosshairRainbowSpeed(1.0f);
             GlassMenuClient.CONFIG.crosshairColor(0xFF00FF00);
@@ -3506,7 +3540,7 @@ public class LiquidGlassScreen extends Screen {
     private TextFieldWidget nametagsRgbInput;
 
     private void initVisualsNametagsTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 240, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 240, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsNametagsWidgets.add(backBtn);
@@ -3521,9 +3555,9 @@ public class LiquidGlassScreen extends Screen {
         visualsNametagsWidgets.add(enableToggle);
 
         int currentColor = GlassMenuClient.CONFIG.customNametagColor();
-        LiquidGlassSlider rSlider = new LiquidGlassSlider((int)x + 50, (int)y + 90, 140, 16, ((currentColor >> 16) & 0xFF) / 255.0);
-        LiquidGlassSlider gSlider = new LiquidGlassSlider((int)x + 210, (int)y + 90, 140, 16, ((currentColor >> 8) & 0xFF) / 255.0);
-        LiquidGlassSlider bSlider = new LiquidGlassSlider((int)x + 130, (int)y + 120, 140, 16, (currentColor & 0xFF) / 255.0);
+        LiquidGlassSlider rSlider = new LiquidGlassSlider((int)x + 130, (int)y + 90, 140, 16, ((currentColor >> 16) & 0xFF) / 255.0);
+        LiquidGlassSlider gSlider = new LiquidGlassSlider((int)x + 130, (int)y + 120, 140, 16, ((currentColor >> 8) & 0xFF) / 255.0);
+        LiquidGlassSlider bSlider = new LiquidGlassSlider((int)x + 130, (int)y + 150, 140, 16, (currentColor & 0xFF) / 255.0);
 
         rSlider.setOnValueChange(val -> updateNametagColor(val.floatValue(), (float)gSlider.getValue(), (float)bSlider.getValue()));
         gSlider.setOnValueChange(val -> updateNametagColor((float)rSlider.getValue(), val.floatValue(), (float)bSlider.getValue()));
@@ -3531,7 +3565,7 @@ public class LiquidGlassScreen extends Screen {
 
         visualsNametagsWidgets.add(rSlider); visualsNametagsWidgets.add(gSlider); visualsNametagsWidgets.add(bSlider);
 
-        nametagsHexInput = createColorTextField((int)x + 130, (int)y + 160, 60);
+        nametagsHexInput = createColorTextField((int)x + 130, (int)y + 180, 60);
         nametagsHexInput.setText(String.format("#%06X", currentColor & 0xFFFFFF));
         nametagsHexInput.setChangedListener(text -> {
             try {
@@ -3550,7 +3584,7 @@ public class LiquidGlassScreen extends Screen {
             } catch (NumberFormatException ignored) {}
         });
         
-        nametagsRgbInput = createColorTextField((int)x + 200, (int)y + 160, 100);
+        nametagsRgbInput = createColorTextField((int)x + 200, (int)y + 180, 100);
         nametagsRgbInput.setText(String.format("%d, %d, %d", (currentColor >> 16) & 0xFF, (currentColor >> 8) & 0xFF, currentColor & 0xFF));
         nametagsRgbInput.setChangedListener(text -> {
             try {
@@ -3586,23 +3620,201 @@ public class LiquidGlassScreen extends Screen {
         }
     }
 
+    
+    private TextFieldWidget attackRangeHexInput, attackRangeRgbInput;
+    private LiquidGlassSlider attackRangeSliderR, attackRangeSliderG, attackRangeSliderB;
+
+    private void initVisualsAttackRangeTab(float x, float y) {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 223, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
+            currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsAttackRangeWidgets.add(backBtn);
+
+        LiquidGlassSwitch toggle = new LiquidGlassSwitch((int)x + 330, (int)y + 45, 40, 20, GlassMenuClient.CONFIG.enableAttackRange());
+        toggle.setOnToggle(enabled -> {
+            GlassMenuClient.CONFIG.enableAttackRange(enabled); GlassMenuClient.CONFIG.save();
+        });
+        visualsAttackRangeWidgets.add(toggle);
+
+        LiquidGlassSwitch gearToggle = new LiquidGlassSwitch((int)x + 330, (int)y + 75, 40, 20, GlassMenuClient.CONFIG.attackRangeGear());
+        gearToggle.setOnToggle(enabled -> {
+            GlassMenuClient.CONFIG.attackRangeGear(enabled); GlassMenuClient.CONFIG.save();
+        });
+        visualsAttackRangeWidgets.add(gearToggle);
+        
+        int currentColor = GlassMenuClient.CONFIG.attackRangeColor();
+        attackRangeSliderR = new LiquidGlassSlider((int)x + 230, (int)y + 110, 140, 16, ((currentColor >> 16) & 0xFF) / 255f);
+        attackRangeSliderG = new LiquidGlassSlider((int)x + 230, (int)y + 145, 140, 16, ((currentColor >> 8) & 0xFF) / 255f);
+        attackRangeSliderB = new LiquidGlassSlider((int)x + 230, (int)y + 180, 140, 16, (currentColor & 0xFF) / 255f);
+
+        Runnable updateColor = () -> {
+            if (isUpdating) return; isUpdating = true;
+            int r = (int)(attackRangeSliderR.getValue() * 255), g = (int)(attackRangeSliderG.getValue() * 255), b = (int)(attackRangeSliderB.getValue() * 255);
+            int color = 0xFF000000 | (r << 16) | (g << 8) | b;
+            GlassMenuClient.CONFIG.attackRangeColor(color); GlassMenuClient.CONFIG.save();
+            if (attackRangeHexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!attackRangeHexInput.getText().equals(s)) attackRangeHexInput.setText(s); }
+            if (attackRangeRgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!attackRangeRgbInput.getText().equals(s)) attackRangeRgbInput.setText(s); }
+            isUpdating = false;
+        };
+
+        attackRangeSliderR.setOnValueChange(v -> updateColor.run());
+        attackRangeSliderG.setOnValueChange(v -> updateColor.run());
+        attackRangeSliderB.setOnValueChange(v -> updateColor.run());
+        visualsAttackRangeWidgets.add(attackRangeSliderR); visualsAttackRangeWidgets.add(attackRangeSliderG); visualsAttackRangeWidgets.add(attackRangeSliderB);
+
+        attackRangeHexInput = createColorTextField((int)x + 40, (int)y + 110, 60);
+        attackRangeHexInput.setText(String.format("#%06X", currentColor & 0xFFFFFF));
+        attackRangeHexInput.setChangedListener(text -> {
+            if (isUpdating) return;
+            try {
+                String clean = text.trim();
+                if (clean.startsWith("#")) clean = clean.substring(1);
+                if (clean.length() == 6) {
+                    int color = Integer.parseInt(clean, 16);
+                    isUpdating = true;
+                    int r = (color >> 16) & 0xFF;
+                    int g = (color >> 8) & 0xFF;
+                    int b = color & 0xFF;
+                    attackRangeSliderR.setValue(r / 255.0f);
+                    attackRangeSliderG.setValue(g / 255.0f);
+                    attackRangeSliderB.setValue(b / 255.0f);
+                    GlassMenuClient.CONFIG.attackRangeColor(0xFF000000 | color);
+                    GlassMenuClient.CONFIG.save();
+                    if (attackRangeRgbInput != null) { String s = String.format("%d, %d, %d", r, g, b); if (!attackRangeRgbInput.getText().equals(s)) attackRangeRgbInput.setText(s); }
+                    isUpdating = false;
+                }
+            } catch (NumberFormatException ignored) {}
+        });
+        visualsAttackRangeWidgets.add(attackRangeHexInput);
+
+        attackRangeRgbInput = createColorTextField((int)x + 40, (int)y + 145, 100);
+        attackRangeRgbInput.setText(String.format("%d, %d, %d", (currentColor >> 16) & 0xFF, (currentColor >> 8) & 0xFF, currentColor & 0xFF));
+        attackRangeRgbInput.setChangedListener(text -> {
+            if (isUpdating) return;
+            try {
+                String[] parts = text.split(",");
+                if (parts.length == 3) {
+                    int r = Integer.parseInt(parts[0].trim());
+                    int g = Integer.parseInt(parts[1].trim());
+                    int b = Integer.parseInt(parts[2].trim());
+                    if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
+                        isUpdating = true;
+                        attackRangeSliderR.setValue(r / 255.0f);
+                        attackRangeSliderG.setValue(g / 255.0f);
+                        attackRangeSliderB.setValue(b / 255.0f);
+                        int color = 0xFF000000 | (r << 16) | (g << 8) | b;
+                        GlassMenuClient.CONFIG.attackRangeColor(color);
+                        GlassMenuClient.CONFIG.save();
+                        if (attackRangeHexInput != null) { String s = String.format("#%06X", color & 0xFFFFFF); if (!attackRangeHexInput.getText().equals(s)) attackRangeHexInput.setText(s); }
+                        isUpdating = false;
+                    }
+                }
+            } catch (NumberFormatException ignored) {}
+        });
+        visualsAttackRangeWidgets.add(attackRangeRgbInput);
+
+        String modeText = "Mode: " + GlassMenuClient.CONFIG.attackRangeMode().name();
+        LiquidGlassButton modeBtn = new LiquidGlassButton((int)x + 40, (int)y + 180, 150, 22, Text.literal(modeText), b -> {
+            GlassMenuConfigModel.AttackRangeMode currentMode = GlassMenuClient.CONFIG.attackRangeMode();
+            GlassMenuConfigModel.AttackRangeMode nextMode;
+            if (currentMode == GlassMenuConfigModel.AttackRangeMode.SOLID_OUTLINE) nextMode = GlassMenuConfigModel.AttackRangeMode.GLOW_OUTLINE;
+            else if (currentMode == GlassMenuConfigModel.AttackRangeMode.GLOW_OUTLINE) nextMode = GlassMenuConfigModel.AttackRangeMode.FILLED;
+            else nextMode = GlassMenuConfigModel.AttackRangeMode.SOLID_OUTLINE;
+            GlassMenuClient.CONFIG.attackRangeMode(nextMode);
+            GlassMenuClient.CONFIG.save();
+            b.setMessage(Text.literal("Mode: " + nextMode.name()));
+        });
+        visualsAttackRangeWidgets.add(modeBtn);
+    }
+
+    private void renderVisualsAttackRangeTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
+        int alphaInt = (int)(255 * contentAlpha); int colorAlpha = alphaInt << 24;
+        float slideOffset = (1.0f - contentAlpha) * 12f;
+        context.drawCenteredTextWithShadow(textRenderer, MenuTranslator.tr("Attack Range ESP Settings"), x + 200, y + 20 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable Attack Range"), x + 40, y + 50 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Gear / Clock Effect"), x + 40, y + 80 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        
+        for (ClickableWidget w : visualsAttackRangeWidgets) {
+            w.setAlpha(contentAlpha);
+            if (w == attackRangeSliderR) context.drawTextWithShadow(textRenderer, MenuTranslator.tr("R"), x + 215, w.getY() + 4, colorAlpha | 0xFF5555);
+            if (w == attackRangeSliderG) context.drawTextWithShadow(textRenderer, MenuTranslator.tr("G"), x + 215, w.getY() + 4, colorAlpha | 0x55FF55);
+            if (w == attackRangeSliderB) context.drawTextWithShadow(textRenderer, MenuTranslator.tr("B"), x + 215, w.getY() + 4, colorAlpha | 0x5555FF);
+            w.render(context, mouseX, mouseY, delta);
+        }
+    }
+
     private void renderVisualsNametagsTab(DrawContext context, float x, float y, int mouseX, int mouseY, float delta) {
         context.getMatrices().push();
         context.getMatrices().translate(0, 0, 50);
-        context.drawCenteredTextWithShadow(textRenderer, "Custom Nametags Settings", (int)x + 200, (int)y + 20, 0xFFFFFFFF);
-        context.drawTextWithShadow(textRenderer, "Red", (int)x + 50, (int)y + 80, 0xFFFF5555);
-        context.drawTextWithShadow(textRenderer, "Green", (int)x + 210, (int)y + 80, 0xFF55FF55);
-        context.drawTextWithShadow(textRenderer, "Blue", (int)x + 130, (int)y + 110, 0xFF5555FF);
-        context.drawTextWithShadow(textRenderer, "Hex:", (int)x + 100, (int)y + 165, 0xFFDDDDDD);
+        context.drawCenteredTextWithShadow(textRenderer, MenuTranslator.tr("Custom Nametags Settings"), (int)x + 200, (int)y + 20, 0xFFFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"), (int)x + 90, (int)y + 94, 0xFFFF5555);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), (int)x + 80, (int)y + 124, 0xFF55FF55);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"), (int)x + 85, (int)y + 154, 0xFF5555FF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Hex:"), (int)x + 100, (int)y + 185, 0xFFDDDDDD);
+        
+        int color = GlassMenuClient.CONFIG.customNametagColor() | 0xFF000000;
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), x + 310, y + 115, 60, 20, 4f, color, 0);
         nametagsHexInput.render(context, mouseX, mouseY, delta);
         nametagsRgbInput.render(context, mouseX, mouseY, delta);
         context.getMatrices().pop();
     }
 
+    // ─── FALL PREDICTION (Drop Predictor) ──────────────────────────────────
+    private LiquidGlassSlider fallSliderR, fallSliderG, fallSliderB;
+    
+    private void initVisualsFallTab(float x, float y) {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 215, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
+            currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsFallWidgets.add(backBtn);
+
+        LiquidGlassSwitch enableToggle = new LiquidGlassSwitch((int)x + 330, (int)y + 45, 40, 20, GlassMenuClient.CONFIG.enableFallPrediction());
+        enableToggle.setOnToggle(enabled -> { GlassMenuClient.CONFIG.enableFallPrediction(enabled); GlassMenuClient.CONFIG.save(); });
+        visualsFallWidgets.add(enableToggle);
+
+        int currentColor = GlassMenuClient.CONFIG.fallPredictionColor();
+        // Sliders stacked vertically
+        fallSliderR = new LiquidGlassSlider((int)x + 130, (int)y + 90, 140, 16, ((currentColor >> 16) & 0xFF) / 255f);
+        fallSliderG = new LiquidGlassSlider((int)x + 130, (int)y + 120, 140, 16, ((currentColor >>  8) & 0xFF) / 255f);
+        fallSliderB = new LiquidGlassSlider((int)x + 130, (int)y + 150, 140, 16, ( currentColor        & 0xFF) / 255f);
+
+        Runnable updateColor = () -> {
+            if (isUpdating) return; isUpdating = true;
+            int r = (int)(fallSliderR.getValue() * 255);
+            int g = (int)(fallSliderG.getValue() * 255);
+            int b = (int)(fallSliderB.getValue() * 255);
+            int a = (GlassMenuClient.CONFIG.fallPredictionColor() >> 24) & 0xFF;
+            int color = (a << 24) | (r << 16) | (g << 8) | b;
+            GlassMenuClient.CONFIG.fallPredictionColor(color); GlassMenuClient.CONFIG.save();
+            isUpdating = false;
+        };
+        fallSliderR.setOnValueChange(v -> updateColor.run());
+        fallSliderG.setOnValueChange(v -> updateColor.run());
+        fallSliderB.setOnValueChange(v -> updateColor.run());
+        visualsFallWidgets.add(fallSliderR);
+        visualsFallWidgets.add(fallSliderG);
+        visualsFallWidgets.add(fallSliderB);
+    }
+    
+    private void renderVisualsFallTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
+        context.drawText(client.textRenderer, MenuTranslator.tr("Drop Predictor"), (int)x + 40, (int)y + 20, 0xFFFFFFFF, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Enable Prediction"), (int)x + 40, (int)y + 50, 0xFFAAAAAA, true);
+        
+        context.drawText(client.textRenderer, MenuTranslator.tr("Red"), (int)x + 90, (int)y + 94, 0xFFFF5555, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Green"), (int)x + 80, (int)y + 124, 0xFF55FF55, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Blue"), (int)x + 85, (int)y + 154, 0xFF5555FF, true);
+        
+        int color = GlassMenuClient.CONFIG.fallPredictionColor() | 0xFF000000;
+        RenderUtils.drawSdfRoundedRect(context.getMatrices(), x + 310, y + 115, 60, 20, 4f, color, 0);
+        
+        for (ClickableWidget widget : visualsFallWidgets) {
+            widget.render(context, mouseX, mouseY, delta);
+        }
+    }
 
     // ─── AFTERIMAGE (Ghost Trail) ──────────────────────────────────────────────
     private void initVisualsGhostTab(float x, float y) {
-        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 215, 80, 22, Text.literal("Back"), b -> {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 215, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsGhostWidgets.add(backBtn);
@@ -3685,14 +3897,14 @@ public class LiquidGlassScreen extends Screen {
         RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
         net.minecraft.client.font.TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         
-        context.drawText(tr, "Stretch Resolution", x + 30, y + 25, 0xFFFFFF, true);
-        context.drawText(tr, "Enable Stretch", x + 30, y + 50, 0xAAAAAA, true);
-        context.drawText(tr, "Stretches the 3D world (CS:GO style).", x + 30, y + 62, 0x777777, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Stretch Resolution"), x + 30, y + 25, 0xFFFFFF, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Enable Stretch"), x + 30, y + 50, 0xAAAAAA, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Stretches the 3D world (CS:GO style)."), x + 30, y + 62, 0x777777, true);
         
-        context.drawText(tr, "Horizontal Stretch", x + 30, y + 95, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Horizontal Stretch"), x + 30, y + 95, 0xCCCCCC, true);
         context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.stretchHorizontal()), x + 180, y + 95, 0xFFFFFF, true);
         
-        context.drawText(tr, "Vertical Stretch", x + 30, y + 135, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Vertical Stretch"), x + 30, y + 135, 0xCCCCCC, true);
         context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.stretchVertical()), x + 180, y + 135, 0xFFFFFF, true);
         
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
@@ -3705,18 +3917,18 @@ public class LiquidGlassScreen extends Screen {
         RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
         net.minecraft.client.font.TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         
-        context.drawText(tr, "Global Color Grading", x + 30, y + 25, 0xFFFFFF, true);
-        context.drawText(tr, "Enable Grading", x + 230, y + 30, 0xAAAAAA, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Global Color Grading"), x + 30, y + 25, 0xFFFFFF, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Enable Grading"), x + 230, y + 30, 0xAAAAAA, true);
         
-        context.drawText(tr, "Saturation", x + 30, y + 55, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Saturation"), x + 30, y + 55, 0xCCCCCC, true);
         context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.cgSaturation()), x + 180, y + 55, 0xFFFFFF, true);
         
-        context.drawText(tr, "Contrast", x + 30, y + 95, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Contrast"), x + 30, y + 95, 0xCCCCCC, true);
         context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.cgContrast()), x + 180, y + 95, 0xFFFFFF, true);
 
-        context.drawText(tr, "Tint R", x + 230, y + 55, 0xCCCCCC, true);
-        context.drawText(tr, "Tint G", x + 230, y + 95, 0xCCCCCC, true);
-        context.drawText(tr, "Tint B", x + 230, y + 135, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Tint R"), x + 230, y + 55, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Tint G"), x + 230, y + 95, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Tint B"), x + 230, y + 135, 0xCCCCCC, true);
         
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         context.getMatrices().pop();
@@ -3728,8 +3940,8 @@ public class LiquidGlassScreen extends Screen {
         RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
         net.minecraft.client.font.TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         
-        context.drawText(tr, "Custom Crosshair", x + 30, y + 25, 0xFFFFFF, true);
-        context.drawText(tr, "Enable", x + 230, y + 30, 0xAAAAAA, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Custom Crosshair"), x + 30, y + 25, 0xFFFFFF, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Enable"), x + 230, y + 30, 0xAAAAAA, true);
         
         String modeName = switch (GlassMenuClient.CONFIG.crosshairMode()) {
             case 0 -> "Rounded Cross";
@@ -3738,25 +3950,25 @@ public class LiquidGlassScreen extends Screen {
             case 3 -> "4-Corners";
             default -> "Unknown";
         };
-        context.drawText(tr, "Mode: " + modeName, x + 30, y + 55, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Mode: ") + modeName, x + 30, y + 55, 0xCCCCCC, true);
         
-        context.drawText(tr, "Size", x + 30, y + 95, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Size"), x + 30, y + 95, 0xCCCCCC, true);
         context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairSize()), x + 180, y + 95, 0xFFFFFF, true);
 
-        context.drawText(tr, "Thickness", x + 30, y + 135, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Thickness"), x + 30, y + 135, 0xCCCCCC, true);
         context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairThickness()), x + 180, y + 135, 0xFFFFFF, true);
 
-        context.drawText(tr, "Gap", x + 30, y + 175, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Gap"), x + 30, y + 175, 0xCCCCCC, true);
         context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairGap()), x + 180, y + 175, 0xFFFFFF, true);
 
-        context.drawText(tr, "Rainbow Speed", x + 30, y + 215, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Rainbow Speed"), x + 30, y + 215, 0xCCCCCC, true);
         context.drawText(tr, String.format("%.2f", GlassMenuClient.CONFIG.crosshairRainbowSpeed()), x + 180, y + 215, 0xFFFFFF, true);
 
-        context.drawText(tr, "Color R", x + 230, y + 55, 0xCCCCCC, true);
-        context.drawText(tr, "Color G", x + 230, y + 95, 0xCCCCCC, true);
-        context.drawText(tr, "Color B", x + 230, y + 135, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Color R"), x + 230, y + 55, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Color G"), x + 230, y + 95, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Color B"), x + 230, y + 135, 0xCCCCCC, true);
         
-        context.drawText(tr, "Rainbow RGB", x + 230, y + 195, 0xCCCCCC, true);
+        context.drawText(client.textRenderer, MenuTranslator.tr("Rainbow RGB"), x + 230, y + 195, 0xCCCCCC, true);
         
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         context.getMatrices().pop();
@@ -3767,21 +3979,21 @@ public class LiquidGlassScreen extends Screen {
         float slideOffset = (1f - contentAlpha) * 18f;
 
         // Panel title
-        context.drawCenteredTextWithShadow(textRenderer, "Afterimage Trail", x + 200, y + 20 - (int)slideOffset, colorAlpha | 0xFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, MenuTranslator.tr("Afterimage Trail"), x + 200, y + 20 - (int)slideOffset, colorAlpha | 0xFFFFFF);
 
         // Enable row
-        context.drawTextWithShadow(textRenderer, "Enable",  x + 230, y + 50  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable"),  x + 230, y + 50  - (int)slideOffset, colorAlpha | 0xAAAAAA);
         // RGB row
-        context.drawTextWithShadow(textRenderer, "Rainbow", x + 230, y + 85  - (int)slideOffset, colorAlpha | 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Rainbow"), x + 230, y + 85  - (int)slideOffset, colorAlpha | 0xAAAAAA);
 
         // Colour picker section header
         boolean rgbOn = GlassMenuClient.CONFIG.ghostTrailRgb();
         boolean showColorPicker = !rgbOn;
         if (showColorPicker) {
-            context.drawTextWithShadow(textRenderer, "Color",  x + 110,  y + 98 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Red",    x + 230,  y + 108 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Green",  x + 230,  y + 138 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, "Blue",   x + 230,  y + 168 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Color"),  x + 110,  y + 98 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),    x + 230,  y + 108 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"),  x + 230,  y + 138 - (int)slideOffset, colorAlpha | 0xAAAAAA);
+            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),   x + 230,  y + 168 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
 
         // Reposition interactive widgets
