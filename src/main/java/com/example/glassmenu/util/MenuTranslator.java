@@ -10,7 +10,7 @@ public class MenuTranslator {
     private static final Map<String, String> ru = new HashMap<>();
     static {
         ru.put("Left Hand Item", "Левая рука");
-        ru.put("Player Card", "Музыкальный Плеер");
+        ru.put("Player Card", "Карточка игрока");
         ru.put("Red", "Красный");
         ru.put("Green", "Зеленый");
         ru.put("Blue", "Синий");
@@ -41,7 +41,7 @@ public class MenuTranslator {
         ru.put("Enable Dynamic Island", "Включить Dynamic Island");
         ru.put("Enable Attack Range", "Включить Радиус Атаки");
         ru.put("BedWars ESP Settings", "Настройки BedWars ESP");
-        ru.put("Better Inv HUD", "Лучший Инвентарь");
+        ru.put("Better Inv HUD", "Улучшенный Инвентарь");
         ru.put("Gear / Clock Effect", "Эффект Шестеренки / Часов");
         ru.put("Hit Star Settings", "Настройки Звезд при Ударе");
         ru.put("Enable Custom Hit Stars", "Включить Кастомные Звезды");
@@ -53,7 +53,7 @@ public class MenuTranslator {
         ru.put("Hex", "Hex Код");
         ru.put("Enable Armor HUD", "Включить Armor HUD");
         ru.put("RGB Value", "Значение RGB");
-        ru.put("Enable Card", "Включить Плеер");
+        ru.put("Enable Card", "Включить Карточку");
         ru.put("Enable Indicator", "Включить Индикатор");
         ru.put("Show Teammate Hearts", "Показывать Сердечки Тиммейтов");
         ru.put("Afterimage Trail", "След (Afterimage)");

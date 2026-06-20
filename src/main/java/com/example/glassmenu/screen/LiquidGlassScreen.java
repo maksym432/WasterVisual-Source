@@ -965,7 +965,8 @@ public class LiquidGlassScreen extends Screen {
             
             GlassMenuClient.CONFIG.menuLanguage(nextLang);
             GlassMenuClient.CONFIG.save();
-            b.setMessage(Text.literal("Language / Язык: " + nextLang.name()));
+            this.clearChildren();
+            this.init(this.client, this.width, this.height);
         });
         generalWidgets.add(langBtn);
     }
