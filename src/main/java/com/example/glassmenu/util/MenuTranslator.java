@@ -17,6 +17,9 @@ public class MenuTranslator {
         ru.put("RGB Arrows", "RGB Стрелки");
         ru.put("Arrow Color", "Цвет Стрелки");
         ru.put("Radius: ", "Радиус: ");
+        ru.put("Radius", "Радиус");
+        ru.put("Max Distance", "Макс. дистанция");
+        ru.put("Circle Size", "Размер круга");
         ru.put("Icon Size", "Размер указателя");
         ru.put("Radius", "Радиус");
 
