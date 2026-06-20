@@ -42,6 +42,8 @@ public class CrosshairRadarRenderer {
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
+        RenderSystem.disableCull();
+        RenderSystem.disableDepthTest();
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
 
         java.util.List<PlayerTarget> targets = new java.util.ArrayList<>();
@@ -50,8 +52,11 @@ public class CrosshairRadarRenderer {
         for (AbstractClientPlayerEntity player : client.world.getPlayers()) {
             if (player == client.player || player.isSpectator() || player.isInvisible()) continue;
 
-            double dx = player.getX() - cameraPos.x;
-            double dz = player.getZ() - cameraPos.z;
+            double lerpedX = MathHelper.lerp(tickDelta, player.prevX, player.getX());
+            double lerpedZ = MathHelper.lerp(tickDelta, player.prevZ, player.getZ());
+            
+            double dx = lerpedX - cameraPos.x;
+            double dz = lerpedZ - cameraPos.z;
             double distance = Math.sqrt(dx * dx + dz * dz);
             
             if (distance < 1.0 || distance > maxDistance) continue; // Too close or too far
@@ -71,6 +76,8 @@ public class CrosshairRadarRenderer {
 
         if (targets.isEmpty()) {
             RenderSystem.disableBlend();
+            RenderSystem.enableCull();
+            RenderSystem.enableDepthTest();
             return;
         }
 
@@ -94,6 +101,8 @@ public class CrosshairRadarRenderer {
         }
 
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+        RenderSystem.enableCull();
+        RenderSystem.enableDepthTest();
 
         // Draw Text with background squares and anti-overlap
         java.util.List<net.minecraft.client.util.math.Rect2i> drawnRects = new java.util.ArrayList<>();
