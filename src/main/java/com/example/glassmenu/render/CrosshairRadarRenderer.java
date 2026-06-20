@@ -14,7 +14,8 @@ import java.awt.Color;
 
 public class CrosshairRadarRenderer {
 
-    private static final java.util.Map<String, Float> smoothedRadiusMap = new java.util.HashMap<>();
+    private static final java.util.Map<String, Float> smoothedXMap = new java.util.HashMap<>();
+    private static final java.util.Map<String, Float> smoothedYMap = new java.util.HashMap<>();
     private static long lastTime = System.currentTimeMillis();
 
     public static void render(DrawContext context, float tickDelta) {
@@ -163,19 +164,27 @@ public class CrosshairRadarRenderer {
                 }
             }
 
-            // Smooth the radius
-            float prevSmoothRad = smoothedRadiusMap.getOrDefault(target.name, currentRad);
-            float smoothRad = MathHelper.lerp(MathHelper.clamp(dt * 15f, 0f, 1f), prevSmoothRad, currentRad);
-            smoothedRadiusMap.put(target.name, smoothRad);
-            
-            // Recalculate drawX and drawY with smoothRad
-            float smoothOffsetX = (float) Math.sin(target.angleRad) * smoothRad;
-            float smoothOffsetY = -(float) Math.cos(target.angleRad) * smoothRad;
-            drawX = target.x + smoothOffsetX - totalWidth / 2f;
-            drawY = target.y + smoothOffsetY - totalHeight / 2f;
+            // Smooth X and Y directly for all movement transitions
+            float targetDrawX = target.x + (float) Math.sin(target.angleRad) * currentRad - totalWidth / 2f;
+            float targetDrawY = target.y - (float) Math.cos(target.angleRad) * currentRad - totalHeight / 2f;
 
-            // Draw glass background instead of fill
-            GlassRefractionEngine.drawRefractedPanel(context, (int)drawX - 3, (int)drawY - 3, totalWidth + 6, totalHeight + 6, 0.8f, 0x22FFFFFF, 4f);
+            float prevSmoothX = smoothedXMap.getOrDefault(target.name, targetDrawX);
+            float prevSmoothY = smoothedYMap.getOrDefault(target.name, targetDrawY);
+
+            // If jumped too far (teleport), snap it
+            if (Math.abs(prevSmoothX - targetDrawX) > 300 || Math.abs(prevSmoothY - targetDrawY) > 300) {
+                prevSmoothX = targetDrawX;
+                prevSmoothY = targetDrawY;
+            }
+
+            drawX = MathHelper.lerp(MathHelper.clamp(dt * 15f, 0f, 1f), prevSmoothX, targetDrawX);
+            drawY = MathHelper.lerp(MathHelper.clamp(dt * 15f, 0f, 1f), prevSmoothY, targetDrawY);
+
+            smoothedXMap.put(target.name, drawX);
+            smoothedYMap.put(target.name, drawY);
+
+            // Draw glass background instead of fill (Darkened overlay color: 0x66000000)
+            GlassRefractionEngine.drawRefractedPanel(context, (int)drawX - 3, (int)drawY - 3, totalWidth + 6, totalHeight + 6, 0.8f, 0x66000000, 4f);
             
             // Draw Player Head using SDF
             if (target.skin != null) {
