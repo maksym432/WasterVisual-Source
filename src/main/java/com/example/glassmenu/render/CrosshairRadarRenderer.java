@@ -114,9 +114,7 @@ public class CrosshairRadarRenderer {
         RenderSystem.enableCull();
         RenderSystem.enableDepthTest();
 
-        // Draw Text with background squares and anti-overlap
-        java.util.List<net.minecraft.client.util.math.Rect2i> drawnRects = new java.util.ArrayList<>();
-        
+        // Draw Text with background squares
         targets.sort(java.util.Comparator.comparingInt(t -> t.distance));
 
         for (PlayerTarget target : targets) {
@@ -134,35 +132,6 @@ public class CrosshairRadarRenderer {
             float currentRad = 12.0f;
             float drawX = 0;
             float drawY = 0;
-            boolean overlapping = true;
-            
-            // Push text further away if it overlaps with existing text
-            while (overlapping && currentRad < 200.0f) {
-                float textOffsetX = (float) Math.sin(target.angleRad) * currentRad;
-                float textOffsetY = -(float) Math.cos(target.angleRad) * currentRad;
-                
-                drawX = target.x + textOffsetX - totalWidth / 2f;
-                drawY = target.y + textOffsetY - totalHeight / 2f;
-                
-                overlapping = false;
-                net.minecraft.client.util.math.Rect2i currentRect = new net.minecraft.client.util.math.Rect2i((int)drawX - 2, (int)drawY - 2, totalWidth + 4, totalHeight + 4);
-                
-                for (net.minecraft.client.util.math.Rect2i rect : drawnRects) {
-                    if (currentRect.getX() < rect.getX() + rect.getWidth() && 
-                        currentRect.getX() + currentRect.getWidth() > rect.getX() &&
-                        currentRect.getY() < rect.getY() + rect.getHeight() && 
-                        currentRect.getY() + currentRect.getHeight() > rect.getY()) {
-                        overlapping = true;
-                        break;
-                    }
-                }
-                
-                if (overlapping) {
-                    currentRad += 10.0f;
-                } else {
-                    drawnRects.add(currentRect);
-                }
-            }
 
             // Smooth X and Y directly for all movement transitions
             float targetDrawX = target.x + (float) Math.sin(target.angleRad) * currentRad - totalWidth / 2f;
