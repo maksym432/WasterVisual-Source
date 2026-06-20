@@ -244,4 +244,10 @@ public class GlassMenuConfigModel {
     public enum AttackRangeMode {
         SOLID_OUTLINE, GLOW_OUTLINE, FILLED
     }
+
+    // --- CROSSHAIR RADAR ---
+    public boolean enableCrosshairRadar = false;
+    public int crosshairRadarColor = 0xFF00FF00; // Default green
+    public boolean crosshairRadarRgb = false;
+    public float crosshairRadarRadius = 60.0f;
 }

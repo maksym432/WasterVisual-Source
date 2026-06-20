@@ -87,6 +87,12 @@ public class GlassMenuClient implements ClientModInitializer {
         // Render Dynamic Island, Inventory HUD and Player Card on in-game HUD (when no screen is open)
         HudRenderCallback.EVENT.register((context, tickCounter) -> {
             MinecraftClient client = MinecraftClient.getInstance();
+            
+            // Render Crosshair Radar over everything when in game
+            if (client.currentScreen == null) {
+                com.example.glassmenu.render.CrosshairRadarRenderer.render(context, tickCounter.getTickDelta(true));
+            }
+
             if (client.currentScreen == null) {
                 if (CONFIG.enableDynamicIsland()) {
                     com.example.glassmenu.widget.IslandManager.render(
