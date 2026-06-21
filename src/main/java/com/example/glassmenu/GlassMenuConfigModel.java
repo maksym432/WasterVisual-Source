@@ -252,4 +252,13 @@ public class GlassMenuConfigModel {
     public float crosshairRadarRadius = 60.0f;
     public float crosshairRadarIconSize = 6.0f;
     public float crosshairRadarSearchDistance = 64.0f;
+
+    // --- KEYSTROKES ---
+    public boolean enableKeystrokes = false;
+    public boolean transparentKeystrokes = false;
+    public int keystrokesColor = 0xEE1C1C24;
+    public int keystrokesX = -1;
+    public int keystrokesY = -1;
+    public int keystrokesWidth = 76;
+    public int keystrokesHeight = 68;
 }

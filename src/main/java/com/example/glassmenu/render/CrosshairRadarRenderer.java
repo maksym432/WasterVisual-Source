@@ -81,7 +81,7 @@ public class CrosshairRadarRenderer {
             float targetX = centerX + (float) Math.sin(angleRad) * radius;
             float targetY = centerY - (float) Math.cos(angleRad) * radius;
 
-            targets.add(new PlayerTarget(player.getName().getString(), (int)distance, targetX, targetY, angleRad, player.getSkinTextures().texture()));
+            targets.add(new PlayerTarget(player.getName().getString(), distance, (int)distance, targetX, targetY, angleRad, player.getSkinTextures().texture()));
         }
 
         if (targets.isEmpty()) {
@@ -99,11 +99,11 @@ public class CrosshairRadarRenderer {
             float p1x = target.x + (float) Math.sin(target.angleRad) * arrowSize;
             float p1y = target.y - (float) Math.cos(target.angleRad) * arrowSize;
             
-            float p2x = target.x + (float) Math.sin(target.angleRad + Math.PI * 0.75) * arrowSize;
-            float p2y = target.y - (float) Math.cos(target.angleRad + Math.PI * 0.75) * arrowSize;
+            float p2x = target.x + (float) Math.sin(target.angleRad + Math.PI * 0.65) * arrowSize;
+            float p2y = target.y - (float) Math.cos(target.angleRad + Math.PI * 0.65) * arrowSize;
             
-            float p3x = target.x + (float) Math.sin(target.angleRad - Math.PI * 0.75) * arrowSize;
-            float p3y = target.y - (float) Math.cos(target.angleRad - Math.PI * 0.75) * arrowSize;
+            float p3x = target.x + (float) Math.sin(target.angleRad - Math.PI * 0.65) * arrowSize;
+            float p3y = target.y - (float) Math.cos(target.angleRad - Math.PI * 0.65) * arrowSize;
 
             bufferBuilder.vertex(matrix, p1x, p1y, 0).color(r, g, b, 1.0f);
             bufferBuilder.vertex(matrix, p2x, p2y, 0).color(r, g, b, 1.0f);
@@ -115,7 +115,18 @@ public class CrosshairRadarRenderer {
         RenderSystem.enableDepthTest();
 
         // Draw Text with background squares
-        targets.sort(java.util.Comparator.comparingInt(t -> t.distance));
+        targets.sort((t1, t2) -> {
+            int cmp = Double.compare(t1.rawDistance, t2.rawDistance);
+            if (cmp == 0) {
+                return t1.name.compareTo(t2.name);
+            }
+            return cmp;
+        });
+        
+        // Limit to closest 5 players to prevent massive clutter in lobbies
+        if (targets.size() > 5) {
+            targets = targets.subList(0, 5);
+        }
 
         for (PlayerTarget target : targets) {
             String text = target.distance + "m";
@@ -146,13 +157,16 @@ public class CrosshairRadarRenderer {
                 prevSmoothY = targetDrawY;
             }
 
-            drawX = MathHelper.lerp(MathHelper.clamp(dt * 15f, 0f, 1f), prevSmoothX, targetDrawX);
-            drawY = MathHelper.lerp(MathHelper.clamp(dt * 15f, 0f, 1f), prevSmoothY, targetDrawY);
+            // Speed up the lerp slightly to prevent them getting stuck when swapping
+            drawX = MathHelper.lerp(MathHelper.clamp(dt * 20f, 0f, 1f), prevSmoothX, targetDrawX);
+            drawY = MathHelper.lerp(MathHelper.clamp(dt * 20f, 0f, 1f), prevSmoothY, targetDrawY);
 
             smoothedXMap.put(target.name, drawX);
             smoothedYMap.put(target.name, drawY);
 
-            // Draw glass background instead of fill (Darkened overlay color: 0x66000000)
+            // Draw multi-layered glass background (3 stacked cards for intense blur)
+            GlassRefractionEngine.drawRefractedPanel(context, (int)drawX - 3, (int)drawY - 3, totalWidth + 6, totalHeight + 6, 0.8f, 0x11000000, 4f);
+            GlassRefractionEngine.drawRefractedPanel(context, (int)drawX - 3, (int)drawY - 3, totalWidth + 6, totalHeight + 6, 0.8f, 0x11000000, 4f);
             GlassRefractionEngine.drawRefractedPanel(context, (int)drawX - 3, (int)drawY - 3, totalWidth + 6, totalHeight + 6, 0.8f, 0x66000000, 4f);
             
             // Draw Player Head using SDF
@@ -174,11 +188,12 @@ public class CrosshairRadarRenderer {
 
     private static class PlayerTarget {
         String name;
+        double rawDistance;
         int distance;
         float x, y, angleRad;
         net.minecraft.util.Identifier skin;
-        PlayerTarget(String name, int distance, float x, float y, float angleRad, net.minecraft.util.Identifier skin) {
-            this.name = name; this.distance = distance; this.x = x; this.y = y; this.angleRad = angleRad; this.skin = skin;
+        PlayerTarget(String name, double rawDistance, int distance, float x, float y, float angleRad, net.minecraft.util.Identifier skin) {
+            this.name = name; this.rawDistance = rawDistance; this.distance = distance; this.x = x; this.y = y; this.angleRad = angleRad; this.skin = skin;
         }
     }
 }

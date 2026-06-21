@@ -145,7 +145,12 @@ public class GlassMenuClient implements ClientModInitializer {
                 com.example.glassmenu.render.LeftHandItemRenderer.render(
                     context,
                     client.getWindow().getScaledWidth(),
-                    client.getWindow().getScaledHeight()
+                    client.getWindow().getScaledHeight(),
+                    false
+                );
+                com.example.glassmenu.render.KeystrokesRenderer.render(
+                    context,
+                    tickCounter.getTickDelta(true)
                 );
             }
         });

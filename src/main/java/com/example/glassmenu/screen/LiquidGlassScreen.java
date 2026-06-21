@@ -49,7 +49,7 @@ public class LiquidGlassScreen extends Screen {
     private LiquidGlassEffectView effectView;
     private LiquidLensView lensView;
     
-    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_GLASS_HOTBAR, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, VISUALS_ISLAND, VISUALS_HIT, VISUALS_GHOST, VISUALS_FALL, VISUALS_STRETCH, VISUALS_COLOR, VISUALS_CROSSHAIR, VISUALS_NAMETAGS, VISUALS_ATTACK_RANGE, VISUALS_RADAR, POSITION, BRIDGE }
+    private enum Tab { GENERAL, MOVEMENT, COMBAT, VISUALS, VISUALS_JUMP, VISUALS_INV_HUD, VISUALS_PLAYER_CARD, VISUALS_BEDWARS, VISUALS_INDICATOR, VISUALS_ARMOR_HUD, VISUALS_FAST_ITEM, VISUALS_GLASS_HOTBAR, VISUALS_USER_HUD, VISUALS_EFFECTS, VISUALS_LEFT_HAND_ITEM, VISUALS_ISLAND, VISUALS_HIT, VISUALS_GHOST, VISUALS_FALL, VISUALS_STRETCH, VISUALS_COLOR, VISUALS_CROSSHAIR, VISUALS_NAMETAGS, VISUALS_ATTACK_RANGE, VISUALS_RADAR, VISUALS_KEYSTROKES, POSITION, BRIDGE }
     private Tab currentTab = Tab.GENERAL;
     
     private final List<ClickableWidget> generalWidgets = new ArrayList<>();
@@ -77,6 +77,7 @@ public class LiquidGlassScreen extends Screen {
     private final List<ClickableWidget> visualsNametagsWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsAttackRangeWidgets = new ArrayList<>();
     private final List<ClickableWidget> visualsRadarWidgets = new ArrayList<>();
+    private final List<ClickableWidget> visualsKeystrokesWidgets = new ArrayList<>();
     private TextFieldWidget radarHexInput, radarRgbInput;
     private LiquidGlassSlider radarSliderR, radarSliderG, radarSliderB;
 
@@ -89,8 +90,8 @@ public class LiquidGlassScreen extends Screen {
     private static final float PANEL_H_NORMAL = 220f;
     private static final float PANEL_H_EXPANDED = 280f;
 
-    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.VISUALS_RADAR || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
-    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.VISUALS_RADAR || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
+    private float getPanelW() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.VISUALS_RADAR || currentTab == Tab.VISUALS_KEYSTROKES || currentTab == Tab.BRIDGE) ? PANEL_W_EXPANDED : PANEL_W_NORMAL; }
+    private float getPanelH() { return (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.VISUALS_RADAR || currentTab == Tab.VISUALS_KEYSTROKES || currentTab == Tab.BRIDGE) ? PANEL_H_EXPANDED : PANEL_H_NORMAL; }
 
     // State
     private TextFieldWidget hexInput, rgbInput, visHexInput, visRgbInput, invHexInput, invRgbInput, bridgeHexInput, bridgeRgbInput, hitHexInput, hitRgbInput, ghostHexInput, ghostRgbInput;
@@ -100,7 +101,7 @@ public class LiquidGlassScreen extends Screen {
     private boolean isUpdating = false;
 
     // Position Editor State
-    private enum PositionObject { NONE, ISLAND, INVENTORY, PLAYER, INDICATOR, ARMOR, FAST_ITEM, GLASS_HOTBAR, USER_HUD, EFFECTS, LEFT_HAND_ITEM }
+    private enum PositionObject { NONE, ISLAND, INVENTORY, PLAYER, INDICATOR, ARMOR, FAST_ITEM, GLASS_HOTBAR, USER_HUD, EFFECTS, LEFT_HAND_ITEM, KEYSTROKES }
     private PositionObject selectedObject = PositionObject.NONE;
     private boolean isDraggingObject = false;
     private double dragOffsetX = 0;
@@ -148,7 +149,7 @@ public class LiquidGlassScreen extends Screen {
 
         // 1. Initialize Lists once per screen init (resize/open)
         generalWidgets.clear(); movementWidgets.clear(); combatWidgets.clear(); visualsWidgets.clear(); visualsJumpWidgets.clear(); visualsInvHudWidgets.clear(); visualsPlayerCardWidgets.clear(); visualsBedWarsWidgets.clear(); visualsIndicatorWidgets.clear(); visualsArmorHudWidgets.clear(); visualsFastItemWidgets.clear(); visualsGlassHotbarWidgets.clear(); visualsUserHudWidgets.clear(); visualsEffectsWidgets.clear(); visualsLeftHandItemWidgets.clear(); visualsIslandWidgets.clear(); visualsHitWidgets.clear(); visualsGhostWidgets.clear(); visualsFallWidgets.clear(); visualsStretchWidgets.clear(); visualsColorWidgets.clear(); visualsCrosshairWidgets.clear(); visualsNametagsWidgets.clear(); visualsAttackRangeWidgets.clear();
-        visualsRadarWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
+        visualsRadarWidgets.clear(); visualsKeystrokesWidgets.clear(); positionWidgets.clear(); bridgeWidgets.clear();
         
         initGeneralTab(x, y);
         initCombatTab(x, y);
@@ -175,7 +176,8 @@ public class LiquidGlassScreen extends Screen {
         initVisualsNametagsTab(x, y);
         initVisualsAttackRangeTab(x, y);
         initVisualsRadarTab(x, y);
-        initPositionTab();
+        initVisualsKeystrokesTab(x, y);
+        initPositionTab(x, y);
         initBridgeTab(x, y);
 
         updateVisibleWidgets();
@@ -358,6 +360,11 @@ public class LiquidGlassScreen extends Screen {
             currentTab = Tab.VISUALS_RADAR; contentAlpha = 0.0f; updateVisibleWidgets();
         });
         visualsWidgets.add(radarBtn);
+
+        LiquidGlassButton keystrokesBtn = new LiquidGlassButton(0, 0, 160, 22, Text.literal(MenuTranslator.tr("Keystrokes")), b -> {
+            currentTab = Tab.VISUALS_KEYSTROKES; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsWidgets.add(keystrokesBtn);
 
         // Right Column: World & Interaction
         visualsWidgets.add(jumpEffectsBtn);
@@ -925,7 +932,7 @@ public class LiquidGlassScreen extends Screen {
         visualsEffectsWidgets.add(orientBtn);
     }
 
-    private void initPositionTab() {
+    private void initPositionTab(float x, float y) {
         LiquidGlassButton posBackBtn = new LiquidGlassButton((this.width - 100) / 2, this.height - 40, 100, 22, Text.literal(MenuTranslator.tr("Save & Back")), b -> {
             currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
         });
@@ -1162,6 +1169,7 @@ public class LiquidGlassScreen extends Screen {
                 case VISUALS_CROSSHAIR -> visualsCrosshairWidgets;
                 case VISUALS_NAMETAGS -> visualsNametagsWidgets;
                 case VISUALS_ATTACK_RANGE -> visualsAttackRangeWidgets; case VISUALS_RADAR -> visualsRadarWidgets;
+                case VISUALS_KEYSTROKES -> visualsKeystrokesWidgets;
                 case POSITION -> positionWidgets;
                 case MOVEMENT -> movementWidgets; case BRIDGE -> bridgeWidgets;
             };
@@ -1201,8 +1209,8 @@ public class LiquidGlassScreen extends Screen {
         if (dt < 0f) dt = 0f;
         dt = Math.min(dt, 0.1f);
         
-        float targetW = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.VISUALS_RADAR || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
-        float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.VISUALS_RADAR || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        float targetW = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.VISUALS_RADAR || currentTab == Tab.VISUALS_KEYSTROKES || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
+        float targetH = (currentTab == Tab.MOVEMENT || currentTab == Tab.GENERAL || currentTab == Tab.VISUALS || currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_GLASS_HOTBAR || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.VISUALS_RADAR || currentTab == Tab.VISUALS_KEYSTROKES || currentTab == Tab.BRIDGE) ? 1.0f : 0.0f;
         float targetXOff = (currentTab == Tab.COMBAT) ? 40f : 0f;
 
         panelWidthProgress = MathHelper.lerp(MathHelper.clamp(dt * 10.0f, 0f, 1f), panelWidthProgress, targetW);
@@ -1233,7 +1241,7 @@ public class LiquidGlassScreen extends Screen {
                 
                 boolean isActive = (topTabs[i] == currentTab) 
                     || (topTabs[i] == Tab.GENERAL && currentTab == Tab.BRIDGE)
-                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.POSITION));
+                    || (topTabs[i] == Tab.VISUALS && (currentTab == Tab.VISUALS_JUMP || currentTab == Tab.VISUALS_INV_HUD || currentTab == Tab.VISUALS_PLAYER_CARD || currentTab == Tab.VISUALS_BEDWARS || currentTab == Tab.VISUALS_INDICATOR || currentTab == Tab.VISUALS_ARMOR_HUD || currentTab == Tab.VISUALS_FAST_ITEM || currentTab == Tab.VISUALS_USER_HUD || currentTab == Tab.VISUALS_EFFECTS || currentTab == Tab.VISUALS_LEFT_HAND_ITEM || currentTab == Tab.VISUALS_ISLAND || currentTab == Tab.VISUALS_HIT || currentTab == Tab.VISUALS_GHOST || currentTab == Tab.VISUALS_FALL || currentTab == Tab.VISUALS_STRETCH || currentTab == Tab.VISUALS_COLOR || currentTab == Tab.VISUALS_CROSSHAIR || currentTab == Tab.VISUALS_NAMETAGS || currentTab == Tab.VISUALS_ATTACK_RANGE || currentTab == Tab.VISUALS_RADAR || currentTab == Tab.VISUALS_KEYSTROKES || currentTab == Tab.POSITION));
                 
                 float swell = 1.0f + tabHoverProgress[i] * 0.04f; // Subtle scale swell on hover
 
@@ -1294,32 +1302,35 @@ public class LiquidGlassScreen extends Screen {
             }
         }
 
-        if (currentTab == Tab.GENERAL || currentTab == Tab.BRIDGE) renderGeneralTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.COMBAT) renderCombatTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.MOVEMENT) renderMovementTab(context, x, y, mouseX, mouseY, delta, currentW, currentH);
-        else if (currentTab == Tab.VISUALS) renderVisualsTab(context, x, y, mouseX, mouseY, delta, currentW, currentH);
-        else if (currentTab == Tab.VISUALS_JUMP) renderVisualsJumpTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_INV_HUD) renderVisualsInvHudTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_PLAYER_CARD) renderVisualsPlayerCardTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_BEDWARS) renderVisualsBedWarsTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_INDICATOR) renderVisualsIndicatorTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_ARMOR_HUD) renderVisualsArmorHudTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_FAST_ITEM) renderVisualsFastItemTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_GLASS_HOTBAR) renderVisualsGlassHotbarTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_USER_HUD) renderVisualsUserHudTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_EFFECTS) renderVisualsEffectsTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_LEFT_HAND_ITEM) renderVisualsLeftHandItemTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_ISLAND) renderVisualsIslandTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_HIT)   renderVisualsHitTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_GHOST)  renderVisualsGhostTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_FALL)   renderVisualsFallTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_STRETCH) renderVisualsStretchTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_COLOR) renderVisualsColorTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_CROSSHAIR) renderVisualsCrosshairTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_NAMETAGS) renderVisualsNametagsTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_ATTACK_RANGE) renderVisualsAttackRangeTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.VISUALS_RADAR) renderVisualsRadarTab(context, x, y, mouseX, mouseY, delta);
-        else if (currentTab == Tab.POSITION) renderPositionTab(context, mouseX, mouseY, delta);
+        switch (currentTab) {
+            case GENERAL, BRIDGE -> renderGeneralTab(context, x, y, mouseX, mouseY, delta);
+            case COMBAT -> renderCombatTab(context, x, y, mouseX, mouseY, delta);
+            case MOVEMENT -> renderMovementTab(context, x, y, mouseX, mouseY, delta, currentW, currentH);
+            case VISUALS -> renderVisualsTab(context, x, y, mouseX, mouseY, delta, currentW, currentH);
+            case VISUALS_JUMP -> renderVisualsJumpTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_INV_HUD -> renderVisualsInvHudTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_PLAYER_CARD -> renderVisualsPlayerCardTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_BEDWARS -> renderVisualsBedWarsTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_INDICATOR -> renderVisualsIndicatorTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_ARMOR_HUD -> renderVisualsArmorHudTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_FAST_ITEM -> renderVisualsFastItemTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_GLASS_HOTBAR -> renderVisualsGlassHotbarTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_USER_HUD -> renderVisualsUserHudTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_EFFECTS -> renderVisualsEffectsTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_LEFT_HAND_ITEM -> renderVisualsLeftHandItemTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_ISLAND -> renderVisualsIslandTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_HIT -> renderVisualsHitTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_GHOST -> renderVisualsGhostTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_FALL -> renderVisualsFallTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_STRETCH -> renderVisualsStretchTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_COLOR -> renderVisualsColorTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_CROSSHAIR -> renderVisualsCrosshairTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_NAMETAGS -> renderVisualsNametagsTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_ATTACK_RANGE -> renderVisualsAttackRangeTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_RADAR -> renderVisualsRadarTab(context, x, y, mouseX, mouseY, delta);
+            case VISUALS_KEYSTROKES -> renderVisualsKeystrokesTab(context, mouseX, mouseY, delta, x, y);
+            case POSITION -> renderPositionTab(context, mouseX, mouseY, delta);
+        }
 
         super.render(context, mouseX, mouseY, delta);
         if (scale < 1.0f && currentTab != Tab.POSITION) {
@@ -1843,7 +1854,7 @@ public class LiquidGlassScreen extends Screen {
             float bx = 3 + i * 59;
             float by = 3;
             RenderUtils.drawSdfRoundedOutline(context.getMatrices(), bx, by, 56f, 20f, 4f, 0.6f, slotOutlineColor);
-            RenderUtils.drawSdfRoundedRect(context.getMatrices(), bx, by, 56f, 20f, 4f, slotFillColor, 0f);
+            RenderUtils.drawSdfRoundedRect(context.getMatrices(), bx, by, 56f, 20f, 4f, slotFillColor, 0);
         }
         context.draw(); // Flush slots
 
@@ -2361,16 +2372,33 @@ public class LiquidGlassScreen extends Screen {
         }
 
         // 9. Left Hand Item HUD
-        int leftW = GlassMenuClient.CONFIG.leftHandItemWidth();
-        int leftH = GlassMenuClient.CONFIG.leftHandItemHeight();
-        int leftX = GlassMenuClient.CONFIG.leftHandItemX() == -1 ? 10 : GlassMenuClient.CONFIG.leftHandItemX();
-        int leftY = GlassMenuClient.CONFIG.leftHandItemY() == -1 ? (this.height - leftH) / 2 : GlassMenuClient.CONFIG.leftHandItemY();
+        if (GlassMenuClient.CONFIG.enableLeftHandItem()) {
+            int lhW = GlassMenuClient.CONFIG.leftHandItemWidth();
+            int lhH = GlassMenuClient.CONFIG.leftHandItemHeight();
+            int lhX = GlassMenuClient.CONFIG.leftHandItemX() == -1 ? 10 : GlassMenuClient.CONFIG.leftHandItemX();
+            int lhY = GlassMenuClient.CONFIG.leftHandItemY() == -1 ? this.height / 2 : GlassMenuClient.CONFIG.leftHandItemY();
+            RenderUtils.drawSdfRoundedRect(context.getMatrices(), lhX, lhY, lhW, lhH, 4f, 0xEE1C1C1E, 0);
+            context.draw();
+            context.drawCenteredTextWithShadow(textRenderer, "L-Item", lhX + lhW / 2, lhY + (lhH - 8) / 2, 0xFFFFFFFF);
+            boolean leftHovered = mouseX >= lhX && mouseX <= lhX + lhW && mouseY >= lhY && mouseY <= lhY + lhH;
+            if (leftHovered || selectedObject == PositionObject.LEFT_HAND_ITEM) {
+                drawCornerBrackets(context, lhX, lhY, lhW, lhH, 3.0f, 12.0f, 2.0f, 8.0f, 0xEE00FF00);
+            }
+        }
 
-        com.example.glassmenu.render.LeftHandItemRenderer.render(context, this.width, this.height, true);
-
-        boolean leftHovered = mouseX >= leftX && mouseX <= leftX + leftW && mouseY >= leftY && mouseY <= leftY + leftH;
-        if (leftHovered || selectedObject == PositionObject.LEFT_HAND_ITEM) {
-            drawCornerBrackets(context, leftX, leftY, leftW, leftH, 3.0f, 12.0f, 2.0f, 8.0f, 0xEE00FF00);
+        if (GlassMenuClient.CONFIG.enableKeystrokes()) {
+            int ksW = GlassMenuClient.CONFIG.keystrokesWidth();
+            int ksH = GlassMenuClient.CONFIG.keystrokesHeight();
+            int ksX = GlassMenuClient.CONFIG.keystrokesX() == -1 ? 10 : GlassMenuClient.CONFIG.keystrokesX();
+            int ksY = GlassMenuClient.CONFIG.keystrokesY() == -1 ? 10 : GlassMenuClient.CONFIG.keystrokesY();
+            RenderUtils.drawSdfRoundedRect(context.getMatrices(), ksX, ksY, ksW, ksH, 8f, 0xEE1C1C1E, 0);
+            context.draw();
+            context.drawCenteredTextWithShadow(textRenderer, "Keystrokes", ksX + ksW / 2, ksY + (ksH - 8) / 2, 0xFFFFFFFF);
+            
+            boolean ksHovered = mouseX >= ksX && mouseX <= ksX + ksW && mouseY >= ksY && mouseY <= ksY + ksH;
+            if (ksHovered || selectedObject == PositionObject.KEYSTROKES) {
+                drawCornerBrackets(context, ksX, ksY, ksW, ksH, 3.0f, 12.0f, 2.0f, 8.0f, 0xEE00FF00);
+            }
         }
 
         for (ClickableWidget w : positionWidgets) {
@@ -2904,11 +2932,21 @@ public class LiquidGlassScreen extends Screen {
             int effY_click = GlassMenuClient.CONFIG.effectsHudY() == -1 ? 10 : GlassMenuClient.CONFIG.effectsHudY();
             if (checkClickOrResize(PositionObject.EFFECTS, effX_click, effY_click, effW_click, effH_click, mouseX, mouseY)) return true;
 
-            int leftW = GlassMenuClient.CONFIG.leftHandItemWidth();
-            int leftH = GlassMenuClient.CONFIG.leftHandItemHeight();
-            int leftX = GlassMenuClient.CONFIG.leftHandItemX() == -1 ? 10 : GlassMenuClient.CONFIG.leftHandItemX();
-            int leftY = GlassMenuClient.CONFIG.leftHandItemY() == -1 ? (this.height - leftH) / 2 : GlassMenuClient.CONFIG.leftHandItemY();
-            if (checkClickOrResize(PositionObject.LEFT_HAND_ITEM, leftX, leftY, leftW, leftH, mouseX, mouseY)) return true;
+            if (GlassMenuClient.CONFIG.enableLeftHandItem()) {
+                int lhW = GlassMenuClient.CONFIG.leftHandItemWidth();
+                int lhH = GlassMenuClient.CONFIG.leftHandItemHeight();
+                int lhX = GlassMenuClient.CONFIG.leftHandItemX() == -1 ? 10 : GlassMenuClient.CONFIG.leftHandItemX();
+                int lhY = GlassMenuClient.CONFIG.leftHandItemY() == -1 ? this.height / 2 : GlassMenuClient.CONFIG.leftHandItemY();
+                if (checkClickOrResize(PositionObject.LEFT_HAND_ITEM, lhX, lhY, lhW, lhH, mouseX, mouseY)) return true;
+            }
+
+            if (GlassMenuClient.CONFIG.enableKeystrokes()) {
+                int ksW = GlassMenuClient.CONFIG.keystrokesWidth();
+                int ksH = GlassMenuClient.CONFIG.keystrokesHeight();
+                int ksX = GlassMenuClient.CONFIG.keystrokesX() == -1 ? 10 : GlassMenuClient.CONFIG.keystrokesX();
+                int ksY = GlassMenuClient.CONFIG.keystrokesY() == -1 ? 10 : GlassMenuClient.CONFIG.keystrokesY();
+                if (checkClickOrResize(PositionObject.KEYSTROKES, ksX, ksY, ksW, ksH, mouseX, mouseY)) return true;
+            }
 
             selectedObject = PositionObject.NONE;
             return false;
@@ -3073,6 +3111,16 @@ public class LiquidGlassScreen extends Screen {
                     GlassMenuClient.CONFIG.leftHandItemHeight(newH);
                     GlassMenuClient.CONFIG.leftHandItemX(newX);
                     GlassMenuClient.CONFIG.leftHandItemY(newY);
+                } else if (selectedObject == PositionObject.KEYSTROKES) {
+                    newW = MathHelper.clamp(newW, 30, 300);
+                    newH = MathHelper.clamp(newH, 30, 300);
+                    if (resizeLeft) newX = initialX + (initialWidth - newW);
+                    if (resizeTop) newY = initialY + (initialHeight - newH);
+
+                    GlassMenuClient.CONFIG.keystrokesWidth(newW);
+                    GlassMenuClient.CONFIG.keystrokesHeight(newH);
+                    GlassMenuClient.CONFIG.keystrokesX(newX);
+                    GlassMenuClient.CONFIG.keystrokesY(newY);
                 } else if (selectedObject == PositionObject.GLASS_HOTBAR) {
                     boolean isVertical = GlassMenuClient.CONFIG.glassHotbarVertical();
                     int minW = isVertical ? 15 : 100;
@@ -3167,6 +3215,13 @@ public class LiquidGlassScreen extends Screen {
                     newY = MathHelper.clamp(newY, 0, this.height - leftH);
                     GlassMenuClient.CONFIG.leftHandItemX(newX);
                     GlassMenuClient.CONFIG.leftHandItemY(newY);
+                } else if (selectedObject == PositionObject.KEYSTROKES) {
+                    int ksW = GlassMenuClient.CONFIG.keystrokesWidth();
+                    int ksH = GlassMenuClient.CONFIG.keystrokesHeight();
+                    newX = MathHelper.clamp(newX, 0, this.width - ksW);
+                    newY = MathHelper.clamp(newY, 0, this.height - ksH);
+                    GlassMenuClient.CONFIG.keystrokesX(newX);
+                    GlassMenuClient.CONFIG.keystrokesY(newY);
                 } else if (selectedObject == PositionObject.GLASS_HOTBAR) {
                     int ghW = GlassMenuClient.CONFIG.glassHotbarWidth();
                     int ghH = GlassMenuClient.CONFIG.glassHotbarHeight();
@@ -4220,5 +4275,29 @@ public class LiquidGlassScreen extends Screen {
         int b = (int) MathHelper.lerp(p, c1 & 0xFF, c2 & 0xFF);
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
-}
 
+    private void initVisualsKeystrokesTab(float x, float y) {
+        LiquidGlassButton backBtn = new LiquidGlassButton((int)x + 40, (int)y + 260, 80, 22, Text.literal(MenuTranslator.tr("Back")), b -> {
+            currentTab = Tab.VISUALS; contentAlpha = 0.0f; updateVisibleWidgets();
+        });
+        visualsKeystrokesWidgets.add(backBtn);
+
+        LiquidGlassSwitch toggleKeystrokes = new LiquidGlassSwitch((int)x + 100, (int)y + 40, 40, 20, GlassMenuClient.CONFIG.enableKeystrokes());
+        toggleKeystrokes.setOnToggle(enabled -> { GlassMenuClient.CONFIG.enableKeystrokes(enabled); GlassMenuClient.CONFIG.save(); });
+        visualsKeystrokesWidgets.add(toggleKeystrokes);
+
+        LiquidGlassSwitch toggleTransparent = new LiquidGlassSwitch((int)x + 100, (int)y + 75, 40, 20, GlassMenuClient.CONFIG.transparentKeystrokes());
+        toggleTransparent.setOnToggle(enabled -> { GlassMenuClient.CONFIG.transparentKeystrokes(enabled); GlassMenuClient.CONFIG.save(); });
+        visualsKeystrokesWidgets.add(toggleTransparent);
+    }
+
+    private void renderVisualsKeystrokesTab(DrawContext context, int mouseX, int mouseY, float delta, float x, float y) {
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Keystrokes Settings"), (int)x + 10, (int)y + 10, 0xFFFFFFFF);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Enable Keystrokes:"), (int)x + 10, (int)y + 45, 0xFFAAAAAA);
+        context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Transparent:"), (int)x + 10, (int)y + 80, 0xFFAAAAAA);
+
+        visualsKeystrokesWidgets.get(0).render(context, mouseX, mouseY, delta); // Back
+        visualsKeystrokesWidgets.get(1).render(context, mouseX, mouseY, delta); // Toggle Enable
+        visualsKeystrokesWidgets.get(2).render(context, mouseX, mouseY, delta); // Toggle Transparent
+    }
+}
