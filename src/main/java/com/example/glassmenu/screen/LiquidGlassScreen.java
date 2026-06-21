@@ -487,26 +487,7 @@ public class LiquidGlassScreen extends Screen {
         });
         visualsInvHudWidgets.add(hudToggle);
         
-        int currentColor = GlassMenuClient.CONFIG.inventoryHudColor();
-        invSliderR = new LiquidGlassSlider((int)x + 230, (int)y + 90, 140, 16, ((currentColor >> 16) & 0xFF) / 255f);
-        invSliderG = new LiquidGlassSlider((int)x + 230, (int)y + 125, 140, 16, ((currentColor >> 8) & 0xFF) / 255f);
-        invSliderB = new LiquidGlassSlider((int)x + 230, (int)y + 160, 140, 16, (currentColor & 0xFF) / 255f);
-
-        Runnable updateColor = () -> {
-            if (isUpdating) return; isUpdating = true;
-            int r = (int)(invSliderR.getValue() * 255), g = (int)(invSliderG.getValue() * 255), b = (int)(invSliderB.getValue() * 255);
-            int currentVal = GlassMenuClient.CONFIG.inventoryHudColor();
-            int alpha = (currentVal >> 24) & 0xFF;
-            if (alpha == 0) alpha = 0xEE; // make it visible if adjusted
-            int color = (alpha << 24) | (r << 16) | (g << 8) | b;
-            GlassMenuClient.CONFIG.inventoryHudColor(color); GlassMenuClient.CONFIG.save();
-            isUpdating = false;
-        };
-
-        invSliderR.setOnValueChange(v -> updateColor.run());
-        invSliderG.setOnValueChange(v -> updateColor.run());
-        invSliderB.setOnValueChange(v -> updateColor.run());
-        visualsInvHudWidgets.add(invSliderR); visualsInvHudWidgets.add(invSliderG); visualsInvHudWidgets.add(invSliderB);
+        // RGB Sliders removed to match unified Player Card design
 
         String btnText = GlassMenuClient.CONFIG.transparentBackground() ? "Glass Effect: ON" : "Glass Effect: OFF";
         LiquidGlassButton transparentBtn = new LiquidGlassButton((int)x + 40, (int)y + 50, 120, 22, Text.literal(btnText), b -> {
@@ -610,26 +591,7 @@ public class LiquidGlassScreen extends Screen {
         });
         visualsIndicatorWidgets.add(indToggle);
         
-        int currentColor = GlassMenuClient.CONFIG.userIndicatorColor();
-        indSliderR = new LiquidGlassSlider((int)x + 230, (int)y + 90, 140, 16, ((currentColor >> 16) & 0xFF) / 255f);
-        indSliderG = new LiquidGlassSlider((int)x + 230, (int)y + 125, 140, 16, ((currentColor >> 8) & 0xFF) / 255f);
-        indSliderB = new LiquidGlassSlider((int)x + 230, (int)y + 160, 140, 16, (currentColor & 0xFF) / 255f);
-
-        Runnable updateColor = () -> {
-            if (isUpdating) return; isUpdating = true;
-            int r = (int)(indSliderR.getValue() * 255), g = (int)(indSliderG.getValue() * 255), b = (int)(indSliderB.getValue() * 255);
-            int currentVal = GlassMenuClient.CONFIG.userIndicatorColor();
-            int alpha = (currentVal >> 24) & 0xFF;
-            if (alpha == 0) alpha = 0xEE;
-            int color = (alpha << 24) | (r << 16) | (g << 8) | b;
-            GlassMenuClient.CONFIG.userIndicatorColor(color); GlassMenuClient.CONFIG.save();
-            isUpdating = false;
-        };
-
-        indSliderR.setOnValueChange(v -> updateColor.run());
-        indSliderG.setOnValueChange(v -> updateColor.run());
-        indSliderB.setOnValueChange(v -> updateColor.run());
-        visualsIndicatorWidgets.add(indSliderR); visualsIndicatorWidgets.add(indSliderG); visualsIndicatorWidgets.add(indSliderB);
+        // RGB Sliders removed to match unified Player Card design
 
         String btnText = GlassMenuClient.CONFIG.transparentUserIndicator() ? "Glass Effect: ON" : "Glass Effect: OFF";
         LiquidGlassButton transparentBtn = new LiquidGlassButton((int)x + 40, (int)y + 80, 120, 22, Text.literal(btnText), b -> {
@@ -653,26 +615,7 @@ public class LiquidGlassScreen extends Screen {
         });
         visualsArmorHudWidgets.add(armToggle);
         
-        int currentColor = GlassMenuClient.CONFIG.armorHudColor();
-        armSliderR = new LiquidGlassSlider((int)x + 230, (int)y + 90, 140, 16, ((currentColor >> 16) & 0xFF) / 255f);
-        armSliderG = new LiquidGlassSlider((int)x + 230, (int)y + 125, 140, 16, ((currentColor >> 8) & 0xFF) / 255f);
-        armSliderB = new LiquidGlassSlider((int)x + 230, (int)y + 160, 140, 16, (currentColor & 0xFF) / 255f);
-
-        Runnable updateColor = () -> {
-            if (isUpdating) return; isUpdating = true;
-            int r = (int)(armSliderR.getValue() * 255), g = (int)(armSliderG.getValue() * 255), b = (int)(armSliderB.getValue() * 255);
-            int currentVal = GlassMenuClient.CONFIG.armorHudColor();
-            int alpha = (currentVal >> 24) & 0xFF;
-            if (alpha == 0) alpha = 0xEE;
-            int color = (alpha << 24) | (r << 16) | (g << 8) | b;
-            GlassMenuClient.CONFIG.armorHudColor(color); GlassMenuClient.CONFIG.save();
-            isUpdating = false;
-        };
-
-        armSliderR.setOnValueChange(v -> updateColor.run());
-        armSliderG.setOnValueChange(v -> updateColor.run());
-        armSliderB.setOnValueChange(v -> updateColor.run());
-        visualsArmorHudWidgets.add(armSliderR); visualsArmorHudWidgets.add(armSliderG); visualsArmorHudWidgets.add(armSliderB);
+        // RGB Sliders removed to match unified Player Card design
 
         String btnText = GlassMenuClient.CONFIG.transparentArmorHud() ? "Glass Effect: ON" : "Glass Effect: OFF";
         LiquidGlassButton transparentBtn = new LiquidGlassButton((int)x + 40, (int)y + 80, 120, 22, Text.literal(btnText), b -> {
@@ -845,26 +788,7 @@ public class LiquidGlassScreen extends Screen {
         });
         visualsUserHudWidgets.add(userHudToggle);
         
-        int currentColor = GlassMenuClient.CONFIG.userHudColor();
-        userHudSliderR = new LiquidGlassSlider((int)x + 230, (int)y + 90, 140, 16, ((currentColor >> 16) & 0xFF) / 255f);
-        userHudSliderG = new LiquidGlassSlider((int)x + 230, (int)y + 125, 140, 16, ((currentColor >> 8) & 0xFF) / 255f);
-        userHudSliderB = new LiquidGlassSlider((int)x + 230, (int)y + 160, 140, 16, (currentColor & 0xFF) / 255f);
-
-        Runnable updateColor = () -> {
-            if (isUpdating) return; isUpdating = true;
-            int r = (int)(userHudSliderR.getValue() * 255), g = (int)(userHudSliderG.getValue() * 255), b = (int)(userHudSliderB.getValue() * 255);
-            int currentVal = GlassMenuClient.CONFIG.userHudColor();
-            int alpha = (currentVal >> 24) & 0xFF;
-            if (alpha == 0) alpha = 0xEE;
-            int color = (alpha << 24) | (r << 16) | (g << 8) | b;
-            GlassMenuClient.CONFIG.userHudColor(color); GlassMenuClient.CONFIG.save();
-            isUpdating = false;
-        };
-
-        userHudSliderR.setOnValueChange(v -> updateColor.run());
-        userHudSliderG.setOnValueChange(v -> updateColor.run());
-        userHudSliderB.setOnValueChange(v -> updateColor.run());
-        visualsUserHudWidgets.add(userHudSliderR); visualsUserHudWidgets.add(userHudSliderG); visualsUserHudWidgets.add(userHudSliderB);
+        // RGB Sliders removed to match unified Player Card design
 
         String btnText = GlassMenuClient.CONFIG.transparentUserHud() ? "Glass Effect: ON" : "Glass Effect: OFF";
         LiquidGlassButton transparentBtn = new LiquidGlassButton((int)x + 40, (int)y + 80, 120, 22, Text.literal(btnText), b -> {
@@ -1462,12 +1386,7 @@ public class LiquidGlassScreen extends Screen {
 
         for (ClickableWidget w : visualsInvHudWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == invSliderR || w == invSliderG || w == invSliderB) {
-                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
-                else if (w == invSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
-                else if (w == invSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
-                else if (w == invSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
+            if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 50 - (int)slideOffset);
@@ -1522,12 +1441,7 @@ public class LiquidGlassScreen extends Screen {
 
         for (ClickableWidget w : visualsIndicatorWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == indSliderR || w == indSliderG || w == indSliderB) {
-                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
-                else if (w == indSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
-                else if (w == indSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
-                else if (w == indSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
+            if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -1552,12 +1466,7 @@ public class LiquidGlassScreen extends Screen {
 
         for (ClickableWidget w : visualsArmorHudWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == armSliderR || w == armSliderG || w == armSliderB) {
-                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
-                else if (w == armSliderR) { w.setX(x + 230); w.setY((int)y + 90 - (int)slideOffset); }
-                else if (w == armSliderG) { w.setX(x + 230); w.setY((int)y + 125 - (int)slideOffset); }
-                else if (w == armSliderB) { w.setX(x + 230); w.setY((int)y + 160 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
+            if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 210 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
@@ -1669,12 +1578,7 @@ public class LiquidGlassScreen extends Screen {
 
         for (ClickableWidget w : visualsUserHudWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == userHudSliderR || w == userHudSliderG || w == userHudSliderB) {
-                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
-                else if (w == userHudSliderR) { w.setX(x + 230); w.setY((int)y + 85 - (int)slideOffset); }
-                else if (w == userHudSliderG) { w.setX(x + 230); w.setY((int)y + 118 - (int)slideOffset); }
-                else if (w == userHudSliderB) { w.setX(x + 230); w.setY((int)y + 151 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
+            if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);

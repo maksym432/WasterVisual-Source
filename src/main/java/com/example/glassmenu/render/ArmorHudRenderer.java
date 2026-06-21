@@ -45,20 +45,22 @@ public class ArmorHudRenderer {
         context.getMatrices().scale(scaleX, scaleY, 1.0f);
 
         if (!transparent) {
-            int panelColor = GlassMenuClient.CONFIG.armorHudColor();
+            int panelColor = GlassMenuClient.CONFIG.playerCardColor();
             int alpha = (panelColor >> 24) & 0xFF;
             if (alpha > 0) {
-                int borderColor = (alpha * 0x2A / 0xEE) << 24 | 0x00FFFFFF;
+                int finalPanelColor = (alpha << 24) | (panelColor & 0x00FFFFFF);
+                int borderColor = (Math.round(0x2A * (alpha / 255f))) << 24 | 0x00FFFFFF;
                 RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0, 0, baseW, baseH, 8f, 0.8f, borderColor);
-                RenderUtils.drawSdfRoundedRect(context.getMatrices(), 0, 0, baseW, baseH, 8f, panelColor, 0);
+                RenderUtils.drawSdfRoundedRect(context.getMatrices(), 0, 0, baseW, baseH, 8f, finalPanelColor, 0);
             }
         } else {
             RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0, 0, baseW, baseH, 8f, 0.8f, 0x33FFFFFF);
         }
         context.draw(); // Flush background
 
-        int slotOutlineColor = GlassMenuClient.CONFIG.transparentArmorHud() ? 0x22FFFFFF : 0x1AFFFFFF;
-        int slotFillColor = GlassMenuClient.CONFIG.transparentArmorHud() ? 0x0F000000 : 0x12FFFFFF;
+        float alphaFloat = ((GlassMenuClient.CONFIG.playerCardColor() >> 24) & 0xFF) / 255f;
+        int slotOutlineColor = (Math.round((transparent ? 0x22 : 0x1A) * alphaFloat)) << 24 | 0x00FFFFFF;
+        int slotFillColor = (Math.round((transparent ? 0x0F : 0x12) * alphaFloat)) << 24 | (transparent ? 0x00000000 : 0x00FFFFFF);
 
         for (int i = 0; i < 4; i++) {
             int localX = isVertical ? 4 : 4 + i * 28;

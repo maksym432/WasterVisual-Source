@@ -136,7 +136,7 @@ public class UserIndicatorRenderer {
         int leftCps = getCps(leftClicks);
         int rightCps = getCps(rightClicks);
 
-        renderIndicator(context, x, y, w, h, fps, ping, leftCps, rightCps, GlassMenuClient.CONFIG.transparentUserIndicator(), GlassMenuClient.CONFIG.userIndicatorColor());
+        renderIndicator(context, x, y, w, h, fps, ping, leftCps, rightCps, GlassMenuClient.CONFIG.transparentUserIndicator(), GlassMenuClient.CONFIG.playerCardColor());
     }
 
     public static void renderIndicator(DrawContext context, int x, int y, int w, int h, int fps, int ping, int leftCps, int rightCps, boolean transparent, int panelColor) {
@@ -160,17 +160,23 @@ public class UserIndicatorRenderer {
         context.getMatrices().scale(scaleX, scaleY, 1.0f);
 
         if (!transparent) {
-            RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0, 0, 203, 26, 6f, 0.8f, 0x33FFFFFF);
-            RenderUtils.drawSdfRoundedRect(context.getMatrices(), 0, 0, 203, 26, 6f, 0xFF000000, 0);
+            int alpha = (panelColor >> 24) & 0xFF;
+            if (alpha > 0) {
+                int finalPanelColor = (alpha << 24) | (panelColor & 0x00FFFFFF);
+                int borderColor = (Math.round(0x2A * (alpha / 255f))) << 24 | 0x00FFFFFF;
+                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0, 0, 203, 26, 6f, 0.8f, borderColor);
+                RenderUtils.drawSdfRoundedRect(context.getMatrices(), 0, 0, 203, 26, 6f, finalPanelColor, 0);
+            }
         } else {
             RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0, 0, 203, 26, 6f, 0.8f, 0x33FFFFFF);
         }
         context.draw(); // Flush background
 
         // 2. Draw Squares/Boxes for each indicator
-        int blockOutlineColor = transparent ? 0x22FFFFFF : 0x00000000;
-        int blockFillColor = transparent ? 0x0F000000 : 0xEEFFFFFF;
-        int photoBgColor = transparent ? 0x88000000 : 0xEEFFFFFF;
+        float alphaFloat = ((panelColor >> 24) & 0xFF) / 255f;
+        int blockOutlineColor = (Math.round((transparent ? 0x22 : 0x1A) * alphaFloat)) << 24 | 0x00FFFFFF;
+        int blockFillColor = (Math.round((transparent ? 0x0F : 0x12) * alphaFloat)) << 24 | (transparent ? 0x00000000 : 0x00FFFFFF);
+        int photoBgColor = transparent ? 0x88000000 : blockFillColor;
 
         // Draw Square 0: Photo (20x20 at x=3, y=3)
         RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 3f, 3f, 20f, 20f, 4f, 0.6f, blockOutlineColor);
@@ -245,8 +251,9 @@ public class UserIndicatorRenderer {
 
         int textY = 9;
 
-        int textColor = transparent ? 0xFFFFFFFF : 0xFF000000;
-        boolean drawShadow = transparent;
+        int textAlpha = (Math.round(255 * alphaFloat));
+        int textColor = (textAlpha << 24) | 0xFFFFFF;
+        boolean drawShadow = true;
 
         int fpsW = client.textRenderer.getWidth(fpsText);
         context.drawText(client.textRenderer, fpsText, 54 - fpsW / 2, textY, textColor, drawShadow);

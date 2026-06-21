@@ -72,16 +72,23 @@ public class UserHudRenderer {
         context.getMatrices().scale(scaleX, scaleY, 1.0f);
 
         if (!transparent) {
-            RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0f, 0f, 180f, 26f, 6f, 0.8f, 0x33FFFFFF);
-            RenderUtils.drawSdfRoundedRect(context.getMatrices(), 0f, 0f, 180f, 26f, 6f, 0xFF000000, 0f);
+            int panelColor = GlassMenuClient.CONFIG.playerCardColor();
+            int alpha = (panelColor >> 24) & 0xFF;
+            if (alpha > 0) {
+                int finalPanelColor = (alpha << 24) | (panelColor & 0x00FFFFFF);
+                int borderColor = (Math.round(0x2A * (alpha / 255f))) << 24 | 0x00FFFFFF;
+                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0f, 0f, 180f, 26f, 6f, 0.8f, borderColor);
+                RenderUtils.drawSdfRoundedRect(context.getMatrices(), 0f, 0f, 180f, 26f, 6f, finalPanelColor, 0f);
+            }
         } else {
             RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0f, 0f, 180f, 26f, 6f, 0.8f, 0x33FFFFFF);
         }
         context.draw(); // Flush background
 
         // --- Draw separate slots (squares) around metrics ---
-        int slotOutlineColor = transparent ? 0x22FFFFFF : 0x1AFFFFFF;
-        int slotFillColor = transparent ? 0x0F000000 : 0x12FFFFFF;
+        float alphaFloat = ((GlassMenuClient.CONFIG.playerCardColor() >> 24) & 0xFF) / 255f;
+        int slotOutlineColor = (Math.round((transparent ? 0x22 : 0x1A) * alphaFloat)) << 24 | 0x00FFFFFF;
+        int slotFillColor = (Math.round((transparent ? 0x0F : 0x12) * alphaFloat)) << 24 | (transparent ? 0x00000000 : 0x00FFFFFF);
 
         // 3 slots: HP, FD, XP (56x20 at x=3, 62, 121)
         for (int i = 0; i < 3; i++) {
