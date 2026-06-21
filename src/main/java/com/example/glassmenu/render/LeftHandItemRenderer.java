@@ -62,8 +62,9 @@ public class LeftHandItemRenderer {
         context.draw(); // Flush background
 
         // Inner item slot
-        int slotOutlineColor = transparent ? 0x22FFFFFF : 0x00000000;
-        int slotFillColor = transparent ? 0x0F000000 : 0x22000000;
+        float alphaFloat = ((GlassMenuClient.CONFIG.playerCardColor() >> 24) & 0xFF) / 255f;
+        int slotOutlineColor = (Math.round((transparent ? 0x22 : 0x1A) * alphaFloat)) << 24 | 0x00FFFFFF;
+        int slotFillColor = (Math.round((transparent ? 0x0F : 0x12) * alphaFloat)) << 24 | (transparent ? 0x00000000 : 0x00FFFFFF);
 
         float slotX = 5f;
         float slotY = 5f;

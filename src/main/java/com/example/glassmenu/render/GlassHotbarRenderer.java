@@ -69,8 +69,9 @@ public class GlassHotbarRenderer {
         int selectedSlot = client.player.getInventory().selectedSlot;
 
         if (GlassMenuClient.CONFIG.glassHotbarSlots()) {
-            int slotOutlineColor = transparent ? 0x44FFFFFF : 0x00000000;
-            int slotFillColor = transparent ? 0x15FFFFFF : 0x22000000;
+            float alphaFloat = ((GlassMenuClient.CONFIG.playerCardColor() >> 24) & 0xFF) / 255f;
+            int slotOutlineColor = (Math.round((transparent ? 0x44 : 0x1A) * alphaFloat)) << 24 | 0x00FFFFFF;
+            int slotFillColor = (Math.round((transparent ? 0x15 : 0x12) * alphaFloat)) << 24 | (transparent ? 0x00FFFFFF : 0x00FFFFFF);
 
             for (int i = 0; i < 9; i++) {
                 float rx = vertical ? 7f : 4f + i * 24f;
