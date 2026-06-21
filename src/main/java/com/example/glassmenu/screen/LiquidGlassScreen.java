@@ -1642,27 +1642,6 @@ public class LiquidGlassScreen extends Screen {
             b.setMessage(Text.literal(GlassMenuClient.CONFIG.transparentLeftHandItem() ? "Glass Effect: ON" : "Glass Effect: OFF"));
         });
         visualsLeftHandItemWidgets.add(transparentBtn);
-
-        int currentColor = GlassMenuClient.CONFIG.leftHandItemColor();
-        leftHandSliderR = new LiquidGlassSlider((int)x + 230, (int)y + 90, 140, 16, ((currentColor >> 16) & 0xFF) / 255f);
-        leftHandSliderG = new LiquidGlassSlider((int)x + 230, (int)y + 125, 140, 16, ((currentColor >> 8) & 0xFF) / 255f);
-        leftHandSliderB = new LiquidGlassSlider((int)x + 230, (int)y + 160, 140, 16, (currentColor & 0xFF) / 255f);
-
-        Runnable updateColor = () -> {
-            if (isUpdating) return; isUpdating = true;
-            int r = (int)(leftHandSliderR.getValue() * 255), g = (int)(leftHandSliderG.getValue() * 255), b = (int)(leftHandSliderB.getValue() * 255);
-            int currentVal = GlassMenuClient.CONFIG.leftHandItemColor();
-            int alpha = (currentVal >> 24) & 0xFF;
-            if (alpha == 0) alpha = 0xEE;
-            int color = (alpha << 24) | (r << 16) | (g << 8) | b;
-            GlassMenuClient.CONFIG.leftHandItemColor(color); GlassMenuClient.CONFIG.save();
-            isUpdating = false;
-        };
-
-        leftHandSliderR.setOnValueChange(v -> updateColor.run());
-        leftHandSliderG.setOnValueChange(v -> updateColor.run());
-        leftHandSliderB.setOnValueChange(v -> updateColor.run());
-        visualsLeftHandItemWidgets.add(leftHandSliderR); visualsLeftHandItemWidgets.add(leftHandSliderG); visualsLeftHandItemWidgets.add(leftHandSliderB);
     }
 
     private void renderVisualsLeftHandItemTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {
@@ -1675,24 +1654,13 @@ public class LiquidGlassScreen extends Screen {
 
         for (ClickableWidget w : visualsLeftHandItemWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == leftHandSliderR || w == leftHandSliderG || w == leftHandSliderB) {
-                if (isTransparent) { w.setX(-9999); w.setY(-9999); }
-                else if (w == leftHandSliderR) { w.setX(x + 230); w.setY((int)y + 85 - (int)slideOffset); }
-                else if (w == leftHandSliderG) { w.setX(x + 230); w.setY((int)y + 118 - (int)slideOffset); }
-                else if (w == leftHandSliderB) { w.setX(x + 230); w.setY((int)y + 151 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
+            if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 205 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 w.setX(x + 40); w.setY((int)y + 80 - (int)slideOffset);
             } else {
                 w.setX(x + 370); w.setY((int)y + 45 - (int)slideOffset);
             }
-        }
-
-        if (!isTransparent) {
-            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
         }
 
         // Draw a live HUD preview on the left side under the button

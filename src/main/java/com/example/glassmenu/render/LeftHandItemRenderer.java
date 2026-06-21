@@ -51,11 +51,9 @@ public class LeftHandItemRenderer {
         context.getMatrices().scale(scaleX, scaleY, 1.0f);
 
         if (!transparent) {
-            int panelColor = GlassMenuClient.CONFIG.leftHandItemColor();
+            int panelColor = GlassMenuClient.CONFIG.playerCardColor();
             int alpha = (panelColor >> 24) & 0xFF;
             if (alpha > 0) {
-                int borderColor = (alpha * 0x2A / 0xEE) << 24 | 0x00FFFFFF;
-                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0, 0, baseW, baseH, 8f, 0.8f, borderColor);
                 RenderUtils.drawSdfRoundedRect(context.getMatrices(), 0, 0, baseW, baseH, 8f, panelColor, 0);
             }
         } else {
@@ -64,8 +62,8 @@ public class LeftHandItemRenderer {
         context.draw(); // Flush background
 
         // Inner item slot
-        int slotOutlineColor = transparent ? 0x22FFFFFF : 0x1AFFFFFF;
-        int slotFillColor = transparent ? 0x0F000000 : 0x12FFFFFF;
+        int slotOutlineColor = transparent ? 0x22FFFFFF : 0x00000000;
+        int slotFillColor = transparent ? 0x0F000000 : 0x22000000;
 
         float slotX = 5f;
         float slotY = 5f;
