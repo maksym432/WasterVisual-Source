@@ -1534,12 +1534,7 @@ public class LiquidGlassScreen extends Screen {
 
         for (ClickableWidget w : visualsGlassHotbarWidgets) {
             w.setAlpha(contentAlpha);
-            if (w == glassHotbarSliderR || w == glassHotbarSliderG || w == glassHotbarSliderB) {
-                if (!isEnabled || isTransparent) { w.setX(-9999); w.setY(-9999); }
-                else if (w == glassHotbarSliderR) { w.setX(x + 230); w.setY((int)y + 85 - (int)slideOffset); }
-                else if (w == glassHotbarSliderG) { w.setX(x + 230); w.setY((int)y + 118 - (int)slideOffset); }
-                else if (w == glassHotbarSliderB) { w.setX(x + 230); w.setY((int)y + 151 - (int)slideOffset); }
-            } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
+            if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().equals(MenuTranslator.tr("Back"))) {
                 w.setX(x + 40); w.setY((int)y + 220 - (int)slideOffset);
             } else if (w instanceof LiquidGlassButton lgb && lgb.getMessage().getString().startsWith("Glass Effect")) {
                 if (!isEnabled) { w.setX(-9999); w.setY(-9999); }
@@ -1558,11 +1553,6 @@ public class LiquidGlassScreen extends Screen {
             }
         }
 
-        if (isEnabled && !isTransparent) {
-            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Red"),   x + 230, y + 73  - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Green"), x + 230, y + 106 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-            context.drawTextWithShadow(textRenderer, MenuTranslator.tr("Blue"),  x + 230, y + 139 - (int)slideOffset, colorAlpha | 0xAAAAAA);
-        }
     }
 
     private void renderVisualsUserHudTab(DrawContext context, int x, int y, int mouseX, int mouseY, float delta) {

@@ -56,11 +56,9 @@ public class GlassHotbarRenderer {
         context.getMatrices().scale(scaleX, scaleY, 1.0f);
 
         if (!transparent) {
-            int panelColor = GlassMenuClient.CONFIG.glassHotbarColor();
+            int panelColor = GlassMenuClient.CONFIG.playerCardColor();
             int alpha = (panelColor >> 24) & 0xFF;
             if (alpha > 0) {
-                int borderColor = (alpha * 0x2A / 0xEE) << 24 | 0x00FFFFFF;
-                RenderUtils.drawSdfRoundedOutline(context.getMatrices(), 0, 0, baseW, baseH, radius, 0.8f, borderColor);
                 RenderUtils.drawSdfRoundedRect(context.getMatrices(), 0, 0, baseW, baseH, radius, panelColor, 0);
             }
         } else {
@@ -71,8 +69,8 @@ public class GlassHotbarRenderer {
         int selectedSlot = client.player.getInventory().selectedSlot;
 
         if (GlassMenuClient.CONFIG.glassHotbarSlots()) {
-            int slotOutlineColor = GlassMenuClient.CONFIG.glassHotbarTransparent() ? 0x44FFFFFF : 0x22FFFFFF;
-            int slotFillColor = GlassMenuClient.CONFIG.glassHotbarTransparent() ? 0x15FFFFFF : 0x33000000;
+            int slotOutlineColor = transparent ? 0x44FFFFFF : 0x00000000;
+            int slotFillColor = transparent ? 0x15FFFFFF : 0x22000000;
 
             for (int i = 0; i < 9; i++) {
                 float rx = vertical ? 7f : 4f + i * 24f;
